@@ -2,17 +2,45 @@ import { Marker } from 'maplibre-gl';
 
 // Floating live clocks and an approximate UTC-offset guide for the map.
 while (!window.__app) await new Promise((resolve) => setTimeout(resolve, 25));
-const { map } = window.__app;
+const { map, countries, labels } = window.__app;
+const timezones = await fetch('/data/timezones.json').then((response) => response.json());
+const panel = document.querySelector('#timepanel');
+const panelOpen = document.querySelector('#timepanel-open');
+const panelClose = document.querySelector('#timepanel-close');
+function setPanelOpen(open) {
+  panel.hidden = !open;
+  panelOpen.hidden = open;
+  panelOpen.setAttribute('aria-expanded', String(open));
+}
+panelOpen.addEventListener('click', () => setPanelOpen(true));
+panelClose.addEventListener('click', () => setPanelOpen(false));
 const localClock = document.querySelector('#local-clock');
 const utcClock = document.querySelector('#utc-clock');
 const localZone = document.querySelector('#local-zone');
 const toggle = document.querySelector('#timezone-toggle');
+const countryTimeToggle = document.querySelector('#country-time-toggle');
+let countryTimesEnabled = true;
+const countryTimeLabels = labels.map((label) => {
+  const country = countries[label.id];
+  const zone = timezones[country?.iso2];
+  if (!zone) return null;
+  const el = document.createElement('span');
+  el.className = 'country-clock';
+  el.title = `${country.capital || country.name} time (${zone})`;
+  label.el.appendChild(el);
+  return { el, zone, capital: country.capital || country.name };
+}).filter(Boolean);
 const format = (date, options) => new Intl.DateTimeFormat(undefined, options).format(date);
 function updateClocks() {
   const now = new Date();
   localClock.textContent = format(now, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   utcClock.textContent = format(now, { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
   localZone.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local';
+  for (const item of countryTimeLabels) {
+    item.el.textContent = countryTimesEnabled
+      ? `${format(now, { timeZone: item.zone, hour: '2-digit', minute: '2-digit' })} · ${format(now, { timeZone: item.zone, timeZoneName: 'short' }).split(' ').at(-1)}`
+      : '';
+  }
 }
 updateClocks();
 setInterval(updateClocks, 1000);
@@ -51,3 +79,10 @@ function setupTimezoneLayer() {
 if (map.loaded()) setupTimezoneLayer();
 else map.once('load', setupTimezoneLayer);
 toggle.addEventListener('click', () => setEnabled(!enabled));
+countryTimeToggle.addEventListener('click', () => {
+  countryTimesEnabled = !countryTimesEnabled;
+  countryTimeToggle.classList.toggle('on', countryTimesEnabled);
+  countryTimeToggle.setAttribute('aria-pressed', String(countryTimesEnabled));
+  countryTimeToggle.textContent = countryTimesEnabled ? 'Hide country times' : 'Show country times';
+  updateClocks();
+});
