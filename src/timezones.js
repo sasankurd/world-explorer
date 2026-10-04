@@ -1,3 +1,5 @@
+import { Marker } from 'maplibre-gl';
+
 // Floating live clocks and an approximate UTC-offset guide for the map.
 while (!window.__app) await new Promise((resolve) => setTimeout(resolve, 25));
 const { map } = window.__app;
@@ -27,8 +29,8 @@ for (let i = 0; i < 24; i++) {
   const el = document.createElement('div');
   el.className = 'timezone-label';
   el.textContent = label;
-  const marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, 2]).addTo(map);
-  guides.push({ marker, el, lng, offset, label });
+  const marker = new Marker({ element: el, anchor: 'center' }).setLngLat([lng, 2]).addTo(map);
+  guides.push({ marker, el });
 }
 let enabled = false;
 function setEnabled(on) {
@@ -39,11 +41,13 @@ function setEnabled(on) {
   for (const { el } of guides) el.hidden = !on;
   if (map.getLayer('timezone-lines')) map.setLayoutProperty('timezone-lines', 'visibility', on ? 'visible' : 'none');
 }
-map.on('load', () => {
+function setupTimezoneLayer() {
   if (!map.getSource('timezone-lines')) {
     map.addSource('timezone-lines', { type: 'geojson', data: { type: 'FeatureCollection', features: lineFeatures } });
     map.addLayer({ id: 'timezone-lines', type: 'line', source: 'timezone-lines', layout: { visibility: 'none' }, paint: { 'line-color': '#1565c0', 'line-width': 1, 'line-opacity': 0.48, 'line-dasharray': [3, 2] } });
   }
   setEnabled(false);
-});
+}
+if (map.loaded()) setupTimezoneLayer();
+else map.once('load', setupTimezoneLayer);
 toggle.addEventListener('click', () => setEnabled(!enabled));
