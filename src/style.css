@@ -60,8 +60,6 @@ body[data-view="satellite"] .cl.city.cap::before{background:#000;border-color:#f
 @media(max-width:700px){#sizepanel{top:auto;bottom:10px;max-height:42%}}
 
 /* time zones */
-.tzctl{margin:10px 0 0 10px !important}
-.tzctl button{padding:6px 12px;font-weight:600;box-shadow:0 1px 5px #0004;cursor:pointer}
 .cl:not(.city){text-align:center}
 .cl .tm{display:none;font-weight:700;font-size:.92em;font-variant-numeric:tabular-nums}
 body.timemode .cl .tm{display:block}

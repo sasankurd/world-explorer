@@ -567,16 +567,6 @@ function setSizeMode(on) {
 $('#sizebtn').addEventListener('click', () => setSizeMode(!sizeMode));
 
 // ---------- Time zones button (left side of the map) ----------
-class TimeControl {
-  onAdd() {
-    this._c = document.createElement('div');
-    this._c.className = 'maplibregl-ctrl tzctl';
-    this._c.innerHTML = '<button id="timebtn" type="button" title="Show the live local time on every country">🕒 Time zones</button>';
-    return this._c;
-  }
-  onRemove() { this._c.remove(); }
-}
-map.addControl(new TimeControl(), 'top-left');
 let lastTimeKey = '';
 function updateTimeLabels(force) { // the clock under each country name (changes once a minute)
   const key = Math.floor(Date.now() / 60000) + '|' + timeMode;
@@ -594,11 +584,11 @@ function setTimeMode(on) {
   if (on && sizeMode) setSizeMode(false);
   timeMode = on;
   document.body.classList.toggle('timemode', on);
-  $('#timebtn').classList.toggle('on', on);
+  const tt = $('#country-time-toggle');
+  if (tt) { tt.classList.toggle('on', on); tt.setAttribute('aria-pressed', String(on)); tt.textContent = on ? 'Hide country times' : 'Show country times'; }
   if (on && !labelsOn) { labelsOn = true; $('#names').classList.add('on'); }
   updateTimeLabels(true); labelSig = ''; updateLabels();
 }
-$('#timebtn').addEventListener('click', () => setTimeMode(!timeMode));
 setInterval(() => { // every second: clocks in the country window
   document.querySelectorAll('[data-tz]').forEach((el) => { el.textContent = tzText(el.dataset.tz, el.dataset.k || 'hm'); });
   document.querySelectorAll('[data-tzday]').forEach((el) => { el.textContent = tzText(el.dataset.tzday, 'day'); });
@@ -633,4 +623,5 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, openCountry, labels, addMover, movers, setTimeMode, tzData, tzText, get cities() { return cities; } }; // handy for testing
+window.__app = { map, countries, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; } }; // handy for testing
+map.on('load', () => setTimeMode(true)); // live country times are on by default
