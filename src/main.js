@@ -171,12 +171,31 @@ for (const f of borders.features) {
   labels.push({ el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0 });
 }
 labels.sort((a, b) => b.wDeg - a.wDeg); // biggest first = highest priority
-let labelsOn = true, labelFrame = 0;
+// ---- city names: only when zoomed in; capitals are bold with a ring marker ----
+let labelsOn = true, labelSig = '';
+const cityLayer = document.createElement('div');
+cityLayer.id = 'cities';
+map.getContainer().insertBefore(cityLayer, map.getContainer().querySelector('.maplibregl-control-container'));
+const measure = document.createElement('canvas').getContext('2d');
+const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+const CITY_FS = 11, CAP_FS = 12.5;
+// the zoom level at which a city of this size starts to be named (bigger cities first)
+const minZoomFor = (pop) => (pop >= 5e6 ? 3.6 : pop >= 2e6 ? 4.2 : pop >= 1e6 ? 4.8 : pop >= 5e5 ? 5.4 : pop >= 2.5e5 ? 6 : pop >= 1e5 ? 6.6 : pop >= 5e4 ? 7.4 : 8.2);
+let cities = [];
+fetch('/data/cities.json').then((r) => r.json()).then((rows) => {
+  cities = rows.map(([name, lng, lat, pop, cap]) => ({ name, lng, lat, pop, cap: !!cap, minZ: cap ? 3.2 : minZoomFor(pop), w: 0, el: null, vis: false }));
+  cities.sort((a, b) => (b.cap - a.cap) || (b.pop - a.pop)); // capitals first, then biggest
+  labelSig = ''; updateLabels();
+}).catch(() => {});
+
 function updateLabels() {
-  labelFrame = 0;
   const z = map.getZoom(), pxPerDeg = (512 * Math.pow(2, z)) / 360;
   const cv = map.getCanvas(), vw = cv.clientWidth, vh = cv.clientHeight, cl = map.getCenter().lng;
+  const wrap = (lng) => { while (lng - cl > 180) lng -= 360; while (lng - cl < -180) lng += 360; return lng; };
   const placed = [];
+  const free = (x0, y0, x1, y1) => !placed.some((b) => x0 < b[2] && x1 > b[0] && y0 < b[3] && y1 > b[1]);
+
+  // 1) country names (highest priority)
   for (const L of labels) {
     let vis = false, fs = L.fs || 11;
     if (labelsOn) {
@@ -184,23 +203,48 @@ function updateLabels() {
       fs = pxW > 300 ? 15 : pxW > 110 ? 13 : 11;
       const w = L.name.length * fs * 0.58 + 8, h = fs + 5;
       if (pxW >= w * 0.8 || z >= 5) {
-        let lng = L.lng; while (lng - cl > 180) lng -= 360; while (lng - cl < -180) lng += 360;
-        const p = map.project([lng, L.lat]);
+        const p = map.project([wrap(L.lng), L.lat]);
         if (p.x > -w && p.x < vw + w && p.y > -h && p.y < vh + h) {
           const x0 = p.x - w / 2, x1 = p.x + w / 2, y0 = p.y - h / 2, y1 = p.y + h / 2;
-          if (!placed.some((b) => x0 < b[2] && x1 > b[0] && y0 < b[3] && y1 > b[1])) { placed.push([x0, y0, x1, y1]); vis = true; }
+          if (free(x0, y0, x1, y1)) { placed.push([x0, y0, x1, y1]); vis = true; }
         }
       }
     }
     if (fs !== L.fs) { L.el.style.fontSize = fs + 'px'; L.fs = fs; }
     if (vis !== L.vis) { L.el.classList.toggle('off', !vis); L.vis = vis; }
   }
+
+  // 2) capitals, then cities (drawn only if they fit without touching a name that is already placed)
+  for (const c of cities) {
+    let vis = false, x = 0, y = 0;
+    if (labelsOn && z >= c.minZ) {
+      const p = map.project([wrap(c.lng), c.lat]);
+      if (p.x > -200 && p.x < vw + 200 && p.y > -30 && p.y < vh + 30) {
+        const fs = c.cap ? CAP_FS : CITY_FS, h = c.cap ? 17.5 : 16, dot = c.cap ? 4 : 2.5;
+        if (!c.w) { measure.font = `${c.cap ? 700 : 500} ${fs}px ${FONT}`; c.w = measure.measureText(c.name).width + (c.cap ? 15 : 12); }
+        const x0 = p.x - dot, y0 = p.y - h / 2;
+        if (free(x0, y0, x0 + c.w, y0 + h)) { placed.push([x0, y0, x0 + c.w, y0 + h]); vis = true; x = x0; y = y0; }
+      }
+    }
+    if (vis) {
+      if (!c.el) {
+        c.el = document.createElement('div');
+        c.el.className = 'cl city' + (c.cap ? ' cap' : '');
+        c.el.textContent = c.name;
+      }
+      if (!c.vis) cityLayer.appendChild(c.el);
+      c.el.style.transform = `translate(${x}px,${y}px)`;
+    } else if (c.vis) c.el.remove();
+    c.vis = vis;
+  }
 }
-const scheduleLabels = () => { if (!labelFrame) labelFrame = requestAnimationFrame(updateLabels); };
-map.on('move', scheduleLabels);
-map.on('resize', scheduleLabels);
-map.on('load', scheduleLabels);
-$('#names').addEventListener('click', () => { labelsOn = !labelsOn; $('#names').classList.toggle('on', labelsOn); updateLabels(); });
+// redraw whenever the map has actually moved, zoomed or resized
+map.on('render', () => {
+  const c = map.getCenter(), cv = map.getCanvas();
+  const sig = [map.getZoom().toFixed(3), c.lng.toFixed(4), c.lat.toFixed(4), cv.clientWidth, cv.clientHeight, labelsOn].join();
+  if (sig !== labelSig) { labelSig = sig; updateLabels(); }
+});
+$('#names').addEventListener('click', () => { labelsOn = !labelsOn; $('#names').classList.toggle('on', labelsOn); labelSig = ''; updateLabels(); });
 updateLabels();
 
 // ---------- country panel ----------
@@ -301,4 +345,4 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, openCountry, labels }; // handy for testing
+window.__app = { map, countries, openCountry, labels, get cities() { return cities; } }; // handy for testing

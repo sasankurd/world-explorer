@@ -14,6 +14,7 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 
 - All 236 countries and territories on a zoomable map, with the name on hover
 - Country names shown on the map by default (small countries appear as you zoom in; the Names button hides them)
+- City names appear as you zoom in (bigger cities first), with capitals in bold and a ring marker
 - Search by country or capital
 - Views: Map, Terrain, Satellite (needs internet; uses Esri's free map images) and Stats (colors countries by population, area or density)
 - Country window: facts, rankings by population, size and density, news links by category, neighbours you can click, side-by-side comparison of two countries, place search in the capital, history links
@@ -29,9 +30,12 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 
 Population numbers come from an older dataset (about 2018). Coastline and life expectancy were left out on purpose because that source's values were wrong. Both will come from World Bank data in a later phase. Taiwan, Kosovo and a few small territories have no population yet.
 
+City names come from Natural Earth (public domain): places above about 50,000 people plus regional capitals. Smaller towns are not included yet.
+
 ## Files
 
 - `src/main.js`: the map and the country window
+- `scripts/build-cities.mjs`: rebuilds `public/data/cities.json` (capitals and cities); run with `node scripts/build-cities.mjs`. For a few small capitals it needs `npm install --no-save all-the-cities` first
 - `scripts/build-data.mjs`: rebuilds `public/data` (borders and country facts); run with `npm run data`
 - `public/data`: the generated border and country data
 - `public/maplibre`: map engine helper files (needed for the map to start)

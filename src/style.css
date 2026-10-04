@@ -32,3 +32,13 @@ a{color:var(--acc)}.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
   transition:opacity .18s;z-index:1}
 .cl.off{opacity:0;visibility:hidden}
 body[data-view="satellite"] .cl{color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 0 5px #000}
+
+/* city names */
+#cities{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.cl.city{position:absolute;left:0;top:0;padding-left:9px;font-size:11px;font-weight:500;line-height:16px;height:16px;animation:cin .15s ease-out}
+.cl.city::before{content:"";position:absolute;left:0;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:#1b2430;box-shadow:0 0 0 1.5px #fff}
+.cl.city.cap{padding-left:12px;font-size:12.5px;font-weight:700;line-height:17.5px;height:17.5px}
+.cl.city.cap::before{width:8px;height:8px;margin-top:-4px;box-sizing:border-box;background:#fff;border:2px solid #1b2430;box-shadow:0 0 0 1px #fff}
+body[data-view="satellite"] .cl.city::before{background:#fff;box-shadow:0 0 0 1.5px #000}
+body[data-view="satellite"] .cl.city.cap::before{background:#000;border-color:#fff;box-shadow:0 0 0 1px #000}
+@keyframes cin{from{opacity:0}to{opacity:1}}
