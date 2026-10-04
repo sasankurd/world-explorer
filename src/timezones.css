@@ -1,0 +1,10 @@
+#timepanel{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:min(250px,calc(100% - 28px));padding:14px;background:rgba(255,255,255,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid #ffffffa8;border-radius:14px;box-shadow:0 8px 28px #0003;z-index:5;color:#17212b}
+#timepanel[hidden]{display:none}
+#timepanel h2{margin:0 0 10px;font-size:16px}
+#timepanel .clock{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid #17212b20}
+#timepanel .clock span{color:#4b5968}
+#timepanel time{font-variant-numeric:tabular-nums;font-weight:650}
+#timezone-toggle{width:100%;margin-top:10px;background:#ffffffb8}
+#timezone-toggle.on{background:#2563eb;color:#fff;border-color:#2563eb}
+.timezone-label{pointer-events:none;white-space:nowrap;color:#102033;background:#ffffffc9;border:1px solid #24354855;border-radius:5px;padding:2px 4px;font:600 10px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 1px 4px #0002}
+@media(max-width:700px){#timepanel{left:10px;width:190px;padding:10px}.timezone-label{font-size:9px;padding:1px 2px}}
