@@ -30,10 +30,13 @@
   <div id="map"></div>
   <aside id="panel" hidden></aside>
   <aside id="sizepanel" hidden></aside>
-  <aside id="timepanel" aria-label="World clock and time zone controls">
+  <button id="timepanel-open" type="button" aria-label="Open world clock" aria-expanded="false">🕒</button>
+  <aside id="timepanel" aria-label="World clock and time zone controls" hidden>
+    <button id="timepanel-close" type="button" aria-label="Close world clock">×</button>
     <h2>🕒 World clock</h2>
     <div class="clock"><span>Local <small id="local-zone"></small></span><time id="local-clock"></time></div>
     <div class="clock"><span>UTC</span><time id="utc-clock"></time></div>
+    <button id="country-time-toggle" type="button" aria-pressed="true">Hide country times</button>
     <button id="timezone-toggle" type="button" aria-pressed="false">Show time zones on map</button>
   </aside>
   <div id="tip" hidden></div>
