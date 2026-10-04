@@ -6,6 +6,7 @@
 <title>World Explorer</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🌍%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="/src/style.css">
+<link rel="stylesheet" href="/src/timezones.css">
 </head>
 <body>
 <header>
@@ -29,8 +30,15 @@
   <div id="map"></div>
   <aside id="panel" hidden></aside>
   <aside id="sizepanel" hidden></aside>
+  <aside id="timepanel" aria-label="World clock and time zone controls">
+    <h2>🕒 World clock</h2>
+    <div class="clock"><span>Local <small id="local-zone"></small></span><time id="local-clock"></time></div>
+    <div class="clock"><span>UTC</span><time id="utc-clock"></time></div>
+    <button id="timezone-toggle" type="button" aria-pressed="false">Show time zones on map</button>
+  </aside>
   <div id="tip" hidden></div>
 </main>
 <script type="module" src="/src/main.js"></script>
+<script type="module" src="/src/timezones.js"></script>
 </body>
 </html>

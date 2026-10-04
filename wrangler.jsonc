@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "world-explorer",
+  "compatibility_date": "2026-10-04",
+  "assets": {
+    "directory": "./dist"
+  },
+  "previews": {}
+}
