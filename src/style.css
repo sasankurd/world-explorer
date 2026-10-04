@@ -25,3 +25,10 @@ a{color:var(--acc)}.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
 .muted{color:var(--muted)}h3{font-size:15px;margin:12px 0 4px}
 .note{background:var(--bg);border-radius:8px;padding:8px 10px;color:var(--muted);font-size:13px;margin:8px 0}
 .maplibregl-ctrl-attrib{font-size:11px}
+
+/* country name labels */
+.cl{pointer-events:none;user-select:none;white-space:nowrap;font-weight:600;line-height:1;color:#1b2430;
+  text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff,0 0 4px #fff,0 0 6px #fff;
+  transition:opacity .18s;z-index:1}
+.cl.off{opacity:0;visibility:hidden}
+body[data-view="satellite"] .cl{color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 0 5px #000}

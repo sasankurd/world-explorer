@@ -83,6 +83,7 @@ function colorFor(c) {
   return politicalColor(c);
 }
 function applyView() {
+  document.body.dataset.view = view;
   const vis = (id, on) => map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
   vis('terrain', view === 'terrain');
   vis('satellite', view === 'satellite');
@@ -140,6 +141,67 @@ function flyTo(id) {
   const narrow = innerWidth < 700;
   map.fitBounds([[x0, y0], [x1, y1]], { padding: narrow ? 30 : { top: 60, bottom: 60, left: 60, right: 460 }, maxZoom: 6, duration: 900 });
 }
+
+// ---------- country name labels ----------
+// Plain text on the map (no font files needed). Big countries are named first; small ones appear as you zoom in,
+// and a label is hidden if it would overlap a bigger country's label.
+const ringArea = (r) => { let a = 0; for (let i = 0, j = r.length - 1; i < r.length; j = i++) a += r[j][0] * r[i][1] - r[i][0] * r[j][1]; return a / 2; };
+function ringCentroid(r) {
+  let a = 0, cx = 0, cy = 0;
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const f = r[j][0] * r[i][1] - r[i][0] * r[j][1];
+    a += f; cx += (r[j][0] + r[i][0]) * f; cy += (r[j][1] + r[i][1]) * f;
+  }
+  if (Math.abs(a) < 1e-9) return r[0];
+  return [cx / (3 * a), cy / (3 * a)];
+}
+const labels = [];
+for (const f of borders.features) {
+  const c = countries[f.properties.id]; if (!c) continue;
+  const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+  let ring = null, best = -1;
+  for (const p of polys) { const a = Math.abs(ringArea(p[0])); if (a > best) { best = a; ring = p[0]; } }
+  if (!ring) continue;
+  const [lng, lat] = ringCentroid(ring);
+  let x0 = Infinity, x1 = -Infinity;
+  for (const pt of ring) { x0 = Math.min(x0, pt[0]); x1 = Math.max(x1, pt[0]); }
+  const el = document.createElement('div');
+  el.className = 'cl off'; el.textContent = c.name;
+  new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map);
+  labels.push({ el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0 });
+}
+labels.sort((a, b) => b.wDeg - a.wDeg); // biggest first = highest priority
+let labelsOn = true, labelFrame = 0;
+function updateLabels() {
+  labelFrame = 0;
+  const z = map.getZoom(), pxPerDeg = (512 * Math.pow(2, z)) / 360;
+  const cv = map.getCanvas(), vw = cv.clientWidth, vh = cv.clientHeight, cl = map.getCenter().lng;
+  const placed = [];
+  for (const L of labels) {
+    let vis = false, fs = L.fs || 11;
+    if (labelsOn) {
+      const pxW = L.wDeg * pxPerDeg;
+      fs = pxW > 300 ? 15 : pxW > 110 ? 13 : 11;
+      const w = L.name.length * fs * 0.58 + 8, h = fs + 5;
+      if (pxW >= w * 0.8 || z >= 5) {
+        let lng = L.lng; while (lng - cl > 180) lng -= 360; while (lng - cl < -180) lng += 360;
+        const p = map.project([lng, L.lat]);
+        if (p.x > -w && p.x < vw + w && p.y > -h && p.y < vh + h) {
+          const x0 = p.x - w / 2, x1 = p.x + w / 2, y0 = p.y - h / 2, y1 = p.y + h / 2;
+          if (!placed.some((b) => x0 < b[2] && x1 > b[0] && y0 < b[3] && y1 > b[1])) { placed.push([x0, y0, x1, y1]); vis = true; }
+        }
+      }
+    }
+    if (fs !== L.fs) { L.el.style.fontSize = fs + 'px'; L.fs = fs; }
+    if (vis !== L.vis) { L.el.classList.toggle('off', !vis); L.vis = vis; }
+  }
+}
+const scheduleLabels = () => { if (!labelFrame) labelFrame = requestAnimationFrame(updateLabels); };
+map.on('move', scheduleLabels);
+map.on('resize', scheduleLabels);
+map.on('load', scheduleLabels);
+$('#names').addEventListener('click', () => { labelsOn = !labelsOn; $('#names').classList.toggle('on', labelsOn); updateLabels(); });
+updateLabels();
 
 // ---------- country panel ----------
 let current = null;
@@ -239,4 +301,4 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, openCountry }; // handy for testing
+window.__app = { map, countries, openCountry, labels }; // handy for testing

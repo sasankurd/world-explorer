@@ -13,6 +13,7 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 ## What works now
 
 - All 236 countries and territories on a zoomable map, with the name on hover
+- Country names shown on the map by default (small countries appear as you zoom in; the Names button hides them)
 - Search by country or capital
 - Views: Map, Terrain, Satellite (needs internet; uses Esri's free map images) and Stats (colors countries by population, area or density)
 - Country window: facts, rankings by population, size and density, news links by category, neighbours you can click, side-by-side comparison of two countries, place search in the capital, history links
