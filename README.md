@@ -13,12 +13,10 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 ## What works now
 
 - All 236 countries and territories on a zoomable map, with the name on hover
-- Country names shown on the map by default (small countries appear as you zoom in; the Names button hides them)
-- City names appear as you zoom in (bigger cities first), with capitals in bold and a ring marker
-- Real size mode (the Real size button): click countries to add them, then hold and drag them anywhere to compare true sizes. A dragged country keeps its real size and shape; it only looks bigger or smaller because the map stretches things near the poles. Includes ready-made examples (Greenland on Australia, Russia on Brazil, UK on Iraq)
 - Search by country or capital
 - Views: Map, Terrain, Satellite (needs internet; uses Esri's free map images) and Stats (colors countries by population, area or density)
 - Country window: facts, rankings by population, size and density, news links by category, neighbours you can click, side-by-side comparison of two countries, place search in the capital, history links
+- Time zones: the "Time zones" button at the left of the map shows each country's live local time on the map. The country window shows the time, how far ahead or behind you it is, and every time zone for countries with several. Summer time is handled by the browser.
 - A link such as `#IRQ` at the end of the address opens that country directly
 
 ## What is not built yet
@@ -31,13 +29,11 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 
 Population numbers come from an older dataset (about 2018). Coastline and life expectancy were left out on purpose because that source's values were wrong. Both will come from World Bank data in a later phase. Taiwan, Kosovo and a few small territories have no population yet.
 
-City names come from Natural Earth (public domain): places above about 50,000 people plus regional capitals. Smaller towns are not included yet.
-
 ## Files
 
 - `src/main.js`: the map and the country window
-- `scripts/build-cities.mjs`: rebuilds `public/data/cities.json` (capitals and cities); run with `node scripts/build-cities.mjs`. For a few small capitals it needs `npm install --no-save all-the-cities` first
 - `scripts/build-data.mjs`: rebuilds `public/data` (borders and country facts); run with `npm run data`
+- `scripts/build-cities.mjs` and `scripts/build-timezones.mjs`: rebuild `cities.json` and `country-zones.json`. First run `npm install --no-save all-the-cities tz-lookup countries-and-timezones`, then both scripts
 - `public/data`: the generated border and country data
 - `public/maplibre`: map engine helper files (needed for the map to start)
 

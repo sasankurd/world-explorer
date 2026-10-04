@@ -1,4 +1,4 @@
-// Builds public/data/cities.json: [name, lng, lat, population, isCapital]
+// Builds public/data/cities.json: [name, lng, lat, population, isCapital, countryId (capitals only)]
 //
 // Sources
 //  - Natural Earth "populated places" (public domain). Downloaded once into scripts/.cache/
@@ -38,18 +38,18 @@ for (const c of countries) {
   const nameHit = (p) => [p.name, p.nameascii, ...(p.namealt || '').split(/[;,]/)].some((n) => norm(n) === want);
   let hit = neIn.filter(nameHit).sort((a, b) => b.pop_max - a.pop_max)[0];
   let entry = null;
-  if (hit) { hit.used = true; entry = { name: c.capital, lng: hit.lng, lat: hit.lat, pop: hit.pop_max }; }
+  if (hit) { hit.used = true; entry = { id: c.id, name: c.capital, lng: hit.lng, lat: hit.lat, pop: hit.pop_max }; }
   if (!entry) {
     const g = GN.filter((x) => x.country === c.iso2 && norm(x.name) === want).sort((a, b) => b.population - a.population)[0];
     if (g) {
-      entry = { name: c.capital, lng: g.loc.coordinates[0], lat: g.loc.coordinates[1], pop: g.population };
+      entry = { id: c.id, name: c.capital, lng: g.loc.coordinates[0], lat: g.loc.coordinates[1], pop: g.population };
       // the same city may be in the Natural Earth list under another spelling: drop that duplicate
       for (const p of neIn) if (dist(p, entry) < 0.25) p.used = true;
     }
   }
   if (!entry) { // last resort: whatever Natural Earth flags as this country's capital
     const p = neIn.filter((q) => q.adm0cap == 1)[0];
-    if (p) { p.used = true; entry = { name: c.capital, lng: p.lng, lat: p.lat, pop: p.pop_max }; }
+    if (p) { p.used = true; entry = { id: c.id, name: c.capital, lng: p.lng, lat: p.lat, pop: p.pop_max }; }
   }
   if (entry) capitals.push(entry); else missing.push(`${c.name}: ${c.capital}`);
 }
@@ -66,7 +66,7 @@ const others = NE.filter((p) => !p.used && (p.pop_max >= 50000 || (/Admin-1.*cap
 
 const r2 = (n) => Math.round(n * 100) / 100;
 const out = [
-  ...capitals.map((c) => [c.name, r2(c.lng), r2(c.lat), c.pop || 0, 1]),
+  ...capitals.map((c) => [c.name, r2(c.lng), r2(c.lat), c.pop || 0, 1, c.id]), // 6th value = country id (capitals only)
   ...others.map((c) => [c.name, r2(c.lng), r2(c.lat), c.pop, 0]),
 ];
 fs.writeFileSync('public/data/cities.json', JSON.stringify(out));

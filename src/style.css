@@ -58,3 +58,16 @@ body[data-view="satellite"] .cl.city.cap::before{background:#000;border-color:#f
 .tl{pointer-events:none;text-align:center;font-weight:700;font-size:13px;line-height:1.15;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 1px 4px #000}
 .tl span{display:block;font-weight:500;font-size:11px}
 @media(max-width:700px){#sizepanel{top:auto;bottom:10px;max-height:42%}}
+
+/* time zones */
+.tzctl{margin:10px 0 0 10px !important}
+.tzctl button{padding:6px 12px;font-weight:600;box-shadow:0 1px 5px #0004;cursor:pointer}
+.cl:not(.city){text-align:center}
+.cl .tm{display:none;font-weight:700;font-size:.92em;font-variant-numeric:tabular-nums}
+body.timemode .cl .tm{display:block}
+body.timemode:not([data-view="satellite"]) .cl .tm{color:#1d4ed8}
+.clock{font-variant-numeric:tabular-nums;font-weight:700}
+.tzs{margin:4px 0 8px}
+.tzs summary{cursor:pointer;color:var(--acc);margin:6px 0}
+.tzs td:nth-child(2){font-variant-numeric:tabular-nums}
+@media(min-width:701px){#sizepanel{top:56px;max-height:calc(100% - 66px)}}

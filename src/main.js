@@ -7,9 +7,10 @@ const $ = (s) => document.querySelector(s);
 const enc = encodeURIComponent;
 const fmt = (n, d = 0) => (n == null ? '—' : Number(n).toLocaleString('en', { maximumFractionDigits: d }));
 
-const [borders, countries] = await Promise.all([
+const [borders, countries, tzData] = await Promise.all([
   fetch('/data/borders.geojson').then((r) => r.json()),
   fetch('/data/countries.json').then((r) => r.json()),
+  fetch('/data/country-zones.json').then((r) => r.json()).catch(() => ({})),
 ]);
 const list = Object.values(countries);
 for (const c of list) c.density = c.population && c.area ? c.population / c.area : null;
@@ -22,6 +23,50 @@ const rankOf = (key) => {
   return { m, total: sorted.length, sorted };
 };
 const R = { population: rankOf('population'), area: rankOf('area'), density: rankOf('density') };
+
+// ---------- time zones: live clocks (the browser works out summer/winter time itself) ----------
+const tzFmt = {};
+function tzFormat(zone, kind) {
+  const k = zone + '|' + kind;
+  if (tzFmt[k] === undefined) {
+    try {
+      const o = { timeZone: zone, hourCycle: 'h23' };
+      if (kind === 'hm') Object.assign(o, { hour: '2-digit', minute: '2-digit' });
+      else if (kind === 'hms') Object.assign(o, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      else if (kind === 'day') Object.assign(o, { weekday: 'short', day: 'numeric', month: 'short' });
+      else Object.assign(o, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+      tzFmt[k] = new Intl.DateTimeFormat('en-GB', o);
+    } catch { tzFmt[k] = null; }
+  }
+  return tzFmt[k];
+}
+const tzText = (zone, kind, d = new Date()) => { const f = tzFormat(zone, kind); return f ? f.format(d) : '—'; };
+function tzOffsetMin(zone, d = new Date()) { // minutes ahead of UTC right now
+  const f = tzFormat(zone, 'parts'); if (!f) return 0;
+  const p = {}; for (const x of f.formatToParts(d)) p[x.type] = x.value;
+  return Math.round((Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(d.getTime() / 1000) * 1000) / 60000);
+}
+const utcLabel = (min) => 'UTC' + (min < 0 ? '−' : '+') + Math.floor(Math.abs(min) / 60) + (Math.abs(min) % 60 ? ':' + String(Math.abs(min) % 60).padStart(2, '0') : '');
+const myZone = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } })();
+const zoneCity = (z) => z.split('/').slice(1).join(' / ').replace(/_/g, ' ') || z;
+function relText(zone) { // how far this zone is from the visitor's own clock
+  const diff = tzOffsetMin(zone) - tzOffsetMin(myZone);
+  if (diff === 0) return 'Same time as you';
+  const a = Math.abs(diff), h = Math.floor(a / 60), mi = a % 60;
+  return `${h ? h + ' h' : ''}${h && mi ? ' ' : ''}${mi ? mi + ' min' : ''} ${diff > 0 ? 'ahead of' : 'behind'} you`;
+}
+function localTimeRow(c) {
+  const list = tzData[c.id]; if (!list) return '';
+  const z = list[0];
+  return `<tr><td>Local time</td><td><span class="clock" data-tz="${z}" data-k="hms">${tzText(z, 'hms')}</span>
+    <div class="muted"><span data-tzday="${z}">${tzText(z, 'day')}</span> · ${utcLabel(tzOffsetMin(z))}${list.length > 1 ? ' · capital' : ''}<br>${relText(z)}</div></td></tr>`;
+}
+function zonesBlock(c) {
+  const list = tzData[c.id]; if (!list || list.length < 2) return '';
+  const rows = list.map((z) => [z, tzOffsetMin(z)]).sort((a, b) => a[1] - b[1])
+    .map(([z, o]) => `<tr><td>${zoneCity(z)}</td><td class="clock" data-tz="${z}" data-k="hm">${tzText(z, 'hm')}</td><td class="muted">${utcLabel(o)}</td></tr>`).join('');
+  return `<details class="tzs"><summary>All ${list.length} time zones</summary><table>${rows}</table></details>`;
+}
 
 // ---------- map ----------
 const hueOf = (id) => ((id.charCodeAt(0) * 37 + id.charCodeAt(1) * 91 + id.charCodeAt(2) * 13) % 360);
@@ -72,6 +117,7 @@ map.touchZoomRotate.disableRotation();
 
 // ---------- views ----------
 let sizeMode = false;
+let timeMode = false;
 let view = 'political';
 const stat = () => $('#stat').value;
 
@@ -116,7 +162,7 @@ map.on('mousemove', 'fill', (e) => {
   if (hoverId && hoverId !== f.id) map.setFeatureState({ source: 'countries', id: hoverId }, { hover: false });
   hoverId = f.id; map.setFeatureState({ source: 'countries', id: hoverId }, { hover: true });
   const c = countries[f.id];
-  tip.hidden = false; tip.textContent = `${c.flag} ${c.name}`;
+  tip.hidden = false; tip.textContent = `${c.flag} ${c.name}` + (tzData[c.id] ? ` · ${tzText(tzData[c.id][0], 'hm')}` : '');
   tip.style.left = e.point.x + 14 + 'px'; tip.style.top = e.point.y + 14 + 'px';
 });
 map.on('mouseleave', 'fill', () => {
@@ -183,7 +229,7 @@ for (const f of borders.features) {
   const el = document.createElement('div');
   el.className = 'cl off'; el.textContent = c.name;
   new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map);
-  labels.push({ id: c.id, el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0 });
+  labels.push({ id: c.id, tz: tzData[c.id] ? tzData[c.id][0] : null, tm: null, el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0 });
 }
 labels.sort((a, b) => b.wDeg - a.wDeg); // biggest first = highest priority
 // ---- city names: only when zoomed in; capitals are bold with a ring marker ----
@@ -217,7 +263,8 @@ function updateLabels() {
     if (showNames) {
       const pxW = L.wDeg * pxPerDeg;
       fs = pxW > 300 ? 15 : pxW > 110 ? 13 : 11;
-      const w = L.name.length * fs * 0.58 + 8, h = fs + 5;
+      const withTime = timeMode && L.tz;
+      const w = Math.max(L.name.length, withTime ? 5 : 0) * fs * 0.58 + 8, h = fs + 5 + (withTime ? Math.round(fs * 0.95) : 0);
       if (pxW >= w * 0.8 || z >= 5) {
         const p = map.project([wrap(L.lng), L.lat]);
         if (p.x > -w && p.x < vw + w && p.y > -h && p.y < vh + h) {
@@ -257,7 +304,7 @@ function updateLabels() {
 // redraw whenever the map has actually moved, zoomed or resized
 map.on('render', () => {
   const c = map.getCenter(), cv = map.getCanvas();
-  const sig = [map.getZoom().toFixed(3), c.lng.toFixed(4), c.lat.toFixed(4), cv.clientWidth, cv.clientHeight, labelsOn, sizeMode].join();
+  const sig = [map.getZoom().toFixed(3), c.lng.toFixed(4), c.lat.toFixed(4), cv.clientWidth, cv.clientHeight, labelsOn, sizeMode, timeMode].join();
   if (sig !== labelSig) { labelSig = sig; updateLabels(); }
 });
 $('#names').addEventListener('click', () => { labelsOn = !labelsOn; $('#names').classList.toggle('on', labelsOn); labelSig = ''; updateLabels(); });
@@ -284,9 +331,9 @@ function openCountry(id, tab = 'overview', fly = true) {
   <div class="tabs">${TABS.map((t) => `<button data-tab="${t}" class="${t === tab ? 'on' : ''}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div><div class="body">`;
 
   if (tab === 'overview') {
-    h += `<table>${row('Official name', c.official)}${row('Capital', c.capital || '—')}${row('Region', [c.region, c.subregion].filter(Boolean).join(' · '))}
+    h += `<table>${localTimeRow(c)}${row('Official name', c.official)}${row('Capital', c.capital || '—')}${row('Region', [c.region, c.subregion].filter(Boolean).join(' · '))}
       ${row('Population', fmt(c.population))}${row('Area', fmt(c.area) + ' km²')}${row('Languages', c.languages.join(', ') || '—')}${row('Currency', c.currencies.join(', ') || '—')}
-      ${row('Government', c.government || '—')}</table>
+      ${row('Government', c.government || '—')}</table>${zonesBlock(c)}
       <div class="note">Population figures come from an older dataset (about 2018). They will be replaced with live data in a later phase.</div>`;
   }
   if (tab === 'rank') {
@@ -507,6 +554,7 @@ $('#sizepanel').addEventListener('click', (e) => {
   else if (t.id === 'mclose') setSizeMode(false);
 });
 function setSizeMode(on) {
+  if (on && timeMode) setTimeMode(false);
   sizeMode = on;
   $('#sizebtn').classList.toggle('on', on);
   $('#sizepanel').hidden = !on;
@@ -517,6 +565,45 @@ function setSizeMode(on) {
   labelSig = ''; updateLabels();
 }
 $('#sizebtn').addEventListener('click', () => setSizeMode(!sizeMode));
+
+// ---------- Time zones button (left side of the map) ----------
+class TimeControl {
+  onAdd() {
+    this._c = document.createElement('div');
+    this._c.className = 'maplibregl-ctrl tzctl';
+    this._c.innerHTML = '<button id="timebtn" type="button" title="Show the live local time on every country">🕒 Time zones</button>';
+    return this._c;
+  }
+  onRemove() { this._c.remove(); }
+}
+map.addControl(new TimeControl(), 'top-left');
+let lastTimeKey = '';
+function updateTimeLabels(force) { // the clock under each country name (changes once a minute)
+  const key = Math.floor(Date.now() / 60000) + '|' + timeMode;
+  if (!force && key === lastTimeKey) return;
+  lastTimeKey = key;
+  for (const L of labels) {
+    if (!L.tz) continue;
+    if (timeMode) {
+      if (!L.tm) { L.tm = document.createElement('span'); L.tm.className = 'tm'; L.el.appendChild(L.tm); }
+      L.tm.textContent = tzText(L.tz, 'hm');
+    } else if (L.tm) { L.tm.remove(); L.tm = null; }
+  }
+}
+function setTimeMode(on) {
+  if (on && sizeMode) setSizeMode(false);
+  timeMode = on;
+  document.body.classList.toggle('timemode', on);
+  $('#timebtn').classList.toggle('on', on);
+  if (on && !labelsOn) { labelsOn = true; $('#names').classList.add('on'); }
+  updateTimeLabels(true); labelSig = ''; updateLabels();
+}
+$('#timebtn').addEventListener('click', () => setTimeMode(!timeMode));
+setInterval(() => { // every second: clocks in the country window
+  document.querySelectorAll('[data-tz]').forEach((el) => { el.textContent = tzText(el.dataset.tz, el.dataset.k || 'hm'); });
+  document.querySelectorAll('[data-tzday]').forEach((el) => { el.textContent = tzText(el.dataset.tzday, 'day'); });
+  updateTimeLabels();
+}, 1000);
 
 // ---------- search ----------
 const input = $('#search'), results = $('#results');
@@ -546,4 +633,4 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, openCountry, labels, addMover, movers, get cities() { return cities; } }; // handy for testing
+window.__app = { map, countries, openCountry, labels, addMover, movers, setTimeMode, tzData, tzText, get cities() { return cities; } }; // handy for testing
