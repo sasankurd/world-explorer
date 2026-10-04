@@ -42,6 +42,7 @@ const map = new maplibregl.Map({
       satellite: esri('World_Imagery'),
       terrain: esri('World_Topo_Map'),
       countries: { type: 'geojson', data: borders, promoteId: 'id' },
+      movers: { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, maxzoom: 8 },
     },
     layers: [
       { id: 'sea', type: 'background', paint: { 'background-color': '#cfe5f5' } },
@@ -59,6 +60,8 @@ const map = new maplibregl.Map({
         id: 'selected', type: 'line', source: 'countries',
         paint: { 'line-color': '#111', 'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.4, 0] },
       },
+      { id: 'movers-fill', type: 'fill', source: 'movers', layout: { visibility: 'none' }, paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.78 } },
+      { id: 'movers-line', type: 'line', source: 'movers', layout: { visibility: 'none' }, paint: { 'line-color': '#111', 'line-width': 1.6 } },
     ],
   },
   center: [20, 25], zoom: 1.6, minZoom: 0.8, maxZoom: 10, dragRotate: false, attributionControl: { compact: true },
@@ -68,6 +71,7 @@ map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
 map.touchZoomRotate.disableRotation();
 
 // ---------- views ----------
+let sizeMode = false;
 let view = 'political';
 const stat = () => $('#stat').value;
 
@@ -106,8 +110,9 @@ $('#stat').addEventListener('change', () => { view = 'stats'; document.querySele
 let hoverId = null;
 const tip = $('#tip');
 map.on('mousemove', 'fill', (e) => {
+  if (drag) return;
   const f = e.features[0]; if (!f) return;
-  map.getCanvas().style.cursor = 'pointer';
+  map.getCanvas().style.cursor = sizeMode && map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length ? 'grab' : 'pointer';
   if (hoverId && hoverId !== f.id) map.setFeatureState({ source: 'countries', id: hoverId }, { hover: false });
   hoverId = f.id; map.setFeatureState({ source: 'countries', id: hoverId }, { hover: true });
   const c = countries[f.id];
@@ -115,11 +120,16 @@ map.on('mousemove', 'fill', (e) => {
   tip.style.left = e.point.x + 14 + 'px'; tip.style.top = e.point.y + 14 + 'px';
 });
 map.on('mouseleave', 'fill', () => {
+  if (drag) return;
   map.getCanvas().style.cursor = '';
   if (hoverId) map.setFeatureState({ source: 'countries', id: hoverId }, { hover: false });
   hoverId = null; tip.hidden = true;
 });
-map.on('click', 'fill', (e) => { if (e.features[0]) openCountry(e.features[0].id, 'overview', false); });
+map.on('click', 'fill', (e) => {
+  if (!e.features[0]) return;
+  if (sizeMode) { if (!map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length) addMover(e.features[0].id); return; }
+  openCountry(e.features[0].id, 'overview', false);
+});
 
 // bounds of a country (uses its largest polygon so overseas islands don't zoom us out to the whole world)
 const boundsCache = {};
@@ -136,10 +146,15 @@ function boundsOf(id) {
   }
   return (boundsCache[id] = best);
 }
+// room to leave around a country so the open panel does not cover it
+function viewPadding() {
+  const narrow = innerWidth < 700;
+  if (sizeMode) return narrow ? { top: 30, bottom: Math.round(innerHeight * 0.46), left: 20, right: 20 } : { top: 60, bottom: 60, left: 400, right: 60 };
+  return narrow ? 30 : { top: 60, bottom: 60, left: 60, right: 460 };
+}
 function flyTo(id) {
   const [[x0, y0], [x1, y1]] = boundsOf(id);
-  const narrow = innerWidth < 700;
-  map.fitBounds([[x0, y0], [x1, y1]], { padding: narrow ? 30 : { top: 60, bottom: 60, left: 60, right: 460 }, maxZoom: 6, duration: 900 });
+  map.fitBounds([[x0, y0], [x1, y1]], { padding: viewPadding(), maxZoom: 6, duration: 900 });
 }
 
 // ---------- country name labels ----------
@@ -168,7 +183,7 @@ for (const f of borders.features) {
   const el = document.createElement('div');
   el.className = 'cl off'; el.textContent = c.name;
   new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map);
-  labels.push({ el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0 });
+  labels.push({ id: c.id, el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0 });
 }
 labels.sort((a, b) => b.wDeg - a.wDeg); // biggest first = highest priority
 // ---- city names: only when zoomed in; capitals are bold with a ring marker ----
@@ -193,12 +208,13 @@ function updateLabels() {
   const cv = map.getCanvas(), vw = cv.clientWidth, vh = cv.clientHeight, cl = map.getCenter().lng;
   const wrap = (lng) => { while (lng - cl > 180) lng -= 360; while (lng - cl < -180) lng += 360; return lng; };
   const placed = [];
+  const showNames = labelsOn && !sizeMode;
   const free = (x0, y0, x1, y1) => !placed.some((b) => x0 < b[2] && x1 > b[0] && y0 < b[3] && y1 > b[1]);
 
   // 1) country names (highest priority)
   for (const L of labels) {
     let vis = false, fs = L.fs || 11;
-    if (labelsOn) {
+    if (showNames) {
       const pxW = L.wDeg * pxPerDeg;
       fs = pxW > 300 ? 15 : pxW > 110 ? 13 : 11;
       const w = L.name.length * fs * 0.58 + 8, h = fs + 5;
@@ -217,7 +233,7 @@ function updateLabels() {
   // 2) capitals, then cities (drawn only if they fit without touching a name that is already placed)
   for (const c of cities) {
     let vis = false, x = 0, y = 0;
-    if (labelsOn && z >= c.minZ) {
+    if (showNames && z >= c.minZ) {
       const p = map.project([wrap(c.lng), c.lat]);
       if (p.x > -200 && p.x < vw + 200 && p.y > -30 && p.y < vh + 30) {
         const fs = c.cap ? CAP_FS : CITY_FS, h = c.cap ? 17.5 : 16, dot = c.cap ? 4 : 2.5;
@@ -241,7 +257,7 @@ function updateLabels() {
 // redraw whenever the map has actually moved, zoomed or resized
 map.on('render', () => {
   const c = map.getCenter(), cv = map.getCanvas();
-  const sig = [map.getZoom().toFixed(3), c.lng.toFixed(4), c.lat.toFixed(4), cv.clientWidth, cv.clientHeight, labelsOn].join();
+  const sig = [map.getZoom().toFixed(3), c.lng.toFixed(4), c.lat.toFixed(4), cv.clientWidth, cv.clientHeight, labelsOn, sizeMode].join();
   if (sig !== labelSig) { labelSig = sig; updateLabels(); }
 });
 $('#names').addEventListener('click', () => { labelsOn = !labelsOn; $('#names').classList.toggle('on', labelsOn); labelSig = ''; updateLabels(); });
@@ -321,6 +337,187 @@ function closePanel() {
   current = null; history.replaceState(null, '', location.pathname);
 }
 
+// ---------- real size: hold and drag countries to compare their true sizes ----------
+// A country is moved by turning the globe under it: every point keeps its distance and direction from the country's
+// centre, so the real size and shape are kept exactly. This map (Mercator) only makes things LOOK bigger near the poles.
+const RAD = Math.PI / 180;
+const SIZE_COLORS = ['#e63946', '#f4a261', '#2a9d8f', '#6a4c93', '#1982c4', '#8ac926', '#ff6b9d', '#8d5524'];
+const MAX_MOVERS = 8;
+const EXAMPLES = [['AUS', 'GRL', 'Greenland on Australia'], ['BRA', 'RUS', 'Russia on Brazil'], ['IRQ', 'GBR', 'UK on Iraq']];
+const movers = [];
+let drag = null, moversFrame = 0, noteTimer = 0;
+const merc = (lat) => Math.log(Math.tan(Math.PI / 4 + (Math.max(-85, Math.min(85, lat)) * RAD) / 2));
+const unmerc = (y) => (2 * Math.atan(Math.exp(y)) - Math.PI / 2) / RAD;
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const shortArea = (a) => (a == null ? '' : a >= 1e6 ? (a / 1e6).toFixed(2) + ' M km²' : Math.round(a).toLocaleString('en') + ' km²');
+
+// distance and direction of every point from the country's centre, stored once
+function prepMover(id) {
+  const f = borders.features.find((x) => x.properties.id === id);
+  const L = labels.find((l) => l.id === id);
+  if (!f || !L) return null;
+  const lng0 = L.lng, lat0 = L.lat, sp = Math.sin(lat0 * RAD), cp = Math.cos(lat0 * RAD);
+  const polys = (f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates).map((poly) => poly.map((ring) => {
+    const a = new Float64Array(ring.length * 4);
+    ring.forEach(([lo, la], i) => {
+      const dl = (lo - lng0) * RAD, s = Math.sin(la * RAD), c = Math.cos(la * RAD);
+      const hv = Math.sin(((la - lat0) * RAD) / 2) ** 2 + cp * c * Math.sin(dl / 2) ** 2;
+      const d = 2 * Math.atan2(Math.sqrt(hv), Math.sqrt(1 - hv));
+      const th = Math.atan2(Math.sin(dl) * c, cp * s - sp * c * Math.cos(dl));
+      a[i * 4] = Math.sin(d); a[i * 4 + 1] = Math.cos(d); a[i * 4 + 2] = Math.sin(th); a[i * 4 + 3] = Math.cos(th);
+    });
+    return a;
+  }));
+  return { polys, lng0, lat0 };
+}
+// the same shape with its centre moved to (lng, lat)
+function placeAt(m, lng, lat) {
+  const sp = Math.sin(lat * RAD), cp = Math.cos(lat * RAD);
+  return m.polys.map((poly) => poly.map((a) => {
+    const n = a.length / 4, out = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const sd = a[i * 4], cd = a[i * 4 + 1], st = a[i * 4 + 2], ct = a[i * 4 + 3];
+      const s2 = Math.max(-1, Math.min(1, sp * cd + cp * sd * ct));
+      out[i] = [lng + Math.atan2(st * sd * cp, cd - sp * s2) / RAD, Math.asin(s2) / RAD];
+    }
+    return out;
+  }));
+}
+
+function sizeNote(text) {
+  const el = $('#mmsg'); if (!el) return;
+  el.textContent = text; el.hidden = false;
+  clearTimeout(noteTimer); noteTimer = setTimeout(() => { el.hidden = true; }, 4000);
+}
+function addMover(id, quiet) {
+  const c = countries[id]; if (!c) return null;
+  if (id === 'ATA') { sizeNote('Antarctica wraps around the South Pole, so it cannot be moved.'); return null; }
+  const have = movers.find((x) => x.id === id);
+  if (have) { sizeNote(`${have.name} is already on the map. Hold and drag it.`); return have; }
+  if (movers.length >= MAX_MOVERS) { sizeNote(`You can compare up to ${MAX_MOVERS} countries at once. Remove one first.`); return null; }
+  const prep = prepMover(id); if (!prep) return null;
+  const el = document.createElement('div');
+  el.className = 'tl'; el.textContent = c.name;
+  const sub = document.createElement('span'); sub.textContent = shortArea(c.area); el.appendChild(sub);
+  const marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([prep.lng0, prep.lat0]).addTo(map);
+  const m = { id, name: c.name, area: c.area, color: SIZE_COLORS.find((col) => !movers.some((x) => x.color === col)), ...prep, lng: prep.lng0, lat: prep.lat0, marker };
+  m.geom = placeAt(m, m.lng, m.lat);
+  movers.push(m);
+  if (!quiet) { pushMovers(); renderSizePanel(); }
+  return m;
+}
+function removeMover(id) {
+  const i = movers.findIndex((x) => x.id === id); if (i < 0) return;
+  movers[i].marker.remove(); movers.splice(i, 1); pushMovers();
+}
+function clearMovers() { movers.forEach((x) => x.marker.remove()); movers.length = 0; pushMovers(); renderSizePanel(); }
+function resetMovers() { for (const m of movers) { m.lng = m.lng0; m.lat = m.lat0; m.geom = placeAt(m, m.lng, m.lat); } pushMovers(); }
+function fitMovers() {
+  if (!movers.length) return;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const mv of movers) { // main body of each country only, so far-away islands do not zoom the view out
+    let best = null, bestA = -1;
+    for (const poly of mv.geom) {
+      let a0 = Infinity, b0 = Infinity, a1 = -Infinity, b1 = -Infinity;
+      for (const [lo, la] of poly[0]) { a0 = Math.min(a0, lo); a1 = Math.max(a1, lo); b0 = Math.min(b0, la); b1 = Math.max(b1, la); }
+      if ((a1 - a0) * (b1 - b0) > bestA) { bestA = (a1 - a0) * (b1 - b0); best = [a0, b0, a1, b1]; }
+    }
+    x0 = Math.min(x0, best[0]); y0 = Math.min(y0, best[1]); x1 = Math.max(x1, best[2]); y1 = Math.max(y1, best[3]);
+  }
+  map.fitBounds([[x0, y0], [x1, y1]], { padding: viewPadding(), maxZoom: 6, duration: 900 });
+}
+function compare(a, b) { // a stays where it is, b is dropped on top of it
+  clearMovers();
+  const A = addMover(a, true), B = addMover(b, true);
+  if (A && B) { B.lng = A.lng0; B.lat = A.lat0; B.geom = placeAt(B, B.lng, B.lat); }
+  pushMovers(); renderSizePanel(); fitMovers();
+}
+
+function pushMovers() {
+  moversFrame = 0;
+  if (drag) drag.m.geom = placeAt(drag.m, drag.m.lng, drag.m.lat);
+  const order = drag ? movers.filter((x) => x !== drag.m).concat(drag.m) : movers; // the one you hold is drawn on top
+  map.getSource('movers').setData({
+    type: 'FeatureCollection',
+    features: order.map((x) => ({ type: 'Feature', properties: { id: x.id, color: x.color }, geometry: { type: 'MultiPolygon', coordinates: x.geom } })),
+  });
+  for (const x of movers) x.marker.setLngLat([x.lng, x.lat]);
+  renderRows();
+}
+const schedulePush = () => { if (!moversFrame) moversFrame = requestAnimationFrame(pushMovers); };
+
+function startDrag(e) {
+  const f = e.features && e.features[0]; if (!f) return;
+  const m = movers.find((x) => x.id === f.properties.id); if (!m) return;
+  e.preventDefault(); // keeps the map itself from panning
+  drag = { m, cLng: e.lngLat.lng, cLat: e.lngLat.lat, lng0: m.lng, lat0: m.lat };
+  map.getCanvas().style.cursor = 'grabbing';
+}
+function moveDrag(e) {
+  if (!drag) return;
+  drag.m.lng = drag.lng0 + (e.lngLat.lng - drag.cLng);
+  drag.m.lat = Math.max(-84, Math.min(84, unmerc(merc(drag.lat0) + merc(e.lngLat.lat) - merc(drag.cLat))));
+  schedulePush();
+}
+function endDrag() {
+  if (!drag) return;
+  drag = null; map.getCanvas().style.cursor = '';
+  pushMovers();
+}
+map.on('mousedown', 'movers-fill', startDrag);
+map.on('touchstart', 'movers-fill', (e) => { if (e.points.length === 1) startDrag(e); });
+map.on('mousemove', moveDrag);
+map.on('touchmove', moveDrag);
+map.on('mouseup', endDrag);
+map.on('touchend', endDrag);
+window.addEventListener('mouseup', endDrag);
+
+// ---- the side panel ----
+function stretchNote(m) {
+  const k = 1 / Math.pow(Math.cos(Math.min(84, Math.abs(m.lat)) * RAD), 2); // how much Mercator inflates areas here
+  return k >= 1.15 ? `Drawn about ${k.toFixed(1)}× bigger than real at this latitude` : 'Close to its real size here';
+}
+function rowHtml(m, i) {
+  let vs = '';
+  if (i > 0 && movers[0].area && m.area) {
+    const r = m.area / movers[0].area;
+    vs = (r >= 1 ? `${r >= 10 ? r.toFixed(0) : r.toFixed(1)}× bigger than ` : `${(1 / r).toFixed(1)}× smaller than `) + esc(movers[0].name) + '. ';
+  }
+  return `<div class="mrow"><i style="background:${m.color}"></i><div class="t"><b>${esc(m.name)}</b> <span class="muted">${esc(shortArea(m.area))}</span>
+    <small>${vs}${stretchNote(m)}</small></div><button data-rm="${m.id}" aria-label="Remove ${esc(m.name)}">✕</button></div>`;
+}
+function renderRows() {
+  const el = $('#mrows'); if (!el) return;
+  el.innerHTML = movers.length ? movers.map(rowHtml).join('') : '<p>No countries yet. Click one on the map, search for one, or try an example above.</p>';
+}
+function renderSizePanel() {
+  $('#sizepanel').innerHTML = `<div class="mh"><h2>Real size</h2><button id="mclose" aria-label="Close">✕</button></div>
+    <p>Click a country to add it, then <b>hold and drag</b> it anywhere. This map stretches countries near the poles, so a country dragged toward the equator shrinks to its true size.</p>
+    <div class="chips">${EXAMPLES.map(([a, b, t]) => `<button data-ex="${a}-${b}">${t}</button>`).join('')}</div>
+    <div id="mmsg" class="note" hidden></div><div id="mrows"></div>
+    <div class="chips"><button id="mreset">Reset positions</button><button id="mclear">Clear all</button></div>`;
+  renderRows();
+}
+$('#sizepanel').addEventListener('click', (e) => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.rm) removeMover(t.dataset.rm);
+  else if (t.dataset.ex) { const [a, b] = t.dataset.ex.split('-'); compare(a, b); }
+  else if (t.id === 'mreset') resetMovers();
+  else if (t.id === 'mclear') clearMovers();
+  else if (t.id === 'mclose') setSizeMode(false);
+});
+function setSizeMode(on) {
+  sizeMode = on;
+  $('#sizebtn').classList.toggle('on', on);
+  $('#sizepanel').hidden = !on;
+  if (on) closePanel();
+  for (const id of ['movers-fill', 'movers-line']) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+  for (const x of movers) x.marker.getElement().style.display = on ? '' : 'none';
+  if (on) renderSizePanel();
+  labelSig = ''; updateLabels();
+}
+$('#sizebtn').addEventListener('click', () => setSizeMode(!sizeMode));
+
 // ---------- search ----------
 const input = $('#search'), results = $('#results');
 let act = -1, matches = [];
@@ -330,7 +527,11 @@ input.addEventListener('input', () => {
   matches = q ? list.filter((c) => norm(c.name).includes(q) || (c.capital && norm(c.capital).includes(q))).slice(0, 8) : [];
   results.innerHTML = matches.map((c, i) => `<li data-i="${i}">${c.flag} ${c.name}${c.capital ? ` <span class="muted">· ${c.capital}</span>` : ''}</li>`).join('');
 });
-const pick = (c) => { input.value = ''; results.innerHTML = ''; openCountry(c.id); };
+const pick = (c) => {
+  input.value = ''; results.innerHTML = '';
+  if (sizeMode) { if (addMover(c.id)) flyTo(c.id); return; }
+  openCountry(c.id);
+};
 results.addEventListener('click', (e) => { const li = e.target.closest('li'); if (li) pick(matches[li.dataset.i]); });
 input.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -345,4 +546,4 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, openCountry, labels, get cities() { return cities; } }; // handy for testing
+window.__app = { map, countries, openCountry, labels, addMover, movers, get cities() { return cities; } }; // handy for testing

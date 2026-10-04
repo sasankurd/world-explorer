@@ -42,3 +42,19 @@ body[data-view="satellite"] .cl{color:#fff;text-shadow:-1px -1px 0 #000,1px -1px
 body[data-view="satellite"] .cl.city::before{background:#fff;box-shadow:0 0 0 1.5px #000}
 body[data-view="satellite"] .cl.city.cap::before{background:#000;border-color:#fff;box-shadow:0 0 0 1px #000}
 @keyframes cin{from{opacity:0}to{opacity:1}}
+
+/* real size mode */
+#sizepanel{position:absolute;top:10px;left:10px;width:min(340px,calc(100% - 20px));max-height:calc(100% - 20px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 36px #0005;z-index:6;padding:12px}
+#sizepanel[hidden]{display:none}
+#sizepanel .mh{display:flex;align-items:center;justify-content:space-between}
+#sizepanel h2{margin:0;font-size:17px}
+#sizepanel p{margin:6px 0 8px;color:var(--muted);font-size:13.5px}
+#sizepanel .note{margin:6px 0}
+.mrow{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.mrow i{width:14px;height:14px;border-radius:4px;margin-top:3px;flex:none}
+.mrow .t{flex:1;min-width:0}
+.mrow small{display:block;color:var(--muted);font-size:12.5px}
+.mrow button{padding:0 8px}
+.tl{pointer-events:none;text-align:center;font-weight:700;font-size:13px;line-height:1.15;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 1px 4px #000}
+.tl span{display:block;font-weight:500;font-size:11px}
+@media(max-width:700px){#sizepanel{top:auto;bottom:10px;max-height:42%}}

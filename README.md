@@ -15,6 +15,7 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 - All 236 countries and territories on a zoomable map, with the name on hover
 - Country names shown on the map by default (small countries appear as you zoom in; the Names button hides them)
 - City names appear as you zoom in (bigger cities first), with capitals in bold and a ring marker
+- Real size mode (the Real size button): click countries to add them, then hold and drag them anywhere to compare true sizes. A dragged country keeps its real size and shape; it only looks bigger or smaller because the map stretches things near the poles. Includes ready-made examples (Greenland on Australia, Russia on Brazil, UK on Iraq)
 - Search by country or capital
 - Views: Map, Terrain, Satellite (needs internet; uses Esri's free map images) and Stats (colors countries by population, area or density)
 - Country window: facts, rankings by population, size and density, news links by category, neighbours you can click, side-by-side comparison of two countries, place search in the capital, history links
