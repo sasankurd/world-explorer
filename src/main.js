@@ -122,21 +122,19 @@ let view = 'political';
 let mapTheme = 'dark';
 try { if (localStorage.getItem('mapTheme') === 'light') mapTheme = 'light'; } catch {}
 document.body.dataset.map = mapTheme;
-const stat = () => $('#stat').value;
+const hook = () => window.__app?.statsHook;
+const isDark = () => mapTheme === 'dark' || (view === 'stats' && !!hook()?.heat);
 
 function colorFor(c) {
-  if (view === 'stats') {
-    const key = stat(), v = c[key];
-    if (v == null || v <= 0) return mapTheme === 'dark' ? '#27303c' : '#bbbbbb';
-    const t = 1 - (R[key].m[c.id] - 1) / (R[key].total - 1); // by rank, so the colours spread evenly
-    return mapTheme === 'dark' ? `hsl(200,85%,${14 + t * 48}%)` : `hsl(212,75%,${90 - t * 62}%)`;
-  }
+  if (view === 'stats') return hook()?.color(c) ?? '#333';
   if (view === 'satellite') return 'rgba(255,255,255,0.02)';
   if (view === 'terrain') return 'rgba(255,255,255,0.02)';
-  return politicalColor(c, mapTheme === 'dark');
+  return politicalColor(c, isDark());
 }
+function recolor() { for (const c of list) map.setFeatureState({ source: 'countries', id: c.id }, { fill: colorFor(c) }); }
 function applyView() {
-  const dark = mapTheme === 'dark';
+  const dark = isDark();
+  document.body.classList.toggle('heat', view === 'stats' && !!hook()?.heat);
   document.body.dataset.view = view;
   document.body.dataset.map = mapTheme;
   const vis = (id, on) => map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
@@ -153,13 +151,14 @@ function applyView() {
   map.setPaintProperty('fill', 'fill-opacity', view === 'satellite' || view === 'terrain'
     ? ['case', ['boolean', ['feature-state', 'hover'], false], 0.25, 0.01]
     : ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, dark ? 0.9 : 0.82]);
-  for (const c of list) map.setFeatureState({ source: 'countries', id: c.id }, { fill: colorFor(c) });
+  recolor();
 }
 function setMapTheme(t) {
   mapTheme = t;
   try { localStorage.setItem('mapTheme', t); } catch {}
   $('#maptheme').value = t;
   applyView();
+  window.dispatchEvent(new CustomEvent('maptheme-change'));
 }
 $('#maptheme').addEventListener('change', (e) => setMapTheme(e.target.value));
 $('#maptheme').value = mapTheme;
@@ -168,8 +167,9 @@ $('#views').addEventListener('click', (e) => {
   view = v;
   document.querySelectorAll('#views button').forEach((b) => b.classList.toggle('on', b.dataset.view === v));
   applyView();
+  window.dispatchEvent(new CustomEvent('view-change', { detail: view }));
 });
-$('#stat').addEventListener('change', () => { view = 'stats'; document.querySelectorAll('#views button').forEach((b) => b.classList.toggle('on', b.dataset.view === 'stats')); applyView(); });
+function setView(v) { document.querySelector(`#views button[data-view="${v}"]`)?.click(); }
 
 // ---------- hover + click ----------
 let hoverId = null;
@@ -181,7 +181,7 @@ map.on('mousemove', 'fill', (e) => {
   if (hoverId && hoverId !== f.id) map.setFeatureState({ source: 'countries', id: hoverId }, { hover: false });
   hoverId = f.id; map.setFeatureState({ source: 'countries', id: hoverId }, { hover: true });
   const c = countries[f.id];
-  tip.hidden = false; tip.textContent = `${c.flag} ${c.name}` + (tzData[c.id] ? ` · ${tzText(tzData[c.id][0], 'hm')}` : '');
+  tip.hidden = false; tip.textContent = `${c.flag} ${c.name}` + (view === 'stats' && hook() ? hook().tip(c) : tzData[c.id] ? ` · ${tzText(tzData[c.id][0], 'hm')}` : '');
   tip.style.left = e.point.x + 14 + 'px'; tip.style.top = e.point.y + 14 + 'px';
 });
 map.on('mouseleave', 'fill', () => {
@@ -332,7 +332,7 @@ updateLabels();
 // ---------- country panel ----------
 let current = null;
 const panel = $('#panel');
-const TABS = ['overview', 'rank', 'news', 'geography', 'history'];
+const TABS = ['overview', 'trade', 'rank', 'news', 'geography', 'history'];
 const newsCats = ['Politics', 'Business', 'Sport', 'Technology', 'Culture', 'Health'];
 const places = ['Restaurants', 'Petrol stations', 'Hospitals', 'Hotels', 'Pharmacies', 'Banks'];
 const link = (href, text) => `<a target="_blank" rel="noopener" href="${href}">${text}</a>`;
@@ -353,7 +353,11 @@ function openCountry(id, tab = 'overview', fly = true) {
     h += `<table>${localTimeRow(c)}${row('Official name', c.official)}${row('Capital', c.capital || '—')}${row('Region', [c.region, c.subregion].filter(Boolean).join(' · '))}
       ${row('Population', fmt(c.population))}${row('Area', fmt(c.area) + ' km²')}${row('Languages', c.languages.join(', ') || '—')}${row('Currency', c.currencies.join(', ') || '—')}
       ${row('Government', c.government || '—')}</table>${zonesBlock(c)}
-      <div class="note">Population figures come from an older dataset (about 2018). They will be replaced with live data in a later phase.</div>`;
+      <div id="trends"></div>
+      <div class="note">The table above uses an older population figure (about 2018). The charts use newer World Bank data.</div>`;
+  }
+  if (tab === 'trade') {
+    h += `<div id="tradebox"><p class="muted">Loading trade partners…</p></div>`;
   }
   if (tab === 'rank') {
     const rk = (k, label) => (R[k].m[id] ? row(label, `#${R[k].m[id]} <span class="muted">of ${R[k].total}</span>`) : row(label, '—'));
@@ -384,6 +388,7 @@ function openCountry(id, tab = 'overview', fly = true) {
   }
   panel.innerHTML = h + '</div>'; panel.hidden = false;
   panel.scrollTop = 0;
+  setTimeout(() => window.dispatchEvent(new CustomEvent('country-open', { detail: { id, tab } })), 0);
 
   $('#close').onclick = closePanel;
   panel.querySelector('.tabs').onclick = (e) => e.target.dataset.tab && openCountry(id, e.target.dataset.tab, false);
@@ -401,6 +406,7 @@ function closePanel() {
   panel.hidden = true;
   if (current) map.setFeatureState({ source: 'countries', id: current }, { selected: false });
   current = null; history.replaceState(null, '', location.pathname);
+  window.dispatchEvent(new CustomEvent('country-close'));
 }
 
 // ---------- real size: hold and drag countries to compare their true sizes ----------
@@ -642,5 +648,5 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; } }; // handy for testing
+window.__app = { map, countries, list, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null }; // handy for testing
 map.on('load', () => setTimeMode(true)); // live country times are on by default

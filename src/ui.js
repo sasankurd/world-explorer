@@ -18,7 +18,6 @@ syncPill(true);
 document.fonts?.ready.then(() => syncPill(true));
 window.addEventListener('resize', () => syncPill(true));
 views.addEventListener('click', (e) => { if (e.target.closest('button')) { requestAnimationFrame(() => syncPill(false)); sweep(); } });
-document.querySelector('#stat').addEventListener('change', () => setTimeout(() => { syncPill(false); sweep(); }, 0));
 document.querySelector('#maptheme').addEventListener('change', sweep);
 
 document.querySelector('header').addEventListener('pointerdown', (e) => {

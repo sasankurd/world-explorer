@@ -1,4 +1,4 @@
-// Builds public/data/country-zones.json: { COUNTRY_ID: [mainZone, ...otherZones] }
+// Builds public/data/timezones.json: { COUNTRY_ID: [mainZone, ...otherZones] }
 //  - mainZone is the time zone of the capital city (found from the capital's location)
 //  - otherZones lists only zones whose clock actually differs (winter and summer), so the US has ~6, not 29
 // Needs two helper packages, installed WITHOUT touching package.json:
@@ -51,9 +51,9 @@ for (const c of countries) {
   }
   out[c.id] = list;
 }
-fs.writeFileSync('public/data/country-zones.json', JSON.stringify(out));
+fs.writeFileSync('public/data/timezones.json', JSON.stringify(out));
 const multi = Object.entries(out).filter(([, v]) => v.length > 1).sort((a, b) => b[1].length - a[1].length).slice(0, 6).map(([k, v]) => `${k}:${v.length}`);
-console.log('countries with a time zone:', Object.keys(out).length, '| KB', Math.round(fs.statSync('public/data/country-zones.json').size / 1024));
+console.log('countries with a time zone:', Object.keys(out).length, '| KB', Math.round(fs.statSync('public/data/timezones.json').size / 1024));
 console.log('most zones:', multi.join(', '));
 console.log('notes:', notes.join(' | ') || 'none');
 for (const id of ['IRQ', 'USA', 'RUS', 'BRA', 'KAZ', 'CHN', 'IND', 'AUS']) console.log(id, JSON.stringify(out[id]));
