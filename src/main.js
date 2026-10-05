@@ -131,7 +131,23 @@ function colorFor(c) {
   if (view === 'terrain') return 'rgba(255,255,255,0.02)';
   return politicalColor(c, isDark());
 }
-function recolor() { for (const c of list) map.setFeatureState({ source: 'countries', id: c.id }, { fill: colorFor(c) }); }
+function recolor() { for (const c of list) map.setFeatureState({ source: 'countries', id: c.id }, { fill: colorFor(c) }); updateStatLabels(); }
+// Stats view: the number for each country, written under its name on the map
+let statNums = false;
+function updateStatLabels() {
+  const h = hook(), on = view === 'stats' && !!h?.numbers;
+  if (!on && !statNums) return;
+  statNums = on;
+  document.body.classList.toggle('statnums', on);
+  for (const L of labels) {
+    const t = on ? h.text(countries[L.id]) : '';
+    if (t) {
+      if (!L.sv) { L.sv = document.createElement('span'); L.sv.className = 'sv'; L.el.appendChild(L.sv); }
+      if (L.sv.textContent !== t) L.sv.textContent = t;
+    } else if (L.sv) { L.sv.remove(); L.sv = null; }
+  }
+  labelSig = ''; updateLabels();
+}
 function applyView() {
   const dark = isDark();
   document.body.classList.toggle('heat', view === 'stats' && !!hook()?.heat);
@@ -248,7 +264,7 @@ for (const f of borders.features) {
   const el = document.createElement('div');
   el.className = 'cl off'; el.textContent = c.name;
   new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map);
-  labels.push({ id: c.id, tz: tzData[c.id] ? tzData[c.id][0] : null, tm: null, el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0 });
+  labels.push({ id: c.id, tz: tzData[c.id] ? tzData[c.id][0] : null, tm: null, el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0, sv: null });
 }
 labels.sort((a, b) => b.wDeg - a.wDeg); // biggest first = highest priority
 // ---- city names: only when zoomed in; capitals are bold with a ring marker ----
@@ -282,8 +298,8 @@ function updateLabels() {
     if (showNames) {
       const pxW = L.wDeg * pxPerDeg;
       fs = pxW > 300 ? 15 : pxW > 110 ? 13 : 11;
-      const withTime = timeMode && L.tz;
-      const w = Math.max(L.name.length, withTime ? 5 : 0) * fs * 0.58 + 8, h = fs + 5 + (withTime ? Math.round(fs * 0.95) : 0);
+      const withSv = !!L.sv, withTime = !withSv && timeMode && L.tz;
+      const w = Math.max(L.name.length, withTime ? 5 : 0, withSv ? L.sv.textContent.length * 0.92 : 0) * fs * 0.58 + 8, h = fs + 5 + (withTime || withSv ? Math.round(fs * 0.95) : 0);
       if (pxW >= w * 0.8 || z >= 5) {
         const p = map.project([wrap(L.lng), L.lat]);
         if (p.x > -w && p.x < vw + w && p.y > -h && p.y < vh + h) {

@@ -7,6 +7,7 @@ const { map, countries } = app;
 const $ = (s) => document.querySelector(s);
 const bar = $('#statbar'), range = $('#sb-range'), yearOut = $('#sb-year'), playBtn = $('#sb-play');
 
+let numsOn = true, tableOn = false;
 let key = 'population', mode = 'stat'; // mode: 'stat' (colour by a statistic) or 'heat' (where people live)
 let series = null, def = defOf(key), dom = [0, 1], year = 2023, userYear = null, seq = 0, playing = null, heatReady = false;
 const theme = () => (app.isDark() ? 'dark' : 'light');
@@ -15,6 +16,8 @@ const isOpen = () => !bar.hidden;
 // ---------- what the map asks us ----------
 app.statsHook = {
   get heat() { return mode === 'heat' && isOpen(); },
+  get numbers() { return mode === 'stat' && isOpen() && numsOn && !!series; },
+  text(c) { const v = series ? valueAt(series, c.id, year) : null; return v == null ? '' : fmtVal(def, v); },
   color(c) {
     if (mode === 'heat') return '#0d1218'; // the heat view is always drawn on dark
     const v = series ? valueAt(series, c.id, year) : null;
@@ -28,7 +31,23 @@ app.statsHook = {
   },
 };
 let raf = 0;
-const recolorSoon = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; app.recolor(); }); };
+const recolorSoon = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; app.recolor(); renderTable(); }); };
+
+// ---------- numbers: the ranked table and the figures on the map ----------
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function renderTable() {
+  const box = $('#sb-table');
+  if (!tableOn || box.hidden || mode !== 'stat' || !series) return;
+  const q = $('#sb-find').value.trim().toLowerCase();
+  const rows = Object.values(countries).map((c) => [c, valueAt(series, c.id, year)]).filter((r) => r[1] != null).sort((a, b) => b[1] - a[1]);
+  const html = rows.map(([c, v], i) => [i + 1, c, v]).filter(([, c]) => !q || c.name.toLowerCase().includes(q))
+    .map(([n, c, v]) => `<button type="button" class="sbr" data-id="${c.id}"><span class="r">${n}</span><span class="nm">${c.flag} ${esc(c.name)}</span><span class="v">${esc(fmtVal(def, v))}</span></button>`).join('');
+  $('#sb-rows').innerHTML = html || '<p class="muted" style="padding:10px 12px;margin:0">No country matches.</p>';
+}
+$('#sb-nums').addEventListener('click', () => { numsOn = !numsOn; $('#sb-nums').classList.toggle('on', numsOn); app.recolor(); });
+$('#sb-tbtn').addEventListener('click', () => { tableOn = !tableOn; $('#sb-tbtn').classList.toggle('on', tableOn); $('#sb-table').hidden = !tableOn; renderTable(); });
+$('#sb-find').addEventListener('input', renderTable);
+$('#sb-rows').addEventListener('click', (e) => { const b = e.target.closest('.sbr'); if (b) app.openCountry(b.dataset.id, 'overview', true); });
 
 // ---------- the chips ----------
 function renderChips() {
