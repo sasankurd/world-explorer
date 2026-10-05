@@ -5,14 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>World Explorer</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🌍%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/src/style.css">
 <link rel="stylesheet" href="/src/timezones.css">
 </head>
 <body>
 <header>
-  <h1>🌍 World Explorer</h1>
+  <h1><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10" /><ellipse cx="16" cy="16" rx="4.5" ry="10"/><path d="M6 16h20M8 10.5h16M8 21.5h16"/><ellipse class="orbit" cx="16" cy="16" rx="15" ry="5.5" transform="rotate(-24 16 16)"/></svg>World Explorer</h1>
   <div id="search-wrap"><input id="search" type="search" placeholder="Search a country…" autocomplete="off"><ul id="results"></ul></div>
   <div id="views" role="group" aria-label="Map view">
+    <span class="pill" aria-hidden="true"></span>
     <button data-view="political" class="on">Map</button>
     <button data-view="terrain">Terrain</button>
     <button data-view="satellite">Satellite</button>
@@ -23,11 +27,16 @@
     <option value="area">Area</option>
     <option value="density">Density</option>
   </select>
+  <div id="maptheme" role="group" aria-label="Map theme" title="Dark or light map and terrain">
+    <button data-theme="dark" class="on">Dark</button>
+    <button data-theme="light">Light</button>
+  </div>
   <button id="names" class="on" title="Show or hide country names">Names</button>
   <button id="sizebtn" title="Drag countries around to compare their real sizes">Real size</button>
 </header>
 <main>
   <div id="map"></div>
+  <div id="scan" aria-hidden="true"></div>
   <aside id="panel" hidden></aside>
   <aside id="sizepanel" hidden></aside>
   <button id="timepanel-open" type="button" aria-label="Open world clock" aria-expanded="false">🕒 Time zones</button>
@@ -43,5 +52,6 @@
 </main>
 <script type="module" src="/src/main.js"></script>
 <script type="module" src="/src/timezones.js"></script>
+<script type="module" src="/src/ui.js"></script>
 </body>
 </html>

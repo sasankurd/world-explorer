@@ -71,7 +71,7 @@ function zonesBlock(c) {
 // ---------- map ----------
 const hueOf = (id) => ((id.charCodeAt(0) * 37 + id.charCodeAt(1) * 91 + id.charCodeAt(2) * 13) % 360);
 const regionHue = { Africa: 28, Americas: 130, Asia: 345, Europe: 215, Oceania: 275, Antarctic: 190 };
-const politicalColor = (c) => `hsl(${(regionHue[c.region] ?? 0) + (hueOf(c.id) % 30) - 15},55%,${58 + (hueOf(c.id) % 14)}%)`;
+const politicalColor = (c, dark) => `hsl(${(regionHue[c.region] ?? 0) + (hueOf(c.id) % 30) - 15},${dark ? 48 : 55}%,${dark ? 30 + (hueOf(c.id) % 12) : 58 + (hueOf(c.id) % 14)}%)`;
 
 const esri = (name) => ({
   type: 'raster', tileSize: 256, maxzoom: 18,
@@ -90,7 +90,7 @@ const map = new maplibregl.Map({
       movers: { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, maxzoom: 8 },
     },
     layers: [
-      { id: 'sea', type: 'background', paint: { 'background-color': '#cfe5f5' } },
+      { id: 'sea', type: 'background', paint: { 'background-color': '#03060a' } },
       { id: 'terrain', type: 'raster', source: 'terrain', layout: { visibility: 'none' } },
       { id: 'satellite', type: 'raster', source: 'satellite', layout: { visibility: 'none' } },
       {
@@ -119,31 +119,50 @@ map.touchZoomRotate.disableRotation();
 let sizeMode = false;
 let timeMode = false;
 let view = 'political';
+let mapTheme = 'dark';
+try { if (localStorage.getItem('mapTheme') === 'light') mapTheme = 'light'; } catch {}
+document.body.dataset.map = mapTheme;
 const stat = () => $('#stat').value;
 
 function colorFor(c) {
   if (view === 'stats') {
     const key = stat(), v = c[key];
-    if (v == null || v <= 0) return '#bbbbbb';
+    if (v == null || v <= 0) return mapTheme === 'dark' ? '#27303c' : '#bbbbbb';
     const t = 1 - (R[key].m[c.id] - 1) / (R[key].total - 1); // by rank, so the colours spread evenly
-    return `hsl(212,75%,${90 - t * 62}%)`;
+    return mapTheme === 'dark' ? `hsl(200,85%,${14 + t * 48}%)` : `hsl(212,75%,${90 - t * 62}%)`;
   }
   if (view === 'satellite') return 'rgba(255,255,255,0.02)';
   if (view === 'terrain') return 'rgba(255,255,255,0.02)';
-  return politicalColor(c);
+  return politicalColor(c, mapTheme === 'dark');
 }
 function applyView() {
+  const dark = mapTheme === 'dark';
   document.body.dataset.view = view;
+  document.body.dataset.map = mapTheme;
   const vis = (id, on) => map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
   vis('terrain', view === 'terrain');
   vis('satellite', view === 'satellite');
-  map.setPaintProperty('sea', 'background-color', view === 'stats' ? '#eef2f6' : '#cfe5f5');
-  map.setPaintProperty('line', 'line-color', view === 'satellite' ? '#ffffff' : view === 'terrain' ? '#7a3b3b' : '#ffffff');
+  // dark terrain: the same map pictures, dimmed and desaturated
+  map.setPaintProperty('terrain', 'raster-brightness-max', dark ? 0.42 : 1);
+  map.setPaintProperty('terrain', 'raster-saturation', dark ? -0.35 : 0);
+  map.setPaintProperty('terrain', 'raster-contrast', dark ? 0.2 : 0);
+  map.setPaintProperty('sea', 'background-color', dark ? '#03060a' : view === 'stats' ? '#eef2f6' : '#cfe5f5');
+  map.setPaintProperty('line', 'line-color', view === 'satellite' ? '#ffffff' : view === 'terrain' ? (dark ? '#52d6ff' : '#7a3b3b') : dark ? 'rgba(130,200,255,0.45)' : '#ffffff');
+  map.setPaintProperty('selected', 'line-color', dark || view === 'satellite' ? '#52d6ff' : '#111');
+  map.setPaintProperty('movers-line', 'line-color', dark ? '#e8f6ff' : '#111');
   map.setPaintProperty('fill', 'fill-opacity', view === 'satellite' || view === 'terrain'
     ? ['case', ['boolean', ['feature-state', 'hover'], false], 0.25, 0.01]
-    : ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, 0.82]);
+    : ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, dark ? 0.9 : 0.82]);
   for (const c of list) map.setFeatureState({ source: 'countries', id: c.id }, { fill: colorFor(c) });
 }
+function setMapTheme(t) {
+  mapTheme = t;
+  try { localStorage.setItem('mapTheme', t); } catch {}
+  document.querySelectorAll('#maptheme button').forEach((b) => b.classList.toggle('on', b.dataset.theme === t));
+  applyView();
+}
+$('#maptheme').addEventListener('click', (e) => { const t = e.target.dataset.theme; if (t && t !== mapTheme) setMapTheme(t); });
+document.querySelectorAll('#maptheme button').forEach((b) => b.classList.toggle('on', b.dataset.theme === mapTheme));
 $('#views').addEventListener('click', (e) => {
   const v = e.target.dataset.view; if (!v) return;
   view = v;
