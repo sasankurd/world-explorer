@@ -158,11 +158,11 @@ function applyView() {
 function setMapTheme(t) {
   mapTheme = t;
   try { localStorage.setItem('mapTheme', t); } catch {}
-  document.querySelectorAll('#maptheme button').forEach((b) => b.classList.toggle('on', b.dataset.theme === t));
+  $('#maptheme').value = t;
   applyView();
 }
-$('#maptheme').addEventListener('click', (e) => { const t = e.target.dataset.theme; if (t && t !== mapTheme) setMapTheme(t); });
-document.querySelectorAll('#maptheme button').forEach((b) => b.classList.toggle('on', b.dataset.theme === mapTheme));
+$('#maptheme').addEventListener('change', (e) => setMapTheme(e.target.value));
+$('#maptheme').value = mapTheme;
 $('#views').addEventListener('click', (e) => {
   const v = e.target.dataset.view; if (!v) return;
   view = v;

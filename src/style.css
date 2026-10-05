@@ -24,13 +24,13 @@ header button{position:relative;overflow:hidden}
 @keyframes rip{to{transform:translate(-50%,-50%) scale(1);opacity:0}}
 
 /* the four view tabs share one glowing pill that slides to the clicked tab */
-#views,#maptheme{position:relative;display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.03)}
-#views button,#maptheme button{border-color:transparent;background:transparent;box-shadow:none;z-index:1}
-#views button:hover,#maptheme button:hover{background:transparent;color:#fff}
+#views{position:relative;display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.03)}
+#views button{border-color:transparent;background:transparent;box-shadow:none;z-index:1}
+#views button:hover{background:transparent;color:#fff}
 #views button.on{color:var(--acc);background:transparent;box-shadow:none}
 #views .pill{position:absolute;top:3px;left:0;height:calc(100% - 6px);width:0;border-radius:10px;background:linear-gradient(135deg,rgba(82,214,255,.2),rgba(139,123,255,.2));border:1px solid var(--acc);box-shadow:var(--glow),inset 0 0 12px rgba(82,214,255,.2);pointer-events:none;transition:transform .42s cubic-bezier(.3,1.35,.5,1),width .42s cubic-bezier(.3,1.35,.5,1)}
 #views .pill.snap{transition:none}
-#maptheme button.on{background:rgba(82,214,255,.15);border-color:var(--acc)}
+#maptheme{margin-left:auto;padding:3px 8px;font-size:13px;border-radius:9px;cursor:pointer}
 
 #search-wrap{position:relative}#search{width:210px}
 #results{position:absolute;top:100%;left:0;right:0;margin:4px 0 0;padding:0;list-style:none;background:var(--solid);border:1px solid var(--line);border-radius:10px;max-height:260px;overflow:auto;z-index:10;box-shadow:0 12px 30px #000c}

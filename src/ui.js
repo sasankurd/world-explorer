@@ -19,7 +19,7 @@ document.fonts?.ready.then(() => syncPill(true));
 window.addEventListener('resize', () => syncPill(true));
 views.addEventListener('click', (e) => { if (e.target.closest('button')) { requestAnimationFrame(() => syncPill(false)); sweep(); } });
 document.querySelector('#stat').addEventListener('change', () => setTimeout(() => { syncPill(false); sweep(); }, 0));
-document.querySelector('#maptheme').addEventListener('click', (e) => { if (e.target.closest('button')) sweep(); });
+document.querySelector('#maptheme').addEventListener('change', sweep);
 
 document.querySelector('header').addEventListener('pointerdown', (e) => {
   const b = e.target.closest('button'); if (!b) return;
