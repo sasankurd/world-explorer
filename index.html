@@ -22,12 +22,8 @@
     <button data-view="satellite">Satellite</button>
     <button data-view="stats">Stats</button>
   </div>
-  <select id="stat" title="Statistic for the Stats view">
-    <option value="population">Population</option>
-    <option value="area">Area</option>
-    <option value="density">Density</option>
-  </select>
   <button id="names" class="on" title="Show or hide country names">Names</button>
+  <button id="tradebtn" class="on" title="Click a country to see curved lines to its main trade partners">Trade lines</button>
   <button id="sizebtn" title="Drag countries around to compare their real sizes">Real size</button>
   <select id="maptheme" title="Map theme: dark or light map and terrain" aria-label="Map theme">
     <option value="dark">🌙 Dark</option>
@@ -36,6 +32,29 @@
 </header>
 <main>
   <div id="map"></div>
+  <section id="statbar" hidden aria-label="Statistics">
+    <div class="sb-groups" id="sb-groups"></div>
+    <div class="sb-time" id="sb-time">
+      <button id="sb-play" type="button" aria-label="Play through the years" title="Play through the years">▶</button>
+      <output id="sb-year" class="sb-year">2023</output>
+      <div class="sb-rangewrap">
+        <input id="sb-range" type="range" min="1960" max="2023" step="1" value="2023" aria-label="Year">
+        <div class="sb-ticks"><span id="sb-min">1960</span><span id="sb-max">2023</span></div>
+      </div>
+      <div class="sb-legend" id="sb-legend"><span id="sb-lo"></span><i id="sb-grad"></i><span id="sb-hi"></span></div>
+    </div>
+    <p class="sb-note" id="sb-note"></p>
+    <form id="sb-add" hidden autocomplete="off">
+      <div class="sb-addhead"><strong>Add your own statistic</strong><button type="button" id="sb-add-close" aria-label="Close">✕</button></div>
+      <label>Name <input id="sa-name" placeholder="For example: Coffee drunk per person" required></label>
+      <label>Unit <input id="sa-unit" placeholder="For example: kg per year (optional)"></label>
+      <div class="sa-mode"><label><input type="radio" name="sa-mode" value="paste" checked> Paste my numbers</label><label><input type="radio" name="sa-mode" value="wb"> Use a World Bank code</label></div>
+      <label id="sa-paste-l">One country per line: <em>country, value</em> or <em>country, year, value</em>
+        <textarea id="sa-paste" rows="5" placeholder="France, 5.4&#10;Japan, 3.6&#10;Brazil, 2019, 6.1"></textarea></label>
+      <label id="sa-wb-l" hidden>World Bank indicator code <input id="sa-wb" placeholder="For example: SP.DYN.IMRT.IN"></label>
+      <div class="sa-actions"><button type="submit" class="on">Add statistic</button><span id="sa-msg" class="muted" role="status"></span></div>
+    </form>
+  </section>
   <div id="scan" aria-hidden="true"></div>
   <aside id="panel" hidden></aside>
   <aside id="sizepanel" hidden></aside>
@@ -52,6 +71,9 @@
 </main>
 <script type="module" src="/src/main.js"></script>
 <script type="module" src="/src/timezones.js"></script>
+<script type="module" src="/src/stats.js"></script>
+<script type="module" src="/src/trade.js"></script>
+<script type="module" src="/src/trends.js"></script>
 <script type="module" src="/src/ui.js"></script>
 </body>
 </html>
