@@ -208,6 +208,7 @@ map.on('mouseleave', 'fill', () => {
 });
 map.on('click', 'fill', (e) => {
   if (!e.features[0]) return;
+  if (map.getLayer('planes') && map.queryRenderedFeatures(e.point, { layers: ['planes'] }).length) return; // a plane was clicked, not the country below
   if (sizeMode) { if (!map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length) addMover(e.features[0].id); return; }
   openCountry(e.features[0].id, 'overview', false);
 });

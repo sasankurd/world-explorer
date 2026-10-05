@@ -197,3 +197,28 @@ body[data-view="satellite"] .cl .sv{color:#5fe0ff}
 .sbr .v{font-weight:700;font-variant-numeric:tabular-nums;color:var(--acc);white-space:nowrap}
 .sbr .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:700px){.sb-tools{margin-left:0;width:100%}#sb-rows{max-height:200px}}
+
+/* Live flights */
+#flights{position:absolute;left:62px;bottom:14px;z-index:6;width:min(390px,calc(100% - 76px));display:flex;flex-direction:column;gap:8px;pointer-events:none}
+#flights[hidden],#flightcard[hidden]{display:none}
+#flights>*{pointer-events:auto}
+#flightcard{background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 18px 50px #000b,0 0 30px rgba(82,214,255,.08);max-height:calc(100vh - 220px);overflow:auto;animation:pin .34s cubic-bezier(.2,.9,.25,1)}
+.fl-head{display:flex;align-items:center;gap:8px}.fl-head h3{margin:0;flex:1;font-size:17px}
+.fl-head button{width:28px;height:28px;padding:0;line-height:1}
+.fl-route{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:8px 0 6px}
+.fl-route b{display:block;font-size:22px;letter-spacing:.02em}.fl-route small{display:block;color:var(--muted);font-size:12.5px}
+.fl-route .r{text-align:right}.fl-arrow{color:var(--acc);font-size:18px}
+.fl-bar{height:6px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden}
+.fl-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:6px;transition:width 1s linear}
+.fl-km{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin:4px 0 8px;font-variant-numeric:tabular-nums}
+.fl-eta{padding:8px 10px;border:1px solid rgba(255,179,71,.45);border-radius:12px;background:rgba(255,179,71,.08);margin-bottom:6px}
+.fl-eta .big{font-size:18px;font-weight:700;color:#ffb347;font-variant-numeric:tabular-nums}.fl-eta .big small{font-size:12px;font-weight:500;color:var(--muted)}
+.fl-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.fl-stats small{display:block;color:var(--muted);font-size:12px}.fl-stats b{font-variant-numeric:tabular-nums}.fl-stats em{display:block;font-style:normal;color:var(--muted);font-size:12px}
+.fl-foot{font-size:12.5px;margin-top:8px}
+#flightbar{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;background:var(--card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:12px;padding:6px 10px;font-size:12.5px}
+#fl-stat{flex:1;min-width:150px;color:var(--fg)}#fl-stat.bad{color:#ffb4a8}
+#fl-q{width:170px;padding:3px 9px;font-size:13px}
+.apt{padding:1px 7px;border-radius:7px;font:700 12px "Space Grotesk",system-ui,sans-serif;border:1px solid;background:rgba(0,0,0,.78);pointer-events:auto}
+.apt.from{color:#52d6ff;border-color:#52d6ff}.apt.to{color:#ffb347;border-color:#ffb347}
+@media(max-width:700px){#flights{left:10px;width:calc(100% - 20px);bottom:10px}#flightcard{max-height:48vh}}

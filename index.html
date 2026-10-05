@@ -24,6 +24,7 @@
   </div>
   <button id="names" class="on" title="Show or hide country names">Names</button>
   <button id="tradebtn" class="on" title="Click a country to see curved lines to its main trade partners">Trade lines</button>
+  <button id="flightbtn" title="Show planes flying right now, and where each one is going">Live flights</button>
   <button id="sizebtn" title="Drag countries around to compare their real sizes">Real size</button>
   <select id="maptheme" title="Map theme: dark or light map and terrain" aria-label="Map theme">
     <option value="dark">🌙 Dark</option>
@@ -57,6 +58,10 @@
       <div class="sa-actions"><button type="submit" class="on">Add statistic</button><span id="sa-msg" class="muted" role="status"></span></div>
     </form>
   </section>
+  <div id="flights" hidden>
+    <div id="flightcard" hidden></div>
+    <div id="flightbar"><span id="fl-stat" role="status"></span><form id="fl-find" autocomplete="off"><input id="fl-q" type="search" placeholder="Find a flight, e.g. UAE1" aria-label="Find a flight by its call sign"></form></div>
+  </div>
   <div id="scan" aria-hidden="true"></div>
   <aside id="panel" hidden></aside>
   <aside id="sizepanel" hidden></aside>
@@ -75,6 +80,7 @@
 <script type="module" src="/src/timezones.js"></script>
 <script type="module" src="/src/stats.js"></script>
 <script type="module" src="/src/trade.js"></script>
+<script type="module" src="/src/flights.js"></script>
 <script type="module" src="/src/trends.js"></script>
 <script type="module" src="/src/ui.js"></script>
 </body>
