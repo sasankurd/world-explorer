@@ -27,3 +27,23 @@ document.querySelector('header').addEventListener('pointerdown', (e) => {
   s.className = 'rip'; s.style.cssText = `left:${e.clientX - r.left}px;top:${e.clientY - r.top}px;width:${size}px;height:${size}px`;
   b.appendChild(s); setTimeout(() => s.remove(), 700);
 });
+
+// ---------- settings menu ----------
+const sbtn = document.querySelector('#settingsbtn'), menu = document.querySelector('#settings');
+const setMenu = (open) => { menu.hidden = !open; sbtn.setAttribute('aria-expanded', String(open)); };
+sbtn.addEventListener('click', (e) => { e.stopPropagation(); setMenu(menu.hidden); document.querySelector('#usermenu').hidden = true; });
+document.addEventListener('click', (e) => { if (!menu.hidden && !e.target.closest('#settings')) setMenu(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { setMenu(false); sbtn.focus(); } });
+// the names switch is controlled by main.js; keep its screen-reader state in step with how it looks
+const names = document.querySelector('#names');
+const syncNames = () => names.setAttribute('aria-checked', String(names.classList.contains('on')));
+new MutationObserver(syncNames).observe(names, { attributes: true, attributeFilter: ['class'] });
+// animations on or off (remembered)
+const anim = document.querySelector('#anim');
+function setAnim(on, save) {
+  document.body.classList.toggle('noanim', !on); anim.classList.toggle('on', on); anim.setAttribute('aria-checked', String(on));
+  if (save) try { localStorage.setItem('animations', on ? 'on' : 'off'); } catch {}
+}
+let animOn = true; try { animOn = localStorage.getItem('animations') !== 'off'; } catch {}
+setAnim(animOn, false);
+anim.addEventListener('click', () => setAnim(!anim.classList.contains('on'), true));

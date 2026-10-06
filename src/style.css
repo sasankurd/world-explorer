@@ -3,7 +3,7 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:15px/1.45 "Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif}
-header{position:relative;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px;background:linear-gradient(180deg,#070b10,#000);border-bottom:1px solid var(--line);z-index:5}
+header{position:relative;z-index:20;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px;background:linear-gradient(180deg,#070b10,#000);border-bottom:1px solid var(--line);}
 header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--acc),var(--acc2),transparent);background-size:200% 100%;animation:beam 8s linear infinite}
 @keyframes beam{to{background-position:-200% 0}}
 h1{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:700;letter-spacing:.03em;margin:0 8px 0 0;background:linear-gradient(90deg,#fff,var(--acc));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -30,7 +30,6 @@ header button{position:relative;overflow:hidden}
 #views button.on{color:var(--acc);background:transparent;box-shadow:none}
 #views .pill{position:absolute;top:3px;left:0;height:calc(100% - 6px);width:0;border-radius:10px;background:linear-gradient(135deg,rgba(82,214,255,.2),rgba(139,123,255,.2));border:1px solid var(--acc);box-shadow:var(--glow),inset 0 0 12px rgba(82,214,255,.2);pointer-events:none;transition:transform .42s cubic-bezier(.3,1.35,.5,1),width .42s cubic-bezier(.3,1.35,.5,1)}
 #views .pill.snap{transition:none}
-#maptheme{margin-left:auto;padding:3px 8px;font-size:13px;border-radius:9px;cursor:pointer}
 
 #search-wrap{position:relative}#search{width:210px}
 #results{position:absolute;top:100%;left:0;right:0;margin:4px 0 0;padding:0;list-style:none;background:var(--solid);border:1px solid var(--line);border-radius:10px;max-height:260px;overflow:auto;z-index:10;box-shadow:0 12px 30px #000c}
@@ -222,3 +221,61 @@ body[data-view="satellite"] .cl .sv{color:#5fe0ff}
 .apt{padding:1px 7px;border-radius:7px;font:700 12px "Space Grotesk",system-ui,sans-serif;border:1px solid;background:rgba(0,0,0,.78);pointer-events:auto}
 .apt.from{color:#52d6ff;border-color:#52d6ff}.apt.to{color:#ffb347;border-color:#ffb347}
 @media(max-width:700px){#flights{left:10px;width:calc(100% - 20px);bottom:10px}#flightcard{max-height:48vh}}
+
+/* ---- banner: three groups (left: search and views, middle: tools, right: settings and account) ---- */
+#tools{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.03)}
+#tools button{border-color:transparent;background:transparent;box-shadow:none}
+#tools button:hover{background:rgba(82,214,255,.08)}
+#tools button.on{background:rgba(82,214,255,.15);border-color:var(--acc);color:var(--acc);box-shadow:var(--glow)}
+#account{margin-left:auto;display:flex;gap:8px;align-items:center;position:relative}
+#settingsbtn{display:flex;align-items:center;gap:7px}
+#settingsbtn svg{width:18px;height:18px;transition:transform .5s cubic-bezier(.3,1.3,.5,1)}
+#settingsbtn[aria-expanded="true"]{border-color:var(--acc);color:var(--acc);box-shadow:var(--glow)}
+#settingsbtn[aria-expanded="true"] svg{transform:rotate(90deg)}
+.cta{background:linear-gradient(135deg,rgba(82,214,255,.28),rgba(139,123,255,.3));border-color:var(--acc);color:#fff;font-weight:600}
+.cta:hover{box-shadow:var(--glow)}
+#userbtn{display:flex;align-items:center;gap:8px;padding:3px 12px 3px 4px;border-radius:99px}
+#userbtn[hidden]{display:none}
+.av{width:26px;height:26px;border-radius:50%;object-fit:cover;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#02131c;font-weight:700;display:grid;place-items:center;font-size:13px;flex:none}
+#settings,#usermenu{position:absolute;right:0;top:calc(100% + 14px);width:min(340px,calc(100vw - 24px));padding:14px;background:rgba(6,10,15,.95);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px #000c,0 0 30px rgba(82,214,255,.08);z-index:30}
+#usermenu{width:min(280px,calc(100vw - 24px))}
+#settings[hidden],#usermenu[hidden]{display:none}
+#settings:not([hidden]),#usermenu:not([hidden]){animation:pin .28s cubic-bezier(.2,.9,.25,1)}
+#settings h2{margin:0 0 6px;font-size:16px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--line)}
+.srow b{display:block;font-weight:600}.srow small{display:block;color:var(--muted);font-size:12.5px}
+#maptheme{padding:4px 8px;font-size:13px;border-radius:9px;cursor:pointer}
+.switch{position:relative;flex:none;width:44px;height:26px;padding:0;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid var(--line);box-shadow:none}
+.switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#cfd8e3;transition:transform .25s cubic-bezier(.3,1.4,.5,1),background .2s}
+.switch.on{background:rgba(82,214,255,.35);border-color:var(--acc);box-shadow:none}
+.switch.on i{transform:translateX(18px);background:var(--acc);box-shadow:0 0 10px rgba(82,214,255,.7)}
+.um-name{font-weight:700;font-size:16px}.um-mail,.um-via{font-size:13px;word-break:break-all}
+#signoutbtn{width:100%;margin-top:12px}
+body.noanim *,body.noanim *::before,body.noanim *::after{animation:none!important;transition:none!important}
+
+/* sign in and sign up window */
+#authmodal{width:min(420px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;padding:22px 22px 18px;color:var(--fg);background:rgba(6,10,15,.97);border:1px solid var(--line);border-radius:20px;box-shadow:0 30px 90px #000,0 0 50px rgba(82,214,255,.12)}
+#authmodal::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(6px)}
+#authmodal[open]{animation:pin .32s cubic-bezier(.2,.9,.25,1)}
+#authmodal h2{margin:0 0 12px;font-size:22px}
+.au-close{position:absolute;top:12px;right:12px;margin:0}.au-close button{width:30px;height:30px;padding:0}
+.au-tabs{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border:1px solid var(--line);border-radius:12px;margin-bottom:14px}
+.au-tabs button{border-color:transparent;background:transparent}.au-tabs button.on{background:rgba(82,214,255,.15);border-color:var(--acc);color:var(--acc)}
+.au-prov{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.au-prov button{display:flex;align-items:center;gap:9px;padding:9px 11px;text-align:left;font-size:13.5px}
+.au-prov svg{width:18px;height:18px;flex:none}
+.au-or{display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:var(--muted);font-size:12.5px}
+.au-or::before,.au-or::after{content:"";flex:1;height:1px;background:var(--line)}
+#au-form{display:grid;gap:10px}
+#au-form label{display:grid;gap:3px;font-size:13px;color:var(--muted)}#au-form label[hidden]{display:none}
+#au-form input{font-size:15px;width:100%;padding:8px 11px}
+#au-submit{padding:9px 12px;font-size:15px;margin-top:2px}
+#au-msg{min-height:1.3em;margin:10px 0 0;font-size:13.5px}#au-msg.bad{color:#ffb4a8}#au-msg.ok{color:#8fe9b0}
+#au-setup{margin-top:10px;font-size:13px;color:var(--muted)}#au-setup[hidden]{display:none}#au-setup summary{cursor:pointer;color:#ffcf8a}
+@media(max-width:700px){
+  #tools{order:5;width:100%;justify-content:space-between}#tools button{flex:1;padding:6px 6px;font-size:13.5px}
+  #account{margin-left:auto}#settingsbtn .lbl{display:none}#settingsbtn{padding:6px 9px}
+  #signinbtn,#signupbtn{padding:6px 10px;font-size:13.5px}
+  .au-prov{grid-template-columns:1fr}
+}
+@media(max-width:1500px){#settingsbtn .lbl{display:none}#settingsbtn{padding:6px 10px}#search{width:170px}}
