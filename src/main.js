@@ -298,7 +298,7 @@ const CITY_FS = 11, CAP_FS = 12.5;
 const minZoomFor = (pop) => (pop >= 5e6 ? 3.6 : pop >= 2e6 ? 4.2 : pop >= 1e6 ? 4.8 : pop >= 5e5 ? 5.4 : pop >= 2.5e5 ? 6 : pop >= 1e5 ? 6.6 : pop >= 5e4 ? 7.4 : 8.2);
 let cities = [];
 fetch('/data/cities.json').then((r) => r.json()).then((rows) => {
-  cities = rows.map(([name, lng, lat, pop, cap]) => ({ name, lng, lat, pop, cap: !!cap, minZ: cap ? 3.2 : minZoomFor(pop), w: 0, el: null, vis: false }));
+  cities = rows.map(([name, lng, lat, pop, cap, cc]) => ({ name, lng, lat, pop, cc, cap: !!cap, minZ: cap ? 3.2 : minZoomFor(pop), w: 0, el: null, vis: false }));
   cities.sort((a, b) => (b.cap - a.cap) || (b.pop - a.pop)); // capitals first, then biggest
   labelSig = ''; updateLabels();
 }).catch(() => {});
@@ -655,26 +655,121 @@ setInterval(() => { // every second: clocks in the country window
   updateTimeLabels();
 }, 1000);
 
-// ---------- search ----------
+// ---------- search: countries, cities and (online) any place on the map ----------
 const input = $('#search'), results = $('#results');
-let act = -1, matches = [];
-const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-input.addEventListener('input', () => {
-  const q = norm(input.value.trim()); act = -1;
-  matches = q ? list.filter((c) => norm(c.name).includes(q) || (c.capital && norm(c.capital).includes(q))).slice(0, 8) : [];
-  results.innerHTML = matches.map((c, i) => `<li data-i="${i}">${c.flag} ${c.name}${c.capital ? ` <span class="muted">· ${c.capital}</span>` : ''}</li>`).join('');
-});
-const pick = (c) => {
-  input.value = ''; results.innerHTML = '';
-  if (sizeMode) { if (addMover(c.id)) flyTo(c.id); return; }
-  openCountry(c.id);
+let act = -1, matches = [], lastQ = '', placeTimer = 0, placeSeq = 0;
+const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’'`.]/g, '').replace(/[-–,_/]+/g, ' ');
+const escH = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// every word typed must start a word of the name (or of its country), so "new yo", "sao paulo brazil" and "paris fr" all work
+function scoreOf(name, tokens, extra) {
+  const words = name.split(' '); let sc = 0;
+  for (const t of tokens) {
+    if (name === t) sc += 100;
+    else if (name.startsWith(t)) sc += 80;
+    else if (words.some((w) => w.startsWith(t))) sc += 60;
+    else if (extra && extra.split(' ').some((w) => w.startsWith(t))) sc += 20;
+    else if (t.length >= 3 && name.includes(t)) sc += 25;
+    else return 0;
+  }
+  return sc / tokens.length;
+}
+const hi = (text, tokens) => {
+  let out = escH(text); const n = norm(text);
+  if (n.length !== text.length) return out; // letters changed shape: skip the highlight rather than mark the wrong spot
+  const t = tokens.find((x) => n.startsWith(x)) || tokens.find((x) => n.includes(' ' + x));
+  if (!t) return out;
+  const i = n.startsWith(t) ? 0 : n.indexOf(' ' + t) + 1;
+  return escH(text.slice(0, i)) + '<mark>' + escH(text.slice(i, i + t.length)) + '</mark>' + escH(text.slice(i + t.length));
 };
+function localMatches(q) {
+  const tokens = norm(q).trim().split(/\s+/).filter(Boolean); if (!tokens.length) return { tokens, rows: [] };
+  const rows = [];
+  for (const c of list) {
+    c._n ||= norm(c.name); c._c ||= c.capital ? norm(c.capital) : '';
+    const sc = Math.max(scoreOf(c._n, tokens), c._c ? scoreOf(c._c, tokens) - 15 : 0);
+    if (sc) rows.push({ kind: 'country', c, sc: sc + 40 });
+  }
+  for (const k of cities) {
+    k._n ||= norm(k.name); const cc = countries[k.cc];
+    const sc = scoreOf(k._n, tokens, cc ? (cc._n ||= norm(cc.name)) : '');
+    if (sc) rows.push({ kind: 'city', k, cc, sc: sc + Math.log10(Math.max(k.pop, 1)) * 3 + (k.cap ? 8 : 0) });
+  }
+  rows.sort((x, y) => y.sc - x.sc);
+  const out = [], nCountry = rows.filter((r) => r.kind === 'country').slice(0, 3);
+  const nCity = rows.filter((r) => r.kind === 'city').slice(0, 8);
+  return { tokens, rows: [...nCountry, ...nCity].sort((x, y) => y.sc - x.sc) };
+}
+function paint() {
+  const { tokens } = localMatches(lastQ);
+  results.innerHTML = matches.map((m, i) => {
+    const cls = i === act ? ' class="act"' : '';
+    if (m.kind === 'country') return `<li data-i="${i}"${cls}><span class="ic">${m.c.flag}</span><span class="tx">${hi(m.c.name, tokens)}<span class="muted"> · Country${m.c.capital ? ' · ' + escH(m.c.capital) : ''}</span></span></li>`;
+    if (m.kind === 'city') return `<li data-i="${i}"${cls}><span class="ic">${m.cc ? m.cc.flag : '📍'}</span><span class="tx">${hi(m.k.name, tokens)}${m.k.cap ? ' <span class="cap">★ capital</span>' : ''}<span class="muted"> · ${escH(m.cc?.name || '')}${m.k.pop > 1 ? ' · ' + (m.k.pop >= 1e6 ? (m.k.pop / 1e6).toFixed(1) + ' M' : Math.round(m.k.pop / 1000) + ' k') : ''}</span></span></li>`;
+    if (m.kind === 'place') return `<li data-i="${i}"${cls}><span class="ic">📍</span><span class="tx">${escH(m.name)}<span class="muted"> · ${escH(m.sub)}</span></span></li>`;
+    if (m.kind === 'ask') return `<li data-i="${i}"${cls} class="ask${i === act ? ' act' : ''}"><span class="ic">🔎</span><span class="tx">${m.busy ? 'Searching the map…' : m.none ? 'No more places found' : `Find “${escH(lastQ.trim())}” anywhere on the map`}</span></li>`;
+  }).join('');
+  results.querySelector('li.act')?.scrollIntoView({ block: 'nearest' });
+}
+function refresh() {
+  const q = input.value.trim(); lastQ = q; act = -1;
+  matches = localMatches(q).rows;
+  if (q.length >= 2) matches.push({ kind: 'ask' });
+  paint();
+}
+input.addEventListener('input', refresh);
+input.addEventListener('focus', () => { if (input.value.trim()) refresh(); });
+
+// places that are not in our lists (streets, villages, landmarks): asked from OpenStreetMap's search, only when you press Enter or click the last row
+async function askPlaces() {
+  const q = lastQ.trim(); if (q.length < 2) return;
+  const seq = ++placeSeq, keep = matches.filter((m) => m.kind !== 'ask' && m.kind !== 'place');
+  matches = [...keep, { kind: 'ask', busy: true }]; paint();
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&addressdetails=0&q=${enc(q)}`, { headers: { Accept: 'application/json' } });
+    if (!r.ok) throw new Error(r.status);
+    const rows = await r.json(); if (seq !== placeSeq) return;
+    const places = rows.map((p) => { const parts = p.display_name.split(', '); return { kind: 'place', name: p.name || parts[0], sub: parts.slice(1, 4).join(', '), lat: +p.lat, lng: +p.lon, bb: p.boundingbox ? p.boundingbox.map(Number) : null }; });
+    matches = [...keep, ...places, ...(places.length ? [] : [{ kind: 'ask', none: true }])];
+  } catch { if (seq !== placeSeq) return; matches = [...keep, { kind: 'ask', none: true }]; }
+  act = matches.findIndex((m) => m.kind === 'place'); paint();
+}
+
+// a pin with the place's name stays on the map until you press Esc, click the map or pick something else
+let pin = null;
+const clearPin = () => { pin?.remove(); pin = null; };
+function showPin(name, lng, lat) {
+  clearPin();
+  const el = document.createElement('div'); el.className = 'pin'; el.innerHTML = `<span class="pt"></span><span class="pn">${escH(name)}</span>`;
+  pin = new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lng, lat]).addTo(map);
+}
+map.on('click', clearPin);
+function goTo(name, lng, lat, zoom, bb) {
+  if (sizeMode) return;
+  showPin(name, lng, lat);
+  if (bb && bb[1] - bb[0] > 0.0005) map.fitBounds([[bb[2], bb[0]], [bb[3], bb[1]]], { padding: viewPadding(), maxZoom: 16, duration: 1100 });
+  else map.flyTo({ center: [lng, lat], zoom, duration: 1100 });
+}
+const pick = (m) => {
+  if (!m) return;
+  if (m.kind === 'ask') return m.busy ? undefined : askPlaces();
+  input.value = ''; results.innerHTML = ''; matches = []; input.blur(); clearPin();
+  if (m.kind === 'country') { if (sizeMode) { if (addMover(m.c.id)) flyTo(m.c.id); return; } return openCountry(m.c.id); }
+  if (m.kind === 'city') return goTo(m.k.name, m.k.lng, m.k.lat, m.k.cap ? 9 : m.k.pop > 1e6 ? 9.5 : 10.5);
+  if (m.kind === 'place') return goTo(m.name, m.lng, m.lat, 12, m.bb);
+};
+results.addEventListener('mousedown', (e) => e.preventDefault()); // keep the box focused while clicking
 results.addEventListener('click', (e) => { const li = e.target.closest('li'); if (li) pick(matches[li.dataset.i]); });
 input.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    act = (act + (e.key === 'ArrowDown' ? 1 : -1) + matches.length) % (matches.length || 1);
-    [...results.children].forEach((li, i) => li.classList.toggle('act', i === act)); e.preventDefault();
-  } else if (e.key === 'Enter' && matches.length) pick(matches[Math.max(act, 0)]);
+    if (!matches.length) return;
+    act = (act + (e.key === 'ArrowDown' ? 1 : -1) + matches.length) % matches.length; paint(); e.preventDefault();
+  } else if (e.key === 'Enter') { e.preventDefault(); if (matches.length) pick(matches[Math.max(act, 0)]); }
+  else if (e.key === 'Escape') { if (input.value) { input.value = ''; results.innerHTML = ''; matches = []; } else { clearPin(); input.blur(); } }
+});
+document.addEventListener('click', (e) => { if (!e.target.closest('#search-wrap')) results.innerHTML = ''; });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pin && document.activeElement !== input) clearPin(); });
+document.addEventListener('keydown', (e) => { // press / to jump to the search box
+  if (e.key === '/' && !e.target.closest('input,textarea,select,[contenteditable]')) { e.preventDefault(); input.focus(); input.select(); }
 });
 
 // ---------- start ----------

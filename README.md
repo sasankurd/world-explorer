@@ -13,6 +13,7 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 ## What works now
 
 - All 236 countries and territories on a zoomable map, with the name on hover
+- Search (press / to jump to it): type part of a country or city name, with or without accents, e.g. "sao pau", "paris fr" or "erbil". Results rank by match and city size, show the flag and country, and picking one flies the map there with a pin. For streets, villages and landmarks that are not in our lists, press Enter on the last row to ask OpenStreetMap's search (one request per press, as its usage policy asks).
 - Search by country or capital
 - Views: Map, Terrain, Satellite (needs internet; uses Esri's free map images) and Stats (colors countries by population, area or density)
 - Country window: facts, rankings by population, size and density, news links by category, neighbours you can click, side-by-side comparison of two countries, place search in the capital, history links

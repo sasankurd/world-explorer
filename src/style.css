@@ -31,9 +31,16 @@ header button{position:relative;overflow:hidden}
 #views .pill{position:absolute;top:3px;left:0;height:calc(100% - 6px);width:0;border-radius:10px;background:linear-gradient(135deg,rgba(82,214,255,.2),rgba(139,123,255,.2));border:1px solid var(--acc);box-shadow:var(--glow),inset 0 0 12px rgba(82,214,255,.2);pointer-events:none;transition:transform .42s cubic-bezier(.3,1.35,.5,1),width .42s cubic-bezier(.3,1.35,.5,1)}
 #views .pill.snap{transition:none}
 
-#search-wrap{position:relative}#search{width:210px}
+#search-wrap{position:relative}#search{width:230px}
 #results{position:absolute;top:100%;left:0;right:0;margin:4px 0 0;padding:0;list-style:none;background:var(--solid);border:1px solid var(--line);border-radius:10px;max-height:260px;overflow:auto;z-index:10;box-shadow:0 12px 30px #000c}
-#results:empty{display:none}
+#results{min-width:340px;max-height:min(60vh,420px)}#results:empty{display:none}
+#results li{display:flex;gap:9px;align-items:center}#results .ic{flex:none;width:22px;text-align:center}#results .tx{min-width:0}
+#results mark{background:none;color:var(--acc);font-weight:700}#results .cap{font-size:11px;color:var(--acc);opacity:.85}
+#results li.ask{border-top:1px solid var(--line);color:var(--muted)}#results li.ask.act{color:var(--acc)}
+.pin{display:flex;flex-direction:column;align-items:center;pointer-events:none}.pin .pn{order:-1;background:var(--solid);color:#fff;border:1px solid var(--acc);border-radius:8px;padding:3px 9px;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 6px 18px #000a;margin-bottom:5px}
+.pin .pt{width:14px;height:14px;border-radius:50%;background:var(--acc);border:2px solid #fff;box-shadow:0 0 0 0 #52d6ff99;animation:pinpulse 1.8s ease-out infinite}
+@keyframes pinpulse{70%{box-shadow:0 0 0 14px #52d6ff00}100%{box-shadow:0 0 0 0 #52d6ff00}}
+body.noanim .pin .pt{animation:none}
 #results li{padding:7px 12px;cursor:pointer}#results li:hover,#results li.act{background:rgba(82,214,255,.12);color:var(--acc)}
 main{position:relative;flex:1;min-height:0}
 #map{position:absolute;inset:0}
@@ -278,4 +285,4 @@ body.noanim *,body.noanim *::before,body.noanim *::after{animation:none!importan
   #signinbtn,#signupbtn{padding:6px 10px;font-size:13.5px}
   .au-prov{grid-template-columns:1fr}
 }
-@media(max-width:1500px){#settingsbtn .lbl{display:none}#settingsbtn{padding:6px 10px}#search{width:170px}}
+@media(max-width:1500px){#settingsbtn .lbl{display:none}#settingsbtn{padding:6px 10px}#search{width:180px}}

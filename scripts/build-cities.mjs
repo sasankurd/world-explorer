@@ -1,4 +1,4 @@
-// Builds public/data/cities.json: [name, lng, lat, population, isCapital, countryId (capitals only)]
+// Builds public/data/cities.json: [name, lng, lat, population, isCapital, countryId (all cities where known)]
 //
 // Sources
 //  - Natural Earth "populated places" (public domain). Downloaded once into scripts/.cache/
@@ -62,12 +62,12 @@ const clean = (p) => {
   return n;
 };
 const others = NE.filter((p) => !p.used && (p.pop_max >= 50000 || (/Admin-1.*capital/.test(p.featurecla) && p.pop_max >= 10000)))
-  .map((p) => ({ name: clean(p), lng: p.lng, lat: p.lat, pop: Math.max(p.pop_max, 20000) }));
+  .map((p) => ({ name: clean(p), lng: p.lng, lat: p.lat, pop: Math.max(p.pop_max, 20000), id: countries.find((c) => c.id === p.adm0_a3 || c.iso2 === p.iso_a2)?.id }));
 
 const r2 = (n) => Math.round(n * 100) / 100;
 const out = [
   ...capitals.map((c) => [c.name, r2(c.lng), r2(c.lat), c.pop || 0, 1, c.id]), // 6th value = country id (capitals only)
-  ...others.map((c) => [c.name, r2(c.lng), r2(c.lat), c.pop, 0]),
+  ...others.map((c) => (c.id ? [c.name, r2(c.lng), r2(c.lat), c.pop, 0, c.id] : [c.name, r2(c.lng), r2(c.lat), c.pop, 0])),
 ];
 fs.writeFileSync('public/data/cities.json', JSON.stringify(out));
 console.log('capitals', capitals.length, '| other cities', others.length, '| file KB', Math.round(fs.statSync('public/data/cities.json').size / 1024));
