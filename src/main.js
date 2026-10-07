@@ -99,7 +99,7 @@ const map = new maplibregl.Map({
         id: 'fill', type: 'fill', source: 'countries',
         paint: {
           'fill-color': ['coalesce', ['feature-state', 'fill'], '#cccccc'],
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, 0.82],
+          'fill-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 0.95, 0.82],
         },
       },
       { id: 'line', type: 'line', source: 'countries', paint: { 'line-color': '#ffffff', 'line-width': 0.6, 'line-opacity': 0.8 } },
@@ -111,7 +111,7 @@ const map = new maplibregl.Map({
       { id: 'movers-line', type: 'line', source: 'movers', layout: { visibility: 'none' }, paint: { 'line-color': '#111', 'line-width': 1.6 } },
     ],
   },
-  center: [20, 25], zoom: 1.6, minZoom: 0.8, maxZoom: 10, dragRotate: false, attributionControl: { compact: true },
+  center: [20, 25], zoom: 1.6, minZoom: 0.8, maxZoom: 19, dragRotate: false, attributionControl: { compact: true },
 });
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
 map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
@@ -175,10 +175,10 @@ function applyView() {
   map.setPaintProperty('selected', 'line-color', dark || view === 'satellite' ? '#52d6ff' : '#111');
   map.setPaintProperty('movers-line', 'line-color', dark ? '#e8f6ff' : '#111');
   map.setPaintProperty('fill', 'fill-opacity', view === 'satellite' || view === 'terrain'
-    ? ['case', ['boolean', ['feature-state', 'hover'], false], 0.25, 0.01]
+    ? ['case', ['boolean', ['feature-state', 'selected'], false], 0.25, 0.01]
     : osmOn // countries are tinted lightly so the streets and coastlines underneath still show
-      ? ['case', ['boolean', ['feature-state', 'hover'], false], 0.7, dark ? 0.5 : 0.4]
-      : ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, dark ? 0.9 : 0.82]);
+      ? ['case', ['boolean', ['feature-state', 'selected'], false], 0.7, dark ? 0.5 : 0.4]
+      : ['case', ['boolean', ['feature-state', 'selected'], false], 0.95, dark ? 0.9 : 0.82]);
   recolor();
 }
 function setNames(on) { labelsOn = on; $('#names').classList.toggle('on', on); labelSig = ''; updateLabels(); }
@@ -210,14 +210,11 @@ $('#views').addEventListener('click', (e) => {
 function setView(v) { document.querySelector(`#views button[data-view="${v}"]`)?.click(); }
 
 // ---------- hover + click ----------
-let hoverId = null;
 const tip = $('#tip');
 map.on('mousemove', 'fill', (e) => {
   if (drag) return;
   const f = e.features[0]; if (!f) return;
   map.getCanvas().style.cursor = sizeMode && map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length ? 'grab' : 'pointer';
-  if (hoverId && hoverId !== f.id) map.setFeatureState({ source: 'countries', id: hoverId }, { hover: false });
-  hoverId = f.id; map.setFeatureState({ source: 'countries', id: hoverId }, { hover: true });
   const c = countries[f.id];
   tip.hidden = false; tip.textContent = `${c.flag} ${c.name}` + (view === 'stats' && hook() ? hook().tip(c) : tzData[c.id] ? ` · ${tzText(tzData[c.id][0], 'hm')}` : '');
   tip.style.left = e.point.x + 14 + 'px'; tip.style.top = e.point.y + 14 + 'px';
@@ -225,8 +222,7 @@ map.on('mousemove', 'fill', (e) => {
 map.on('mouseleave', 'fill', () => {
   if (drag) return;
   map.getCanvas().style.cursor = '';
-  if (hoverId) map.setFeatureState({ source: 'countries', id: hoverId }, { hover: false });
-  hoverId = null; tip.hidden = true;
+  tip.hidden = true;
 });
 map.on('click', 'fill', (e) => {
   if (!e.features[0]) return;
