@@ -181,8 +181,10 @@ function applyView() {
       : ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, dark ? 0.9 : 0.82]);
   recolor();
 }
-function setBaseMap(v) {
+function setNames(on) { labelsOn = on; $('#names').classList.toggle('on', on); labelSig = ''; updateLabels(); }
+function setBaseMap(v, quiet) {
   baseMap = v === 'osm' ? 'osm' : 'normal';
+  if (baseMap === 'osm' && !quiet) setNames(false); // OpenStreetMap draws its own names, so ours switch off (the user can turn them back on)
   try { localStorage.setItem('baseMap', baseMap); } catch {}
   $('#basemap').value = baseMap;
   applyView();
@@ -363,7 +365,7 @@ map.on('render', () => {
   const sig = [map.getZoom().toFixed(3), c.lng.toFixed(4), c.lat.toFixed(4), cv.clientWidth, cv.clientHeight, labelsOn, sizeMode, timeMode].join();
   if (sig !== labelSig) { labelSig = sig; updateLabels(); }
 });
-$('#names').addEventListener('click', () => { labelsOn = !labelsOn; $('#names').classList.toggle('on', labelsOn); labelSig = ''; updateLabels(); });
+$('#names').addEventListener('click', () => setNames(!labelsOn));
 updateLabels();
 
 // ---------- country panel ----------
@@ -686,4 +688,4 @@ map.on('load', () => {
   if (countries[id]) openCountry(id);
 });
 window.__app = { map, countries, list, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
-map.on('load', () => setTimeMode(true)); // live country times are on by default
+map.on('load', () => { setTimeMode(true); if (baseMap === 'osm') setNames(false); }); // live country times are on by default; with OpenStreetMap saved, our names start switched off
