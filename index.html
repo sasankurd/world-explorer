@@ -26,6 +26,7 @@
   <div id="tools" role="group" aria-label="Map tools">
     <button id="tradebtn" class="on" title="Click a country to see curved lines to its main trade partners">Trade lines</button>
     <button id="flightbtn" title="Show planes flying right now, and where each one is going">Live flights</button>
+    <button id="globebtn" title="See the Earth as a 3D globe you can spin, tilt and zoom">3D Earth</button>
     <button id="sizebtn" title="Drag countries around to compare their real sizes">Real size</button>
   </div>
   <div id="account">
@@ -52,6 +53,22 @@
 </header>
 <main>
   <div id="map"></div>
+  <section id="globe" hidden aria-label="3D Earth">
+    <div id="gl-view"></div>
+    <div id="gl-panel">
+      <div class="mh"><b>3D Earth</b><button id="gl-x" type="button" aria-label="Close 3D Earth">✕</button></div>
+      <div class="srow"><div><b>Picture</b></div><select id="gl-style" aria-label="Picture on the globe"><option value="satellite">Satellite</option><option value="streets">Street map</option><option value="natural">Natural Earth</option><option value="night">Night lights</option></select></div>
+      <div class="srow"><div><b>Borders</b></div><button id="gl-borders" class="switch on" type="button" role="switch" aria-checked="true" aria-label="Country borders"><i></i></button></div>
+      <div class="srow"><div><b>Country names</b></div><button id="gl-names" class="switch on" type="button" role="switch" aria-checked="true" aria-label="Country names"><i></i></button></div>
+      <div class="srow"><div><b>Cities</b></div><button id="gl-cities" class="switch on" type="button" role="switch" aria-checked="true" aria-label="Cities"><i></i></button></div>
+      <div class="srow"><div><b>Slow spin</b></div><button id="gl-spin" class="switch on" type="button" role="switch" aria-checked="true" aria-label="Slow spin"><i></i></button></div>
+      <div class="srow"><div><b>Day and night</b><small>Sunlight right now</small></div><button id="gl-sun" class="switch" type="button" role="switch" aria-checked="false" aria-label="Day and night"><i></i></button></div>
+      <div class="srow" id="gl-terrain-row" hidden><div><b>3D mountains</b><small>Raises the terrain</small></div><button id="gl-terrain" class="switch" type="button" role="switch" aria-checked="false" aria-label="3D mountains"><i></i></button></div>
+      <button id="gl-home" type="button">Reset view</button>
+      <p class="gl-tip">Drag to spin · scroll to zoom · right-drag or Ctrl-drag to tilt · click a country</p>
+    </div>
+    <p id="gl-stat" role="status" hidden></p>
+  </section>
   <section id="statbar" hidden aria-label="Statistics">
     <div class="sb-groups" id="sb-groups"></div>
     <div class="sb-time" id="sb-time">
@@ -122,6 +139,7 @@
 <script type="module" src="/src/flights.js"></script>
 <script type="module" src="/src/auth.js"></script>
 <script type="module" src="/src/trends.js"></script>
+<script type="module" src="/src/globe.js"></script>
 <script type="module" src="/src/ui.js"></script>
 </body>
 </html>

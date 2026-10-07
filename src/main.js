@@ -253,6 +253,7 @@ function viewPadding() {
   return narrow ? 30 : { top: 60, bottom: 60, left: 60, right: 460 };
 }
 function flyTo(id) {
+  if (window.__globe?.active) return window.__globe.flyCountry(id);
   const [[x0, y0], [x1, y1]] = boundsOf(id);
   map.fitBounds([[x0, y0], [x1, y1]], { padding: viewPadding(), maxZoom: 6, duration: 900 });
 }
@@ -744,6 +745,7 @@ function showPin(name, lng, lat) {
 }
 map.on('click', clearPin);
 function goTo(name, lng, lat, zoom, bb) {
+  if (window.__globe?.active) return window.__globe.goTo(name, lng, lat, bb);
   if (sizeMode) return;
   showPin(name, lng, lat);
   if (bb && bb[1] - bb[0] > 0.0005) map.fitBounds([[bb[2], bb[0]], [bb[3], bb[1]]], { padding: viewPadding(), maxZoom: 16, duration: 1100 });
@@ -778,5 +780,5 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, list, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
+window.__app = { map, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
 map.on('load', () => { setTimeMode(true); if (baseMap === 'osm') setNames(false); }); // live country times are on by default; with OpenStreetMap saved, our names start switched off

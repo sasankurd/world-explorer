@@ -47,6 +47,11 @@ Population numbers come from an older dataset (about 2018). Coastline and life e
 Satellite and terrain images are from Esri and fine for testing. Check Esri's terms or switch to MapTiler before a public launch.
 
 
+## 3D Earth
+The 3D Earth button in the banner opens a real 3D globe, built with CesiumJS (the leading open-source 3D globe library). Drag to spin, scroll to zoom, right-drag or Ctrl-drag to tilt, and click a country to open its panel. A small panel sets the picture on the globe (Satellite, Street map, Natural Earth, or NASA night lights), borders, country names, cities, a slow spin, and day and night (sunlight right now). The search box also flies the globe to a city, a country or a place.
+The library (about 4 MB) is downloaded only the first time someone opens 3D Earth. It comes from Cesium's own download site, with unpkg and jsDelivr as backups, so nothing is added to this repository.
+For real 3D mountains, make a free account at ion.cesium.com, copy an access token, and put it in `public/globe-config.json` as `{"ionToken": "..."}`. A "3D mountains" switch then appears. The token is meant to be public (restrict it to your site's address in the ion dashboard). Cesium ion's free plan is for non-commercial use. Satellite pictures are from Esri, so check Esri's terms before a public launch.
+
 ## Map style and OpenStreetMap
 Settings has a Map style option. Normal is the flat-colour map. OpenStreetMap loads the standard tiles from `tile.openstreetmap.org` under the semi-transparent country colours, with the required "© OpenStreetMap contributors" credit. It only affects the Map view and is remembered per browser. OpenStreetMap's tile servers are free for light use only (see operations.osmfoundation.org/policies/tiles). For a busy public site, use a hosted tile provider or your own tile server and change the `osm` source in `src/main.js`.
 
