@@ -13,7 +13,7 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 ## What works now
 
 - All 236 countries and territories on a zoomable map, with the name on hover
-- Banner: the views (Map, Terrain, Satellite, Stats, 3D Earth) are tabs with icons. Trade lines, Live flights, Time zones and Real size are switches in one Layers menu, and the Layers button shows how many are on. Search is a magnifier that opens into a box. On phones the view tabs move to a bar at the bottom, and below about 1000 px wide the banner shows icons only.
+- Banner: the views (Map, Terrain, Satellite, Stats, 3D Earth) are icon tabs; the name shows when the mouse rests on one. Trade lines, Live flights, Time zones and Real size are switches in one Layers menu, and the Layers button shows how many are on. Search is a magnifier that opens into a box. On phones the view tabs move to a bar at the bottom, and the banner buttons show only icons, with their names appearing on hover.
 - Search (press / to jump to it): type part of a country or city name, with or without accents, e.g. "sao pau", "paris fr" or "erbil". Results rank by match and city size, show the flag and country, and picking one flies the map there with a pin. For streets, villages and landmarks that are not in our lists, press Enter on the last row to ask OpenStreetMap's search (one request per press, as its usage policy asks).
 - Search by country or capital
 - Views: Map, Terrain, Satellite (needs internet; uses Esri's free map images) and Stats (colors countries by population, area or density)

@@ -68,7 +68,7 @@ const rows = [...lmenu.querySelectorAll('.lr')];
 function count() {
   const n = rows.filter((r) => r.classList.contains('on')).length;
   lcount.textContent = n; lcount.hidden = !n; lbtn.classList.toggle('has', n > 0);
-  lbtn.title = n ? `Layers and tools (${n} on)` : 'Layers and tools';
+  lbtn.dataset.tip = n ? `Layers and tools (${n} on)` : 'Layers and tools';
   rows.forEach((r) => r.setAttribute('aria-pressed', String(r.classList.contains('on'))));
 }
 const syncTz = () => { tzbtn.classList.toggle('on', !tzpanel.hidden); count(); };
@@ -76,3 +76,22 @@ const ob = new MutationObserver(count);
 rows.forEach((r) => ob.observe(r, { attributes: true, attributeFilter: ['class'] }));
 new MutationObserver(syncTz).observe(tzpanel, { attributes: true, attributeFilter: ['hidden'] });
 syncTz();
+
+// ---------- names on hover: the banner shows icons, and a small label appears under the one the mouse is on ----------
+const tipEl = document.createElement('div'); tipEl.id = 'hdrtip'; tipEl.setAttribute('role', 'tooltip'); tipEl.hidden = true; document.body.append(tipEl);
+const tipTargets = document.querySelectorAll('#views button, #layersbtn, #signinbtn, #settingsbtn');
+tipTargets.forEach((el) => {
+  el.dataset.tip ||= el.getAttribute('aria-label') || el.querySelector('.lb,.lbl')?.textContent || el.title;
+  el.removeAttribute('title'); // the native hint would show a second box
+  const show = (e) => {
+    if (e.pointerType === 'touch') return;
+    tipEl.textContent = el.dataset.tip; tipEl.hidden = false;
+    const r = el.getBoundingClientRect(), w = tipEl.offsetWidth;
+    tipEl.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+    tipEl.style.top = r.bottom + 8 + 'px';
+    tipEl.classList.add('show');
+  };
+  const hide = () => { tipEl.classList.remove('show'); tipEl.hidden = true; };
+  el.addEventListener('pointerenter', show); el.addEventListener('pointerleave', hide); el.addEventListener('pointerdown', hide);
+  el.addEventListener('focus', (e) => { if (el.matches(':focus-visible')) show(e); }); el.addEventListener('blur', hide);
+});

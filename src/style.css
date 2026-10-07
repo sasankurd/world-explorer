@@ -324,7 +324,7 @@ svg.ic{width:18px;height:18px;flex:none}
 #timepanel-open{display:none!important}
 #timepanel{top:calc(12px + var(--sb,0px))!important}
 /* narrower screens: icons only */
-@media(max-width:1020px){#views .lb,#layersbtn .lb,#signinbtn .lb{display:none}#views button,#layersbtn,#signinbtn{padding:6px 10px}}
+@media(min-width:701px){#views .lb,#layersbtn .lb,#signinbtn .lb{display:none}#views button,#layersbtn,#signinbtn{padding:7px 11px;gap:6px}svg.ic{width:20px;height:20px}}
 /* phones: the view tabs become a bar along the bottom of the screen, within thumb reach */
 @media(max-width:700px){
   body{box-sizing:border-box;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
@@ -339,3 +339,7 @@ svg.ic{width:18px;height:18px;flex:none}
   #layers{left:auto;right:-90px}
   #settings,#usermenu{right:-6px}
 }
+
+/* the name that appears under a banner icon when the mouse rests on it */
+#hdrtip{position:fixed;z-index:60;pointer-events:none;padding:4px 10px;border-radius:8px;background:rgba(5,9,14,.96);border:1px solid var(--acc);color:#fff;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 8px 24px #000a,var(--glow);opacity:0;transform:translateY(-3px);transition:opacity .15s,transform .15s}
+#hdrtip.show{opacity:1;transform:none}#hdrtip[hidden]{display:none}
