@@ -244,7 +244,7 @@ body[data-view="satellite"] .cl .sv{color:#5fe0ff}
 #settings h2{margin:0 0 6px;font-size:16px}
 .srow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--line)}
 .srow b{display:block;font-weight:600}.srow small{display:block;color:var(--muted);font-size:12.5px}
-#maptheme{padding:4px 8px;font-size:13px;border-radius:9px;cursor:pointer}
+#maptheme,#basemap{padding:4px 8px;font-size:13px;border-radius:9px;cursor:pointer}
 .switch{position:relative;flex:none;width:44px;height:26px;padding:0;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid var(--line);box-shadow:none}
 .switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#cfd8e3;transition:transform .25s cubic-bezier(.3,1.4,.5,1),background .2s}
 .switch.on{background:rgba(82,214,255,.35);border-color:var(--acc);box-shadow:none}

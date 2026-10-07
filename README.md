@@ -20,7 +20,7 @@ To make the files you upload to a web host, run `npm run build`. The finished si
 - Stats banner: the Stats button in the header opens a see-through banner with the statistics (population, growth, density, internet users, age span, economy, income, tourists, military spending, armed forces, area), a year slider from 1960 to today with a play button, and a colour legend. You can add your own statistic by pasting numbers or typing a World Bank code. "People heat" shows where people actually live. Population and economy are saved with the site; the other statistics load from the World Bank when you open them.
 - Trade lines: click a country to see curved lines to its main export and import partners, thicker for more trade (World Bank WITS, 2023, saved with the site; countries that do not report use their partners' records). The Trade tab lists the numbers.
 - Live flights: the Live flights button shows planes flying right now (OpenSky Network). Click one to see its airline, route (adsbdb.com), height, speed, how far it has flown, and an estimated landing time in your time and at the destination. You can also type a flight number such as UAE1. The free OpenSky service allows about 400 requests a day per visitor, so the page asks only every 25 seconds and moves planes smoothly in between. Landing time is distance left divided by speed, so it is an estimate.
-- Settings and accounts: the gear at the right of the banner holds the map theme (dark or light), the show/hide country names switch, and an animations switch. Sign in and Sign up offer Google, Facebook, GitHub, X, or email and password. They need the one-time setup below.
+- Settings and accounts: the gear at the right of the banner holds the map theme (dark or light), a Map style choice (Normal flat colours, or OpenStreetMap's standard street map drawn under the countries in the Map view), the show/hide country names switch, and an animations switch. Sign in and Sign up offer Google, Facebook, GitHub, X, or email and password. They need the one-time setup below.
 - Trends: small charts for population, economy and tourism in each country window.
 - A link such as `#IRQ` at the end of the address opens that country directly
 
@@ -45,6 +45,9 @@ Population numbers come from an older dataset (about 2018). Coastline and life e
 
 Satellite and terrain images are from Esri and fine for testing. Check Esri's terms or switch to MapTiler before a public launch.
 
+
+## Map style and OpenStreetMap
+Settings has a Map style option. Normal is the flat-colour map. OpenStreetMap loads the standard tiles from `tile.openstreetmap.org` under the semi-transparent country colours, with the required "© OpenStreetMap contributors" credit. It only affects the Map view and is remembered per browser. OpenStreetMap's tile servers are free for light use only (see operations.osmfoundation.org/policies/tiles). For a busy public site, use a hosted tile provider or your own tile server and change the `osm` source in `src/main.js`.
 
 ## Turning on sign-in
 

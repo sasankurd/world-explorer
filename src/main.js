@@ -86,11 +86,13 @@ const map = new maplibregl.Map({
     sources: {
       satellite: esri('World_Imagery'),
       terrain: esri('World_Topo_Map'),
+      osm: { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, maxzoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors' },
       countries: { type: 'geojson', data: borders, promoteId: 'id' },
       movers: { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, maxzoom: 8 },
     },
     layers: [
       { id: 'sea', type: 'background', paint: { 'background-color': '#03060a' } },
+      { id: 'osm', type: 'raster', source: 'osm', layout: { visibility: 'none' } },
       { id: 'terrain', type: 'raster', source: 'terrain', layout: { visibility: 'none' } },
       { id: 'satellite', type: 'raster', source: 'satellite', layout: { visibility: 'none' } },
       {
@@ -120,6 +122,8 @@ let sizeMode = false;
 let timeMode = false;
 let view = 'political';
 let mapTheme = 'dark';
+let baseMap = 'normal'; // what the standard Map view is drawn on: 'normal' (flat colours) or 'osm' (OpenStreetMap's standard tile layer)
+try { if (localStorage.getItem('baseMap') === 'osm') baseMap = 'osm'; } catch {}
 try { if (localStorage.getItem('mapTheme') === 'light') mapTheme = 'light'; } catch {}
 document.body.dataset.map = mapTheme;
 const hook = () => window.__app?.statsHook;
@@ -154,8 +158,14 @@ function applyView() {
   document.body.dataset.view = view;
   document.body.dataset.map = mapTheme;
   const vis = (id, on) => map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+  const osmOn = view === 'political' && baseMap === 'osm';
+  vis('osm', osmOn);
   vis('terrain', view === 'terrain');
   vis('satellite', view === 'satellite');
+  // dark mode dims the OpenStreetMap pictures so the country colours and names stay readable
+  map.setPaintProperty('osm', 'raster-brightness-max', dark ? 0.5 : 1);
+  map.setPaintProperty('osm', 'raster-saturation', dark ? -0.45 : 0);
+  map.setPaintProperty('osm', 'raster-contrast', dark ? 0.15 : 0);
   // dark terrain: the same map pictures, dimmed and desaturated
   map.setPaintProperty('terrain', 'raster-brightness-max', dark ? 0.42 : 1);
   map.setPaintProperty('terrain', 'raster-saturation', dark ? -0.35 : 0);
@@ -166,8 +176,16 @@ function applyView() {
   map.setPaintProperty('movers-line', 'line-color', dark ? '#e8f6ff' : '#111');
   map.setPaintProperty('fill', 'fill-opacity', view === 'satellite' || view === 'terrain'
     ? ['case', ['boolean', ['feature-state', 'hover'], false], 0.25, 0.01]
-    : ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, dark ? 0.9 : 0.82]);
+    : osmOn // countries are tinted lightly so the streets and coastlines underneath still show
+      ? ['case', ['boolean', ['feature-state', 'hover'], false], 0.7, dark ? 0.5 : 0.4]
+      : ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, dark ? 0.9 : 0.82]);
   recolor();
+}
+function setBaseMap(v) {
+  baseMap = v === 'osm' ? 'osm' : 'normal';
+  try { localStorage.setItem('baseMap', baseMap); } catch {}
+  $('#basemap').value = baseMap;
+  applyView();
 }
 function setMapTheme(t) {
   mapTheme = t;
@@ -178,6 +196,8 @@ function setMapTheme(t) {
 }
 $('#maptheme').addEventListener('change', (e) => setMapTheme(e.target.value));
 $('#maptheme').value = mapTheme;
+$('#basemap').value = baseMap;
+$('#basemap').addEventListener('change', (e) => setBaseMap(e.target.value));
 $('#views').addEventListener('click', (e) => {
   const v = e.target.dataset.view; if (!v) return;
   view = v;
@@ -665,5 +685,5 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, list, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null }; // handy for testing
+window.__app = { map, countries, list, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
 map.on('load', () => setTimeMode(true)); // live country times are on by default
