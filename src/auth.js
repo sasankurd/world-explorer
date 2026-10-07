@@ -53,7 +53,7 @@ function nameOf(u) {
 }
 function render() {
   const out = !user;
-  $('#signinbtn').hidden = !out; $('#signupbtn').hidden = !out; $('#userbtn').hidden = out;
+  $('#signinbtn').hidden = !out; $('#userbtn').hidden = out;
   $('#usermenu').hidden = true; $('#userbtn').setAttribute('aria-expanded', 'false');
   if (out) return;
   const m = user.user_metadata || {}, nm = nameOf(user), pic = m.avatar_url || m.picture;
@@ -93,7 +93,6 @@ function openModal(m) {
   $('#au-email').focus();
 }
 $('#signinbtn').addEventListener('click', () => openModal('in'));
-$('#signupbtn').addEventListener('click', () => openModal('up'));
 document.querySelector('.au-tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.mode); });
 dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); }); // click on the dark area outside
 

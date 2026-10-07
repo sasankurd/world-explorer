@@ -202,12 +202,15 @@ $('#gl-terrain').addEventListener('click', (e) => {
 async function toggle(on) {
   on = on ?? !active;
   if (on === active) return;
-  active = on; document.body.classList.toggle('globeon', on); wrap.hidden = !on; btn.classList.toggle('on', on);
+  active = on; document.body.classList.toggle('globeon', on); wrap.hidden = !on;
+  document.querySelectorAll('#views button').forEach((b) => b.classList.toggle('on', on ? b === btn : b.dataset.view === app.view)); // the tab bar shows 3D Earth as the current view
+  window.dispatchEvent(new CustomEvent('globe-change'));
   if (!on) { viewer?.useDefaultRenderLoop && (viewer.useDefaultRenderLoop = false); return; }
   if (viewer) { viewer.useDefaultRenderLoop = true; viewer.resize(); spinHold = 0; return; }
   if (!starting) starting = build().catch((err) => { say(err.message || 'Could not start 3D Earth.', true); starting = null; });
   await starting;
 }
-btn.addEventListener('click', () => toggle());
+btn.addEventListener('click', () => toggle(true));
+$('#views').addEventListener('click', (e) => { const b = e.target.closest('button[data-view]'); if (b && b !== btn && active) toggle(false); }); // picking Map, Terrain, Satellite or Stats leaves the globe
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && active && !e.target.closest('input,select')) { if (pinEntity) clearPin(); } });
 window.__globe = { get active() { return active; }, get ready() { return !!viewer; }, get viewer() { return viewer; }, toggle, goTo, flyCountry, choose, get shapes() { return shapes; } };

@@ -18,21 +18,25 @@
   <div id="search-wrap"><input id="search" type="search" placeholder="Search places…  ( / )" aria-label="Search countries, cities and places" autocomplete="off"><ul id="results"></ul></div>
   <div id="views" role="group" aria-label="Map view">
     <span class="pill" aria-hidden="true"></span>
-    <button data-view="political" class="on">Map</button>
-    <button data-view="terrain">Terrain</button>
-    <button data-view="satellite">Satellite</button>
-    <button data-view="stats">Stats</button>
+    <button data-view="political" class="on" title="Map" aria-label="Map"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></svg><span class="lb">Map</span></button>
+    <button data-view="terrain" title="Terrain" aria-label="Terrain"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l7-12 4 7 3-4 6 9z"/></svg><span class="lb">Terrain</span></button>
+    <button data-view="satellite" title="Satellite" aria-label="Satellite"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-4 4 3 3-2 6 4"/><circle cx="16" cy="9" r="1.2"/></svg><span class="lb">Satellite</span></button>
+    <button data-view="stats" title="Stats" aria-label="Stats"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-7"/></svg><span class="lb">Stats</span></button>
+    <button id="globebtn" data-view="globe" title="See the Earth as a 3D globe you can spin, tilt and zoom" aria-label="3D Earth"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg><span class="lb">3D Earth</span></button>
   </div>
-  <div id="tools" role="group" aria-label="Map tools">
-    <button id="tradebtn" class="on" title="Click a country to see curved lines to its main trade partners">Trade lines</button>
-    <button id="flightbtn" title="Show planes flying right now, and where each one is going">Live flights</button>
-    <button id="globebtn" title="See the Earth as a 3D globe you can spin, tilt and zoom">3D Earth</button>
-    <button id="sizebtn" title="Drag countries around to compare their real sizes">Real size</button>
+  <div id="layerwrap">
+    <button id="layersbtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="layers" title="Layers and tools" aria-label="Layers and tools"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg><span class="lb">Layers</span><span id="layercount" class="count" hidden></span></button>
+    <div id="layers" role="group" aria-label="Layers and tools" hidden>
+      <h2>Layers and tools</h2>
+      <button id="tradebtn" class="lr on" type="button" title="Click a country to see curved lines to its main trade partners"><span class="tx"><b>Trade lines</b><small>Click a country to see its trade partners</small></span><i class="sw"><b></b></i></button>
+      <button id="flightbtn" class="lr" type="button" title="Show planes flying right now, and where each one is going"><span class="tx"><b>Live flights</b><small>Planes in the air right now</small></span><i class="sw"><b></b></i></button>
+      <button id="tzbtn" class="lr" type="button" aria-controls="timepanel"><span class="tx"><b>Time zones</b><small>World clock and zone guide</small></span><i class="sw"><b></b></i></button>
+      <button id="sizebtn" class="lr" type="button" title="Drag countries around to compare their real sizes"><span class="tx"><b>Real size</b><small>Drag countries to compare their size</small></span><i class="sw"><b></b></i></button>
+    </div>
   </div>
   <div id="account">
     <button id="settingsbtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg><span class="lbl">Settings</span></button>
-    <button id="signinbtn" type="button">Sign in</button>
-    <button id="signupbtn" type="button" class="cta">Sign up</button>
+    <button id="signinbtn" type="button" class="cta" title="Sign in or sign up" aria-label="Sign in or sign up"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span class="lb">Sign in</span></button>
     <button id="userbtn" type="button" aria-haspopup="true" aria-expanded="false" hidden></button>
     <div id="settings" role="group" aria-label="Settings" hidden>
       <h2>Settings</h2>

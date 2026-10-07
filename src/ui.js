@@ -17,6 +17,7 @@ function sweep() {
 syncPill(true);
 document.fonts?.ready.then(() => syncPill(true));
 window.addEventListener('resize', () => syncPill(true));
+window.addEventListener('globe-change', () => requestAnimationFrame(() => syncPill(false)));
 views.addEventListener('click', (e) => { if (e.target.closest('button')) { requestAnimationFrame(() => syncPill(false)); sweep(); } });
 document.querySelector('#maptheme').addEventListener('change', sweep);
 document.querySelector('#basemap').addEventListener('change', sweep);
@@ -48,3 +49,30 @@ function setAnim(on, save) {
 let animOn = true; try { animOn = localStorage.getItem('animations') !== 'off'; } catch {}
 setAnim(animOn, false);
 anim.addEventListener('click', () => setAnim(!anim.classList.contains('on'), true));
+
+// ---------- layers and tools menu ----------
+const lbtn = document.querySelector('#layersbtn'), lmenu = document.querySelector('#layers'), lcount = document.querySelector('#layercount');
+const setLayers = (open) => { lmenu.hidden = !open; lbtn.setAttribute('aria-expanded', String(open)); };
+lbtn.addEventListener('click', (e) => {
+  e.stopPropagation(); const open = lmenu.hidden; setLayers(open);
+  if (open) { menu.hidden = true; sbtn.setAttribute('aria-expanded', 'false'); document.querySelector('#usermenu').hidden = true; }
+});
+// opening settings or the account menu closes this one (they stop the click, so listen early)
+document.addEventListener('click', (e) => { if (e.isTrusted && !lmenu.hidden && !e.target.closest('#layers,#layersbtn')) setLayers(false); }, true);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lmenu.hidden) { setLayers(false); lbtn.focus(); } });
+// Time zones: this row opens and closes the clock panel
+const tzbtn = document.querySelector('#tzbtn'), tzpanel = document.querySelector('#timepanel');
+tzbtn.addEventListener('click', () => document.querySelector(tzpanel.hidden ? '#timepanel-open' : '#timepanel-close').click());
+// each row shows its state as a switch, and the Layers button shows how many are on
+const rows = [...lmenu.querySelectorAll('.lr')];
+function count() {
+  const n = rows.filter((r) => r.classList.contains('on')).length;
+  lcount.textContent = n; lcount.hidden = !n; lbtn.classList.toggle('has', n > 0);
+  lbtn.title = n ? `Layers and tools (${n} on)` : 'Layers and tools';
+  rows.forEach((r) => r.setAttribute('aria-pressed', String(r.classList.contains('on'))));
+}
+const syncTz = () => { tzbtn.classList.toggle('on', !tzpanel.hidden); count(); };
+const ob = new MutationObserver(count);
+rows.forEach((r) => ob.observe(r, { attributes: true, attributeFilter: ['class'] }));
+new MutationObserver(syncTz).observe(tzpanel, { attributes: true, attributeFilter: ['hidden'] });
+syncTz();

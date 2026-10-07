@@ -201,7 +201,7 @@ $('#maptheme').value = mapTheme;
 $('#basemap').value = baseMap;
 $('#basemap').addEventListener('change', (e) => setBaseMap(e.target.value));
 $('#views').addEventListener('click', (e) => {
-  const v = e.target.dataset.view; if (!v) return;
+  const v = e.target.closest('button[data-view]')?.dataset.view; if (!v || v === 'globe') return;
   view = v;
   document.querySelectorAll('#views button').forEach((b) => b.classList.toggle('on', b.dataset.view === v));
   applyView();

@@ -31,7 +31,7 @@ header button{position:relative;overflow:hidden}
 #views .pill{position:absolute;top:3px;left:0;height:calc(100% - 6px);width:0;border-radius:10px;background:linear-gradient(135deg,rgba(82,214,255,.2),rgba(139,123,255,.2));border:1px solid var(--acc);box-shadow:var(--glow),inset 0 0 12px rgba(82,214,255,.2);pointer-events:none;transition:transform .42s cubic-bezier(.3,1.35,.5,1),width .42s cubic-bezier(.3,1.35,.5,1)}
 #views .pill.snap{transition:none}
 
-#search-wrap{position:relative}#search{width:200px}
+
 #results{position:absolute;top:100%;left:0;right:0;margin:4px 0 0;padding:0;list-style:none;background:var(--solid);border:1px solid var(--line);border-radius:10px;max-height:260px;overflow:auto;z-index:10;box-shadow:0 12px 30px #000c}
 #results{min-width:340px;max-height:min(60vh,420px)}#results:empty{display:none}
 #results li{display:flex;gap:9px;align-items:center}#results .ic{flex:none;width:22px;text-align:center}#results .tx{min-width:0}
@@ -230,10 +230,6 @@ body[data-view="satellite"] .cl .sv{color:#5fe0ff}
 @media(max-width:700px){#flights{left:10px;width:calc(100% - 20px);bottom:10px}#flightcard{max-height:48vh}}
 
 /* ---- banner: three groups (left: search and views, middle: tools, right: settings and account) ---- */
-#tools{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.03)}
-#tools button{border-color:transparent;background:transparent;box-shadow:none}
-#tools button:hover{background:rgba(82,214,255,.08)}
-#tools button.on{background:rgba(82,214,255,.15);border-color:var(--acc);color:var(--acc);box-shadow:var(--glow)}
 #account{margin-left:auto;display:flex;gap:8px;align-items:center;position:relative}
 #settingsbtn{display:flex;align-items:center;gap:7px}
 #settingsbtn svg{width:18px;height:18px;transition:transform .5s cubic-bezier(.3,1.3,.5,1)}
@@ -280,12 +276,10 @@ body.noanim *,body.noanim *::before,body.noanim *::after{animation:none!importan
 #au-msg{min-height:1.3em;margin:10px 0 0;font-size:13.5px}#au-msg.bad{color:#ffb4a8}#au-msg.ok{color:#8fe9b0}
 #au-setup{margin-top:10px;font-size:13px;color:var(--muted)}#au-setup[hidden]{display:none}#au-setup summary{cursor:pointer;color:#ffcf8a}
 @media(max-width:700px){
-  #tools{order:5;width:100%;justify-content:space-between}#tools button{flex:1;padding:6px 6px;font-size:13.5px}
   #account{margin-left:auto}#settingsbtn .lbl{display:none}#settingsbtn{padding:6px 9px}
-  #signinbtn,#signupbtn{padding:6px 10px;font-size:13.5px}
   .au-prov{grid-template-columns:1fr}
 }
-@media(max-width:1500px){#settingsbtn .lbl{display:none}#settingsbtn{padding:6px 10px}#search{width:150px}#tools button,#views button{padding:6px 11px}header{gap:8px}}
+@media(max-width:1500px){#settingsbtn .lbl{display:none}#settingsbtn{padding:6px 10px}#search{width:150px}header{gap:8px}}
 
 /* ---- 3D Earth ---- */
 #globe{position:absolute;inset:0;z-index:2;background:#000}#globe[hidden]{display:none}
@@ -299,3 +293,49 @@ body.noanim *,body.noanim *::before,body.noanim *::after{animation:none!importan
 #gl-stat{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;padding:10px 18px;border-radius:12px;background:var(--card);border:1px solid var(--line);z-index:3;max-width:min(420px,86%);text-align:center}#gl-stat.bad{color:#ffb4b4;border-color:#ff7b7b66}
 body.globeon #flights,body.globeon #statbar,body.globeon #sizepanel,body.globeon #timepanel-open,body.globeon #timepanel,body.globeon #scan{display:none!important}
 @media(max-width:700px){#gl-panel{top:auto;bottom:12px;width:calc(100% - 24px)}.gl-tip{display:none}}
+
+/* ---- banner layout: icons with short labels, a collapsing search, one Layers menu, one account button ---- */
+header{gap:10px}
+svg.ic{width:18px;height:18px;flex:none}
+#views button,#layersbtn,#signinbtn{display:inline-flex;align-items:center;gap:7px;padding:6px 12px}
+#views button.on{color:var(--acc)}
+/* search: a round icon that opens into a box while you use it */
+#search-wrap{position:relative;width:40px;height:38px;flex:none}
+#search{position:absolute;left:0;top:0;width:40px;height:38px;padding:0 0 0 38px;box-sizing:border-box;cursor:pointer;z-index:12;
+  background:rgba(255,255,255,.04) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2352d6ff' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4.5 4.5'/%3E%3C/svg%3E") no-repeat 9px 50%/20px;
+  transition:width .28s cubic-bezier(.3,1.1,.5,1),border-color .2s,box-shadow .2s}
+#search::-webkit-search-cancel-button{display:none}
+#search-wrap:has(#search:focus,#search:not(:placeholder-shown)) #search{width:min(260px,calc(100vw - 24px));padding-right:12px;cursor:text;background-color:var(--solid);border-color:var(--acc);box-shadow:var(--glow)}
+#results{z-index:13}
+/* layers menu */
+#layerwrap{position:relative}
+#layersbtn.has,#layersbtn[aria-expanded="true"]{border-color:var(--acc);color:var(--acc);box-shadow:var(--glow)}
+.count{min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--acc);color:#02131c;font-size:12px;font-weight:700;display:grid;place-items:center;line-height:1}.count[hidden]{display:none}
+#layers{position:absolute;left:0;top:calc(100% + 14px);width:min(330px,calc(100vw - 24px));padding:12px 14px 6px;background:rgba(6,10,15,.95);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:16px;box-shadow:0 22px 60px #000c,0 0 30px rgba(82,214,255,.1);z-index:30}
+#layers[hidden]{display:none}#layers:not([hidden]){animation:pin .28s cubic-bezier(.2,.9,.25,1)}
+#layers h2{margin:0 0 4px;font-size:16px}
+#layers .lr{display:flex;width:100%;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;text-align:left;background:none;border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none;color:var(--fg)}
+#layers .lr:hover{background:none;color:#fff}#layers .lr.on{background:none;box-shadow:none;color:var(--fg)}
+#layers .lr b,#layers .lr small{display:block}#layers .lr .tx b{font-weight:600}#layers .lr small{color:var(--muted);font-size:12.5px}
+.sw{position:relative;flex:none;width:44px;height:26px;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid var(--line);transition:background .2s,border-color .2s}
+.sw b{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#cfd8e3;transition:transform .25s cubic-bezier(.3,1.4,.5,1),background .2s}
+.lr.on .sw{background:rgba(82,214,255,.35);border-color:var(--acc)}.lr.on .sw b{transform:translateX(18px);background:var(--acc);box-shadow:0 0 10px rgba(82,214,255,.7)}
+/* the clock panel now opens from the Layers menu, so its old floating button is hidden */
+#timepanel-open{display:none!important}
+#timepanel{top:calc(12px + var(--sb,0px))!important}
+/* narrower screens: icons only */
+@media(max-width:1020px){#views .lb,#layersbtn .lb,#signinbtn .lb{display:none}#views button,#layersbtn,#signinbtn{padding:6px 10px}}
+/* phones: the view tabs become a bar along the bottom of the screen, within thumb reach */
+@media(max-width:700px){
+  body{box-sizing:border-box;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+  header{flex-wrap:nowrap;padding:8px 12px;gap:8px}
+  h1{font-size:0;gap:0}h1 .logo{margin:0}
+  #account{margin-left:0;gap:6px}#layerwrap{margin-left:auto}
+  #views{position:fixed;left:0;right:0;bottom:0;z-index:25;border-radius:0;border-width:1px 0 0;background:rgba(5,9,14,.97);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:5px 6px calc(5px + env(safe-area-inset-bottom));justify-content:space-around}
+  #views button{flex:1;flex-direction:column;gap:2px;padding:5px 2px;font-size:11.5px;border-radius:10px}#views .lb{display:inline}
+  #views .pill{top:5px;height:calc(100% - 10px - env(safe-area-inset-bottom))}
+  #search-wrap:has(#search:focus,#search:not(:placeholder-shown)) #search{position:fixed;left:12px;top:8px;width:calc(100vw - 24px)}
+  #results{position:fixed;left:12px;right:12px;top:54px;min-width:0;max-height:60vh}
+  #layers{left:auto;right:-90px}
+  #settings,#usermenu{right:-6px}
+}
