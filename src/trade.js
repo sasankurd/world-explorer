@@ -7,7 +7,7 @@ const app = window.__app;
 const { map, countries } = app;
 const $ = (s) => document.querySelector(s);
 const btn = $('#tradebtn');
-let on = true, shownId = null, anim = 0, boxFor = null;
+let on = false, shownId = null, anim = 0, boxFor = null;
 const cacheT = new Map();
 const COLORS = { dark: { x: '#52d6ff', m: '#ffa45c' }, light: { x: '#0a68b4', m: '#d4460a' } };
 const colors = () => COLORS[app.isDark() ? 'dark' : 'light'];
