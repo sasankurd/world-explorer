@@ -8,7 +8,7 @@ const $ = (s) => document.querySelector(s);
 const bar = $('#statbar'), range = $('#sb-range'), yearOut = $('#sb-year'), playBtn = $('#sb-play');
 
 let numsOn = true, tableOn = false;
-let key = 'population', mode = 'stat'; // mode: 'stat' (colour by a statistic) or 'heat' (where people live)
+let key = 'population', mode = 'stat'; // mode: 'stat' (colour by a statistic), 'heat' (where people live) or 'history' (the world in past eras)
 let series = null, def = defOf(key), dom = [0, 1], year = 2023, userYear = null, seq = 0, playing = null, heatReady = false;
 const theme = () => (app.isDark() ? 'dark' : 'light');
 const isOpen = () => !bar.hidden;
@@ -51,6 +51,10 @@ $('#sb-rows').addEventListener('click', (e) => { const b = e.target.closest('.sb
 
 // ---------- the chips ----------
 function renderChips() {
+  if (mode === 'history') { // in History only this row is needed, which keeps the bar small
+    $('#sb-groups').innerHTML = '<div class="sbg"><span class="sbl">History</span><div class="sbc"><button type="button" class="on" data-history="1">World through time</button><button type="button" data-back="1" title="Go back to the statistics">← Statistics</button></div></div>';
+    return;
+  }
   const groups = [];
   for (const d of allDefs()) {
     let g = groups.find((x) => x.name === d.group);
@@ -62,12 +66,15 @@ function renderChips() {
   if (!groups.some((g) => g.name === 'Yours')) groups.push({ name: 'Yours', items: [] });
   const yours = groups.find((g) => g.name === 'Yours');
   const heat = `<div class="sbg"><span class="sbl">Where people live</span><div class="sbc"><button type="button" class="${mode === 'heat' ? 'on' : ''}" data-heat="1">People heat</button></div></div>`;
-  $('#sb-groups').innerHTML = groups.filter((g) => g !== yours).map(html).join('') + heat + html(yours);
+  const hist = `<div class="sbg"><span class="sbl">History</span><div class="sbc"><button type="button" class="${mode === 'history' ? 'on' : ''}" data-history="1" title="How the world's countries, names and borders looked in every era">World through time</button></div></div>`;
+  $('#sb-groups').innerHTML = groups.filter((g) => g !== yours).map(html).join('') + heat + hist + html(yours);
 }
 $('#sb-groups').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.key) select(b.dataset.key);
   else if (b.dataset.heat) setHeat();
+  else if (b.dataset.history) setHistory();
+  else if (b.dataset.back) select(key);
   else if (b.dataset.add) { const f = $('#sb-add'); f.hidden = !f.hidden; if (!f.hidden) $('#sa-name').focus(); }
   else if (b.dataset.del) {
     saveCustomStats(customStats().filter((c) => c.key !== b.dataset.del));
@@ -78,7 +85,7 @@ $('#sb-groups').addEventListener('click', (e) => {
 // ---------- choosing a statistic ----------
 const note = (t) => { $('#sb-note').textContent = t; };
 async function select(k) {
-  stopPlay(); mode = 'stat'; key = k; def = defOf(k) || defOf('population');
+  leaveHistory(); stopPlay(); mode = 'stat'; key = k; def = defOf(k) || defOf('population');
   setHeatLayer(false); renderChips();
   $('#sb-time').classList.remove('heatmode');
   note('Loading…');
@@ -156,7 +163,7 @@ async function setHeatLayer(on) {
   if (map.getLayer('heat')) map.setLayoutProperty('heat', 'visibility', on ? 'visible' : 'none');
 }
 async function setHeat() {
-  stopPlay(); mode = 'heat'; seq++; renderChips();
+  leaveHistory(); stopPlay(); mode = 'heat'; seq++; renderChips();
   $('#sb-time').classList.add('heatmode');
   for (const el of [playBtn, yearOut, $('.sb-rangewrap')]) el.hidden = true;
   drawLegend();
@@ -165,16 +172,30 @@ async function setHeat() {
   await setHeatLayer(true);
 }
 
+// ---------- history: the world in every era ----------
+function leaveHistory() {
+  window.__history?.leave();
+  $('#sb-time').hidden = false; $('#sb-table').hidden = !tableOn;
+}
+async function setHistory() {
+  stopPlay(); mode = 'history'; seq++; renderChips();
+  setHeatLayer(false);
+  $('#sb-time').hidden = true; $('#sb-table').hidden = true;
+  note('Colours show who ruled each area. Dashed lines are rough borders. Click a shape to learn more. Data: Historical Basemaps (GPL-3.0); ancient borders are approximate.');
+  app.applyView();
+  await window.__history?.enter();
+}
+
 // ---------- opening and closing the bar ----------
 let started = false;
 function open() {
   bar.hidden = false;
-  if (!started) { started = true; renderChips(); select(key); } else if (mode === 'heat') { setHeatLayer(true); }
+  if (!started) { started = true; renderChips(); select(key); } else if (mode === 'heat') { setHeatLayer(true); } else if (mode === 'history') { window.__history?.enter(); }
   else recolorSoon();
   fitOffset();
 }
 function close() {
-  stopPlay(); bar.hidden = true; $('#sb-add').hidden = true;
+  stopPlay(); window.__history?.leave(); bar.hidden = true; $('#sb-add').hidden = true;
   if (map.getLayer('heat')) map.setLayoutProperty('heat', 'visibility', 'none');
   fitOffset();
 }

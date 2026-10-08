@@ -330,7 +330,7 @@ svg.ic{width:18px;height:18px;flex:none}
   body{box-sizing:border-box;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
   header{flex-wrap:nowrap;padding:8px 12px;gap:8px}
   h1{font-size:0;gap:0}h1 .logo{margin:0}
-  #account{margin-left:0;gap:6px}#layerwrap{margin-left:auto}
+  #account{margin-left:0;gap:6px}#layerwrap{margin-left:auto}#layersbtn .lb,#signinbtn .lb{display:none}#layersbtn,#signinbtn{padding:7px 10px}
   #views{position:fixed;left:0;right:0;bottom:0;z-index:25;border-radius:0;border-width:1px 0 0;background:rgba(5,9,14,.97);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:5px 6px calc(5px + env(safe-area-inset-bottom));justify-content:space-around}
   #views button{flex:1;flex-direction:column;gap:2px;padding:5px 2px;font-size:11.5px;border-radius:10px}#views .lb{display:inline}
   #views .pill{top:5px;height:calc(100% - 10px - env(safe-area-inset-bottom))}
@@ -343,3 +343,32 @@ svg.ic{width:18px;height:18px;flex:none}
 /* the name that appears under a banner icon when the mouse rests on it */
 #hdrtip{position:fixed;z-index:60;pointer-events:none;padding:4px 10px;border-radius:8px;background:rgba(5,9,14,.96);border:1px solid var(--acc);color:#fff;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 8px 24px #000a,var(--glow);opacity:0;transform:translateY(-3px);transition:opacity .15s,transform .15s}
 #hdrtip.show{opacity:1;transform:none}#hdrtip[hidden]{display:none}
+
+/* ---- History (inside the Stats bar) ---- */
+#sb-time[hidden],#hist[hidden]{display:none}
+#hist{margin-top:12px;display:grid;gap:6px}
+#hist .hh{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+#hist .hh button{width:34px;height:34px;padding:0;border-radius:50%;font-size:12px;flex:none}
+#h-play{width:36px;height:36px}
+#h-year{min-width:92px;text-align:center}
+.h-era{flex:1;min-width:220px;display:flex;flex-direction:column;line-height:1.3}.h-era b{color:var(--fg)}.h-era span{font-size:13px;color:var(--muted)}
+#h-range{width:100%;padding:0;border:0;background:transparent;accent-color:var(--acc);height:22px;margin:0;cursor:pointer}
+.h-eras{display:flex;gap:2px;margin-top:-2px}
+.h-eras button{padding:3px 4px;font-size:11.5px;border-radius:7px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);background:rgba(255,255,255,.03)}
+.h-eras button.on{color:var(--acc);border-color:var(--acc)}
+.h-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.h-tools button{padding:3px 11px;font-size:13px;border-radius:99px}.h-tools .muted{margin-right:auto;font-size:12px}
+#h-table{margin-top:4px;border:1px solid var(--line);border-radius:12px;background:rgba(8,12,18,.7);overflow:hidden}#h-table[hidden]{display:none}
+#h-find{width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;font-size:14px;padding:8px 12px;box-sizing:border-box}
+#h-rows{max-height:220px;overflow:auto}
+#h-rows .sbr{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;border-radius:0;border-bottom:1px solid var(--line);background:transparent;padding:6px 12px;font-size:13.5px}
+#h-rows .sbr:hover{background:rgba(82,214,255,.1)}#h-rows .v{color:var(--muted);white-space:nowrap}
+#h-msg.bad{color:#ffb4a8}
+/* names of past countries, drawn over the map */
+#hl{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+.hl{position:absolute;transform:translate(-50%,-50%);text-align:center;line-height:1.15;font-weight:650;white-space:nowrap;color:#f2f9ff;letter-spacing:.01em;
+  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 0 6px #000}
+.hl.sel{color:#52d6ff}
+body[data-map="light"] .hl{color:#10161d;text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff,0 0 6px #fff}
+body[data-map="light"] .hl.sel{color:#0a68b4}
+body.history .cl,body.history .timezone-label{display:none!important}
+@media(max-width:700px){.h-era{min-width:100%}.h-eras button{font-size:0;padding:5px 0}.h-eras button.on{font-size:0}#h-year{min-width:80px}}

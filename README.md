@@ -48,6 +48,10 @@ Population numbers come from an older dataset (about 2018). Coastline and life e
 Satellite and terrain images are from Esri and fine for testing. Check Esri's terms or switch to MapTiler before a public launch.
 
 
+## History (in the Stats bar)
+Stats has a History group with a "World through time" button. It opens a timeline of 54 snapshots from 123,000 BC to 2010, in eight eras (Stone Age, Bronze Age, Classical antiquity, Late antiquity and early Middle Ages, High and late Middle Ages, Early modern period, Age of nations and empires, World wars and Cold War) plus today. Drag the slider, use the arrows, jump to an era, or press play. The map shows the countries, empires and peoples of that time with their names and borders, coloured by who ruled each area. Dashed borders are only roughly known. Click a shape for details and a Wikipedia link, or open the Names list to find one.
+The shapes come from Historical Basemaps by Andre Ourednik (https://github.com/aourednik/historical-basemaps), licensed GPL-3.0, so keep this credit and licence note if you share the data. Borders for ancient times are approximate and the dataset is still work in progress. To rebuild the files run `node scripts/build-history.mjs` (it downloads the source once into `scripts/.cache/history`). Each snapshot is about 0.2 to 0.9 MB and only the one you look at is downloaded.
+
 ## 3D Earth
 The 3D Earth button in the banner opens a real 3D globe, built with CesiumJS (the leading open-source 3D globe library). Drag to spin, scroll to zoom, right-drag or Ctrl-drag to tilt, and click a country to open its panel. A small panel sets the picture on the globe (Satellite, Street map, Natural Earth, or NASA night lights), borders, country names, cities, a slow spin, and day and night (sunlight right now). The search box also flies the globe to a city, a country or a place.
 The library (about 4 MB) is downloaded only the first time someone opens 3D Earth. It comes from Cesium's own download site, with unpkg and jsDelivr as backups, so nothing is added to this repository.
