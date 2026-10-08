@@ -113,8 +113,8 @@ const map = new maplibregl.Map({
   },
   center: [20, 25], zoom: 1.6, minZoom: 0.8, maxZoom: 19, dragRotate: false, attributionControl: { compact: true },
 });
-map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
-map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right'); // right side, because the country panel now sits on the left
+map.addControl(new maplibregl.ScaleControl(), 'bottom-right');
 map.touchZoomRotate.disableRotation();
 
 // ---------- views ----------
@@ -249,8 +249,8 @@ function boundsOf(id) {
 // room to leave around a country so the open panel does not cover it
 function viewPadding() {
   const narrow = innerWidth < 700;
-  if (sizeMode) return narrow ? { top: 30, bottom: Math.round(innerHeight * 0.46), left: 20, right: 20 } : { top: 60, bottom: 60, left: 400, right: 60 };
-  return narrow ? 30 : { top: 60, bottom: 60, left: 60, right: 460 };
+  if (sizeMode) return narrow ? { top: 30, bottom: Math.round(innerHeight * 0.46), left: 20, right: 20 } : { top: 60, bottom: 60, left: 60, right: 400 };
+  return narrow ? 30 : { top: 60, bottom: 60, left: 460, right: 60 };
 }
 function flyTo(id) {
   if (window.__globe?.active) return window.__globe.flyCountry(id);

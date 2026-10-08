@@ -372,3 +372,11 @@ body[data-map="light"] .hl{color:#10161d;text-shadow:-1px -1px 0 #fff,1px -1px 0
 body[data-map="light"] .hl.sel{color:#0a68b4}
 body.history .cl,body.history .timezone-label{display:none!important}
 @media(max-width:700px){.h-era{min-width:100%}.h-eras button{font-size:0;padding:5px 0}.h-eras button.on{font-size:0}#h-year{min-width:80px}}
+
+/* ---- the country panel sits on the LEFT; the other floating panels moved to the right to keep out of its way ---- */
+#panel{left:12px;right:auto}
+#sizepanel{left:auto;right:10px}
+#timepanel{left:auto!important;right:12px}
+#gl-panel{left:auto;right:12px}
+#flights{left:auto;right:62px}
+@media(max-width:700px){#flights{left:10px;right:auto}#sizepanel{left:10px;right:auto}#timepanel{left:10px!important;right:auto}#gl-panel{left:12px;right:auto}}
