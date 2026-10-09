@@ -39,7 +39,7 @@ land.id = 'landing'; land.hidden = true; land.setAttribute('aria-label', 'Welcom
 land.innerHTML = `<div class="ld-hero"><canvas id="ld-globe" aria-hidden="true"></canvas><div class="ld-copy"><h2>The world, <em>in context.</em></h2><p>Explore our planet through maps, data, history and live global activity.</p>
   <div class="ld-btns"><button type="button" class="ld-go" data-a="map">${ic('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>')} Explore the globe <span aria-hidden="true">→</span></button><button type="button" class="ld-alt" data-a="countries">${ic('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>')} Discover countries</button></div></div></div>
   <div class="ld-cards">${CARDS.map(([k, t, d, i]) => `<button type="button" class="ld-card c-${k}" data-a="${k}"><span class="ld-ic">${i}</span><span class="ld-tx"><b>${t}</b><small>${d}</small></span><span class="ld-ar" aria-hidden="true">→</span></button>`).join('')}</div>
-  <p class="ld-foot">Map data © OpenStreetMap contributors · Borders: Natural Earth / world-atlas · Live data: Open-Meteo, OpenSky</p>`;
+  <p class="ld-foot">Map data © OpenStreetMap contributors · Borders: Natural Earth / world-atlas · Photos: NASA Blue Marble and Black Marble · Live data: Open-Meteo, OpenSky</p>`;
 $('main').prepend(land);
 
 // a slowly turning Earth, drawn with the country borders and the lights of the cities

@@ -580,3 +580,16 @@ body.landing #panel,body.landing #statbar{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.ld-card{transition:none}}
 @media(min-width:620px){.ld-cards{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1050px){.ld-cards{grid-template-columns:repeat(3,1fr)}}
+/* photos on the front page cards (NASA Earth imagery, see scripts/build-landing-images.py) */
+.ld-card{padding-top:132px;min-height:196px}
+.ld-card::before,.ld-card::after{height:128px;opacity:1}
+.ld-card::before{background-size:cover;background-position:center;transition:transform .5s}
+.ld-card:hover::before{transform:scale(1.05)}
+.ld-card::after{background:linear-gradient(180deg,transparent 45%,#06101c 100%)}
+.ld-card{overflow:hidden}
+.c-earth::before{background-image:url(/img/landing/earth.jpg)}
+.c-data::before{background-image:url(/img/landing/data.jpg)}
+.c-flights::before{background-image:url(/img/landing/flights.jpg)}
+.c-history::before{background-image:url(/img/landing/history.jpg)}
+.c-play::before{background-image:url(/img/landing/play.jpg)}
+.c-measure::before{background-image:url(/img/landing/measure.jpg)}

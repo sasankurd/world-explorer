@@ -80,3 +80,5 @@ Layers → **Distance & measure** opens a small draggable window. Add places by 
 
 ## Front page, top-bar links and Units
 On the first visit of each browser session a front page shows over the map (a slowly turning Earth with country borders and city lights, plus cards for Live Earth, Country Data, Flight Tracker, Historical Maps, Play and Distance & measure). **Explore the globe**, any card, the Esc key or a top-bar link takes you in; the **Explore** link or the logo brings it back. Top-bar links: Explore, Countries (focuses search), Live Earth, History, Data (hidden on narrow screens). The **Units** menu switches km/miles and °C/°F (used by the measure window and city cards).
+
+The photos on the front page cards are made from NASA Earth textures (public domain) taken from the `three-globe` npm package (MIT) by `scripts/build-landing-images.py`; the results are in `public/img/landing/`.
