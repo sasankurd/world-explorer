@@ -10,19 +10,12 @@ const load = (k, d) => { try { return localStorage.getItem(k) || d; } catch { re
 const units = { dist: load('we-unit', 'km'), temp: load('we-temp', 'C') };
 window.__units = units;
 const setUnit = (k, v) => { units[k] = v; try { localStorage.setItem(k === 'dist' ? 'we-unit' : 'we-temp', v); } catch {} window.dispatchEvent(new CustomEvent('units-change', { detail: { ...units } })); drawUnits(); };
-const ubtn = document.createElement('button');
-ubtn.id = 'unitsbtn'; ubtn.type = 'button'; ubtn.setAttribute('aria-haspopup', 'true'); ubtn.setAttribute('aria-expanded', 'false'); ubtn.title = 'Units: distance and temperature';
-ubtn.innerHTML = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span class="lb">Units</span><span class="chev" aria-hidden="true">▾</span>';
-const umenu = document.createElement('div');
-umenu.id = 'unitsmenu'; umenu.hidden = true; umenu.setAttribute('role', 'group'); umenu.setAttribute('aria-label', 'Units');
-umenu.innerHTML = '<h2>Units</h2><div class="srow"><div><b>Distance</b></div><div class="seg" data-k="dist"><button type="button" data-v="km">km</button><button type="button" data-v="mi">miles</button></div></div><div class="srow"><div><b>Temperature</b></div><div class="seg" data-k="temp"><button type="button" data-v="C">°C</button><button type="button" data-v="F">°F</button></div></div>';
-const acct = $('#account'); acct.prepend(ubtn); acct.append(umenu);
-function drawUnits() { umenu.querySelectorAll('.seg').forEach((s) => s.querySelectorAll('button').forEach((b) => { const on = b.dataset.v === units[s.dataset.k]; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); })); ubtn.dataset.tip = `Units (${units.dist}, °${units.temp})`; }
+// the two rows live inside the Settings menu
+const rowsHtml = '<div class="srow"><div><b>Distance</b><small>Kilometres or miles</small></div><div class="seg" data-k="dist"><button type="button" data-v="km">km</button><button type="button" data-v="mi">miles</button></div></div><div class="srow"><div><b>Temperature</b><small>Celsius or Fahrenheit</small></div><div class="seg" data-k="temp"><button type="button" data-v="C">°C</button><button type="button" data-v="F">°F</button></div></div>';
+const umenu = $('#settings'); umenu.insertAdjacentHTML('beforeend', rowsHtml);
+function drawUnits() { umenu.querySelectorAll('.seg').forEach((s) => s.querySelectorAll('button').forEach((b) => { const on = b.dataset.v === units[s.dataset.k]; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); })); }
 drawUnits();
-ubtn.addEventListener('click', (e) => { e.stopPropagation(); const open = umenu.hidden; umenu.hidden = !open; ubtn.setAttribute('aria-expanded', String(open)); if (open) { $('#settings').hidden = true; $('#usermenu').hidden = true; $('#layers').hidden = true; } });
 umenu.addEventListener('click', (e) => { const b = e.target.closest('.seg button'); if (b) setUnit(b.closest('.seg').dataset.k, b.dataset.v); });
-document.addEventListener('click', (e) => { if (!umenu.hidden && !e.target.closest('#unitsmenu,#unitsbtn')) { umenu.hidden = true; ubtn.setAttribute('aria-expanded', 'false'); } }, true);
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !umenu.hidden) { umenu.hidden = true; ubtn.focus(); } });
 
 // ---------- the front page ----------
 const ic = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
