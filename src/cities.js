@@ -119,6 +119,18 @@ function draggable(el, handle) {
   handle.addEventListener('pointerup', up); handle.addEventListener('pointercancel', up);
   el.addEventListener('pointerdown', () => front(el));
 }
+// a small grip in the bottom-right corner: drag to make the card bigger or smaller (works with touch too)
+function resizable(el, minW, minH) {
+  const g = document.createElement('div'); g.className = 'grip'; g.title = 'Drag to resize'; g.setAttribute('aria-hidden', 'true'); g.style.touchAction = 'none';
+  el.append(g); let on = false, sx, sy, w0, h0;
+  g.addEventListener('pointerdown', (e) => { on = true; sx = e.clientX; sy = e.clientY; w0 = el.offsetWidth; h0 = el.offsetHeight; g.setPointerCapture(e.pointerId); front(el); e.stopPropagation(); });
+  g.addEventListener('pointermove', (e) => {
+    if (!on) return; const host = el.parentElement;
+    el.style.width = Math.max(minW, Math.min(host.clientWidth - el.offsetLeft, w0 + e.clientX - sx)) + 'px';
+    el.style.height = Math.max(minH, Math.min(host.clientHeight - el.offsetTop, h0 + e.clientY - sy)) + 'px'; el.style.maxHeight = 'none';
+  });
+  const up = () => { on = false; }; g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
+}
 let z = 20; const front = (el) => { el.style.zIndex = ++z; };
 const host = $('#cityfloat');
 
@@ -130,11 +142,11 @@ function popOut(c) {
   const el = document.createElement('section'); el.className = 'ccard'; el.setAttribute('aria-label', `${c.name} card`);
   const k2 = countries[c.cc];
   el.innerHTML = `<header><span class="g" aria-hidden="true">⠿</span><b>${k2 ? k2.flag + ' ' : ''}${esc(c.name)}${c.cap ? ' ★' : ''}</b><button type="button" data-a="cmp" title="Add to the compare window" aria-label="Compare">⚖</button><button type="button" data-a="map" title="Show on the map" aria-label="Show on the map">📍</button><button type="button" data-a="x" title="Close" aria-label="Close">✕</button></header>
-    <table>${rows(c, ['time', 'weather', 'temp', 'pop', 'elev', 'sunrise', 'sunset'])}</table>`;
+    <div class="cb"><table>${rows(c, ['time', 'weather', 'temp', 'pop', 'elev', 'sunrise', 'sunset'])}</table></div>`;
   const n = cards.size, hostBox = host.getBoundingClientRect();
   const panelOpen = !$('#panel').hidden;
   el.style.left = Math.min(hostBox.width - 270, (panelOpen ? 430 : 24) + n * 26) + 'px'; el.style.top = Math.min(hostBox.height - 200, 80 + n * 26) + 'px';
-  host.append(el); front(el); draggable(el, $('header', el));
+  host.append(el); front(el); draggable(el, $('header', el)); resizable(el, 200, 120);
   el.addEventListener('click', (e) => {
     const a = e.target.closest('button')?.dataset.a; if (!a) return;
     if (a === 'x') { el.remove(); cards.delete(k); syncPins(); }
@@ -197,7 +209,7 @@ function ensureCompare() {
   cmpEl.innerHTML = `<header><span class="g" aria-hidden="true">⠿</span><b>⚖ Compare cities</b><button type="button" data-a="fit" title="Zoom the map to show them all" aria-label="Show all on the map">📍</button><button type="button" data-a="clear" title="Remove all" aria-label="Remove all">🗑</button><button type="button" data-a="x" title="Close" aria-label="Close">✕</button></header>
     <div class="cc-add"><input type="search" placeholder="Add a city, anywhere in the world…" autocomplete="off" aria-label="Add a city to compare"><ul class="cc-res"></ul></div>
     <div class="cc-scroll"><div class="cc-empty muted">Add two or more cities to see them side by side.</div></div>`;
-  host.append(cmpEl); draggable(cmpEl, $('header', cmpEl));
+  host.append(cmpEl); draggable(cmpEl, $('header', cmpEl)); resizable(cmpEl, 300, 200);
   cmpEl.style.right = '12px'; cmpEl.style.top = '70px';
   cityPicker($('input', cmpEl), $('.cc-res', cmpEl), { onPick: (c) => addCompare(c) });
   cmpEl.addEventListener('click', (e) => {

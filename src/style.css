@@ -433,3 +433,10 @@ body.history .cl,body.history .timezone-label{display:none!important}
 #statbar.min{left:auto;right:12px;top:8px;width:auto;max-height:none;overflow:visible;padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
 #statbar.min>:not(#sb-min-btn){display:none!important}
 #statbar.min #sb-min-btn{float:none;display:block;box-shadow:0 6px 20px #0009}
+
+/* resizable city cards */
+.ccard{display:flex;flex-direction:column;min-width:200px}
+.ccard .cb{overflow:auto;flex:1;min-height:0}
+.ccard header{flex:none}
+.grip{position:absolute;right:2px;bottom:2px;width:18px;height:18px;cursor:nwse-resize;z-index:3;border-radius:0 0 12px 0;background:linear-gradient(135deg,transparent 55%,var(--acc) 55%,var(--acc) 62%,transparent 62%,transparent 74%,var(--acc) 74%,var(--acc) 81%,transparent 81%);opacity:.7}
+.grip:hover{opacity:1}
