@@ -77,3 +77,6 @@ The **Play** button on the banner (next to Layers) opens a game window. Choose *
 
 ## Distance & measure
 Layers → **Distance & measure** opens a small draggable window. Add places by clicking the map or searching a city/address (up to 10; drag the A, B, C pins to adjust). Pick **Straight line**, **Walk**, **Bike**, **Car** or **Train** to see distance and travel time, per leg and in total, in km or miles. Walk, bike and car follow real roads using the free OpenStreetMap routing servers (routing.openstreetmap.de); if they cannot be reached, or for Train (no free train-route service exists), the figure is an estimate and is marked as such.
+
+## Front page, top-bar links and Units
+On the first visit of each browser session a front page shows over the map (a slowly turning Earth with country borders and city lights, plus cards for Live Earth, Country Data, Flight Tracker, Historical Maps, Play and Distance & measure). **Explore the globe**, any card, the Esc key or a top-bar link takes you in; the **Explore** link or the logo brings it back. Top-bar links: Explore, Countries (focuses search), Live Earth, History, Data (hidden on narrow screens). The **Units** menu switches km/miles and °C/°F (used by the measure window and city cards).

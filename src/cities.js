@@ -77,10 +77,12 @@ function fillLive(root, l) {
   set('time', `${hhmm(l.tz)} · ${offText(l.off)}`, { ctz: l.tz, coff: offText(l.off) });
   set('vs', vsYou(l.off));
   set('weather', l.cur.weather_code == null ? dash : `${w[0]} ${w[1]}`);
-  set('temp', l.cur.temperature_2m == null ? dash : `${Math.round(l.cur.temperature_2m)} °C${l.cur.apparent_temperature != null ? ` (feels ${Math.round(l.cur.apparent_temperature)})` : ''}`, { n: l.cur.temperature_2m });
+  const F = window.__units?.temp === 'F', tc = (v) => Math.round(F ? v * 9 / 5 + 32 : v);
+  set('temp', l.cur.temperature_2m == null ? dash : `${tc(l.cur.temperature_2m)} °${F ? 'F' : 'C'}${l.cur.apparent_temperature != null ? ` (feels ${tc(l.cur.apparent_temperature)})` : ''}`, { n: l.cur.temperature_2m });
   set('hum', l.cur.relative_humidity_2m == null ? dash : `${Math.round(l.cur.relative_humidity_2m)}%`);
-  set('wind', l.cur.wind_speed_10m == null ? dash : `${Math.round(l.cur.wind_speed_10m)} km/h`);
-  set('elev', l.elev == null ? dash : `${fmt(l.elev)} m`, { n: l.elev });
+  const mi = window.__units?.dist === 'mi';
+  set('wind', l.cur.wind_speed_10m == null ? dash : mi ? `${Math.round(l.cur.wind_speed_10m * 0.621)} mph` : `${Math.round(l.cur.wind_speed_10m)} km/h`);
+  set('elev', l.elev == null ? dash : mi ? `${fmt(l.elev * 3.281)} ft` : `${fmt(l.elev)} m`, { n: l.elev });
   set('sunrise', l.sunrise ? l.sunrise.slice(11, 16) : dash); set('sunset', l.sunset ? l.sunset.slice(11, 16) : dash);
 }
 function paintLive(root, c) { live(c).then((l) => fillLive(root, l), () => fillLive(root, null)); }
@@ -308,6 +310,7 @@ async function openDetail(c, sec) {
   const text = w.extract.length > 460 ? w.extract.slice(0, 460).replace(/\s+\S*$/, '') + '…' : w.extract;
   slot.className = 'cty-wiki'; slot.innerHTML = `${w.thumbnail?.source ? `<img src="${esc(w.thumbnail.source)}" alt="" loading="lazy">` : ''}${esc(text)} <a target="_blank" rel="noopener" href="${esc(w.content_urls?.desktop?.page || '#')}">Read more on Wikipedia</a>`;
 }
+window.addEventListener('units-change', () => { document.querySelectorAll('.ccard, #cty-detail, #citycmp').forEach((el) => { if (el.id === 'citycmp') renderCompare(); }); document.querySelectorAll('.ccard').forEach((el) => { const c = [...cards.values()].find((x) => x.el === el)?.city; if (c) paintLive(el, c); }); });
 window.addEventListener('country-open', (e) => { if (e.detail?.tab === 'geography') inject(e.detail.id); });
 
 if (compare.length) { ensureCompare(); renderCompare(); syncPins(); } // earlier choices come back, with the window closed

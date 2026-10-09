@@ -157,7 +157,7 @@ win.addEventListener('click', (e) => {
   if (b.dataset.a === 'x') setOpen(false);
   if (b.dataset.m) { mode = b.dataset.m; update(); }
   if (b.id === 'ms-pick') setPick(!adding);
-  if (b.id === 'ms-unit') { unit = unit === 'km' ? 'mi' : 'km'; try { localStorage.setItem('we-unit', unit); } catch {} update(); }
+  if (b.id === 'ms-unit') { unit = unit === 'km' ? 'mi' : 'km'; try { localStorage.setItem('we-unit', unit); } catch {} window.dispatchEvent(new CustomEvent('units-change', { detail: { dist: unit, temp: window.__units?.temp || 'C' } })); if (window.__units) window.__units.dist = unit; update(); }
   if (b.id === 'ms-clear') { pts = []; update(); }
   if (b.dataset.rm != null) { pts.splice(+b.dataset.rm, 1); update(); }
   if (b.dataset.up != null) { const i = +b.dataset.up; [pts[i - 1], pts[i]] = [pts[i], pts[i - 1]]; update(); }
@@ -172,5 +172,6 @@ function setOpen(on) {
 }
 btn.addEventListener('click', () => setOpen(!active));
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && active && !win.hidden && document.activeElement?.id !== 'ms-find' && !document.querySelector('#gamewin:not([hidden])')) { if (adding) setPick(false); } });
+window.addEventListener('units-change', (e) => { if (e.detail.dist !== unit) { unit = e.detail.dist; update(); } });
 renderPoints();
 window.__measure = { open: () => setOpen(true), close: () => setOpen(false), add: addPoint, setMode(m) { mode = m; update(); }, get points() { return pts; } };
