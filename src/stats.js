@@ -242,3 +242,18 @@ form.addEventListener('submit', async (e) => {
     select(id);
   } catch (err) { say(err.message || 'Could not add that statistic.', true); }
 });
+
+// ---------- minimize the stats bar (also folds away by itself when you search) ----------
+const minBtn = document.createElement('button');
+minBtn.type = 'button'; minBtn.id = 'sb-min-btn';
+bar.prepend(minBtn);
+function setMin(on) {
+  bar.classList.toggle('min', on);
+  minBtn.textContent = on ? '📊 Stats ▾' : '▴ Hide';
+  minBtn.setAttribute('aria-expanded', String(!on));
+  minBtn.title = on ? 'Show the stats menu' : 'Hide the stats menu to see more of the map';
+  fitOffset();
+}
+minBtn.onclick = () => setMin(!bar.classList.contains('min'));
+setMin(false);
+document.querySelector('#search')?.addEventListener('focus', () => { if (!bar.hidden) setMin(true); });
