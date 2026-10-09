@@ -79,7 +79,7 @@ syncTz();
 
 // ---------- names on hover: the banner shows icons, and a small label appears under the one the mouse is on ----------
 const tipEl = document.createElement('div'); tipEl.id = 'hdrtip'; tipEl.setAttribute('role', 'tooltip'); tipEl.hidden = true; document.body.append(tipEl);
-const tipTargets = document.querySelectorAll('#views button, #layersbtn, #signinbtn, #settingsbtn');
+const tipTargets = document.querySelectorAll('#views button, #layersbtn, #playtop, #signinbtn, #settingsbtn');
 tipTargets.forEach((el) => {
   el.dataset.tip ||= el.getAttribute('aria-label') || el.querySelector('.lb,.lbl')?.textContent || el.title;
   el.removeAttribute('title'); // the native hint would show a second box

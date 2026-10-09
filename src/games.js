@@ -328,4 +328,5 @@ function hostFinish() {
 
 // ---------- the Play button in Settings ----------
 $('#playbtn')?.addEventListener('click', () => { document.querySelector('#settingsbtn')?.click(); openWin(); });
+$('#playtop')?.addEventListener('click', openWin);
 window.__games = { open: openWin, close: closeWin, get G() { return G; }, make, rng, questionSource, points };

@@ -297,7 +297,7 @@ body.globeon #flights,body.globeon #statbar,body.globeon #sizepanel,body.globeon
 /* ---- banner layout: icons with short labels, a collapsing search, one Layers menu, one account button ---- */
 header{gap:10px}
 svg.ic{width:18px;height:18px;flex:none}
-#views button,#layersbtn,#signinbtn{display:inline-flex;align-items:center;gap:7px;padding:6px 12px}
+#views button,#layersbtn,#playtop,#signinbtn{display:inline-flex;align-items:center;gap:7px;padding:6px 12px}
 #views button.on{color:var(--acc)}
 /* search: a round icon that opens into a box while you use it */
 #search-wrap{position:relative;width:40px;height:38px;flex:none}
@@ -324,13 +324,13 @@ svg.ic{width:18px;height:18px;flex:none}
 #timepanel-open{display:none!important}
 #timepanel{top:calc(12px + var(--sb,0px))!important}
 /* narrower screens: icons only */
-@media(min-width:701px){#views .lb,#layersbtn .lb,#signinbtn .lb{display:none}#views button,#layersbtn,#signinbtn{padding:7px 11px;gap:6px}svg.ic{width:20px;height:20px}}
+@media(min-width:701px){#views .lb,#layersbtn .lb,#signinbtn .lb{display:none}#views button,#layersbtn,#playtop,#signinbtn{padding:7px 11px;gap:6px}svg.ic{width:20px;height:20px}}
 /* phones: the view tabs become a bar along the bottom of the screen, within thumb reach */
 @media(max-width:700px){
   body{box-sizing:border-box;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
   header{flex-wrap:nowrap;padding:8px 12px;gap:8px}
   h1{font-size:0;gap:0}h1 .logo{margin:0}
-  #account{margin-left:0;gap:6px}#layerwrap{margin-left:auto}#layersbtn .lb,#signinbtn .lb{display:none}#layersbtn,#signinbtn{padding:7px 10px}
+  #account{margin-left:0;gap:6px}#layerwrap{margin-left:auto}#layersbtn .lb,#playtop .lb,#signinbtn .lb{display:none}#layersbtn,#playtop,#signinbtn{padding:7px 10px}
   #views{position:fixed;left:0;right:0;bottom:0;z-index:25;border-radius:0;border-width:1px 0 0;background:rgba(5,9,14,.97);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:5px 6px calc(5px + env(safe-area-inset-bottom));justify-content:space-around}
   #views button{flex:1;flex-direction:column;gap:2px;padding:5px 2px;font-size:11.5px;border-radius:10px}#views .lb{display:inline}
   #views .pill{top:5px;height:calc(100% - 10px - env(safe-area-inset-bottom))}
@@ -495,3 +495,7 @@ body.history .cl,body.history .timezone-label{display:none!important}
 .gw-rank li.me{border:1px solid var(--acc)}.gw-rank i{flex:1;text-align:left;font-style:normal}
 .gw-endbtns{display:flex;gap:10px;justify-content:center;align-items:center}
 @media(max-width:600px){.gw-two,.gq-opts,.gw-names{grid-template-columns:1fr}.gq-flag{font-size:68px}#gamewin{align-items:flex-end;padding:0}.gw-box{border-radius:18px 18px 0 0;max-height:94dvh}}
+
+#playtop{border-color:var(--acc);color:var(--acc);background:linear-gradient(135deg,rgba(82,214,255,.16),rgba(140,120,255,.16))}
+#playtop:hover{box-shadow:var(--glow)}
+@media(min-width:701px){#playtop{padding:7px 13px;font-weight:600}}
