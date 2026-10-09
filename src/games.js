@@ -326,7 +326,6 @@ function hostFinish() {
   G.tn = setTimeout(() => { if (G.i >= G.total) finish(); else hostAsk(); }, 4200);
 }
 
-// ---------- the Play button in Settings ----------
-$('#playbtn')?.addEventListener('click', () => { document.querySelector('#settingsbtn')?.click(); openWin(); });
+// ---------- the Play button on the banner ----------
 $('#playtop')?.addEventListener('click', openWin);
 window.__games = { open: openWin, close: closeWin, get G() { return G; }, make, rng, questionSource, points };
