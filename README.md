@@ -71,3 +71,6 @@ The Sign in and Sign up buttons are built, but they need a sign-in service behin
 
 ## Cities in the country panel
 In a country's **Geography** tab, open **Cities** to see its cities (capital first). Click one to read about it in the same panel (population, local time, weather, height, sunrise/sunset, short Wikipedia text). **Pop out** turns it into a floating card you can drag anywhere over the map. **Compare** opens a window that puts up to 6 cities side by side; search any city in the world to add it (added cities and your compare list are kept in your browser). Live facts come from Open-Meteo and Wikipedia (free, no key).
+
+## Play (trivia games)
+Settings → **Play** opens a game window. Choose **Solo** (Flag quiz, Capital quiz, Bigger or smaller, Mystery country, Mix it up, Streak, Lightning; best scores are saved in your browser) or **With friends**: **Same device** (take turns, up to 6 players) or **Online room** (everyone on their own device with a 4-letter code; the host keeps score). The online room uses Supabase Realtime, so it only works once `public/auth-config.json` holds your Supabase URL and anon key (the same ones used for sign-in); without them it is greyed out.
