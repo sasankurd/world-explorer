@@ -190,6 +190,9 @@ async function setHistory() {
 let started = false;
 function open() {
   bar.hidden = false;
+  // opening Stats always shows the country names and their numbers
+  if (!numsOn) { numsOn = true; $('#sb-nums').classList.add('on'); }
+  const nm = document.querySelector('#names'); if (nm && !nm.classList.contains('on')) nm.click();
   if (!started) { started = true; renderChips(); select(key); } else if (mode === 'heat') { setHeatLayer(true); } else if (mode === 'history') { window.__history?.enter(); }
   else recolorSoon();
   fitOffset();
