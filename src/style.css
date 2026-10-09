@@ -380,3 +380,49 @@ body.history .cl,body.history .timezone-label{display:none!important}
 #gl-panel{left:auto;right:12px}
 #flights{left:auto;right:62px}
 @media(max-width:700px){#flights{left:10px;right:auto}#sizepanel{left:10px;right:auto}#timepanel{left:10px!important;right:auto}#gl-panel{left:12px;right:auto}}
+
+/* ---------- cities ---------- */
+#cityfloat{position:absolute;inset:0;pointer-events:none;z-index:7}
+#cityfloat>*{pointer-events:auto}
+.ccard,#citycmp{position:absolute;background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px #000b,0 0 24px rgba(82,214,255,.08);color:var(--fg);font-size:13px}
+.ccard{width:260px}
+.ccard[hidden],#citycmp[hidden]{display:none}
+.ccard header,#citycmp header{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 10px;cursor:grab;border-bottom:1px solid var(--line);user-select:none}
+.ccard header b,#citycmp header b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ccard header .g,#citycmp header .g{color:var(--muted)}
+.ccard header button,#citycmp header button,.cc-b button{background:none;border:0;color:var(--fg);cursor:pointer;padding:3px 5px;border-radius:6px;font-size:13px}
+.ccard header button:hover,#citycmp header button:hover,.cc-b button:hover{background:rgba(82,214,255,.15)}
+.ccard table{width:100%;border-collapse:collapse;margin:6px 0 8px}
+.ccard td{padding:3px 10px}.ccard td:first-child,#panel #cty td:first-child{color:var(--muted)}
+#citycmp{width:min(640px,calc(100% - 24px));max-height:calc(100% - 90px);display:flex;flex-direction:column}
+.cc-add{padding:8px 10px;position:relative}
+.cc-add input,#cty-find{width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--fg);padding:7px 10px}
+.cc-res{list-style:none;margin:4px 0 0;padding:0}
+.cc-res li{padding:6px 8px;border-radius:6px;cursor:pointer}.cc-res li:hover{background:rgba(82,214,255,.14)}
+.cc-res li.note{cursor:default;color:var(--muted);font-size:12px}.cc-res li.note:hover{background:none}
+.cc-scroll{overflow:auto;padding:0 10px 10px}
+.cc-empty{padding:14px 4px}
+.cc-t{border-collapse:collapse;width:100%}
+.cc-t th,.cc-t td{padding:5px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.cc-t tbody th{color:var(--muted);font-weight:400;white-space:nowrap}
+.cc-t thead th{position:sticky;top:0;background:var(--solid)}
+.cc-t td.best{color:var(--acc);font-weight:600}
+.cc-h{display:flex;align-items:center;justify-content:space-between;gap:4px}.cc-b{white-space:nowrap}
+.cpin{pointer-events:none;display:flex;flex-direction:column;align-items:center}
+.cpin .pn{background:var(--solid);border:1px solid var(--acc);border-radius:6px;padding:2px 7px;font-size:12px;color:var(--fg)}
+.cpin .pt{width:2px;height:10px;background:var(--acc)}
+#cty{margin:6px 0}
+.cty-tg{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;font:inherit}
+.cty-tg .count{color:var(--muted);font-weight:400;font-size:12px}.cty-tg .chev{margin-left:auto;transition:transform .2s}
+#cty.open .chev{transform:rotate(90deg)}
+#cty-list{max-height:240px;overflow:auto;margin-top:6px}
+.cty-row{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;width:100%;padding:6px 8px;border-radius:6px;cursor:pointer}
+.cty-row:hover,.cty-row:focus-visible{background:rgba(82,214,255,.14)}
+.cty-row .v{color:var(--muted)}
+.cap{color:var(--acc);font-size:11px}.cap.mine{color:var(--acc2)}
+.cty-foot,.cty-act{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+#cty button[data-a],#cty-cmp,.cty-back,.cty-del{background:rgba(82,214,255,.1);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:5px 9px;cursor:pointer;font:inherit;font-size:12px}
+.cty-back{margin-bottom:6px}.cty-title{display:flex;justify-content:space-between;align-items:center}.cty-title h4{margin:4px 0}
+#cty-detail table{width:100%;border-collapse:collapse}#cty-detail td{padding:3px 4px;vertical-align:top}
+.cty-wiki img{float:right;width:84px;border-radius:8px;margin:0 0 6px 8px}
+@media(max-width:700px){.ccard{width:min(260px,calc(100% - 24px))}#citycmp{left:12px!important;right:12px!important;width:auto}}
