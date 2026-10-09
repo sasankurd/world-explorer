@@ -82,3 +82,6 @@ Layers → **Distance & measure** opens a small draggable window. Add places by 
 On the first visit of each browser session a front page shows over the map (a slowly turning Earth with country borders and city lights, plus cards for Live Earth, Country Data, Flight Tracker, Historical Maps, Play and Distance & measure). **Explore the globe**, any card, the Esc key or a top-bar link takes you in; the **Explore** link or the logo brings it back. Top-bar links: Explore, Countries (focuses search), Live Earth, History, Data (hidden on narrow screens). **Settings → Distance / Temperature** switch km/miles and °C/°F (used by the measure window and city cards).
 
 The photos on the front page cards are made from NASA Earth textures (public domain) taken from the `three-globe` npm package (MIT) by `scripts/build-landing-images.py`; the results are in `public/img/landing/`.
+
+## Map type picker
+On computers the Map, Terrain, Satellite and 3D Earth buttons are one **Map type** button in the banner. It opens a small window with a picture for each type, like the layers switcher in Google Maps; Stats stays next to it. On phones the bottom bar still shows each type. The pictures are made by `scripts/build-maptype-images.py` from NASA textures and the site's own borders.

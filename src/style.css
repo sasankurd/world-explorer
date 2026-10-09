@@ -593,3 +593,20 @@ body.landing #panel,body.landing #statbar{visibility:hidden}
 .c-history::before{background-image:url(/img/landing/history.jpg)}
 .c-play::before{background-image:url(/img/landing/play.jpg)}
 .c-measure::before{background-image:url(/img/landing/measure.jpg)}
+
+/* ---------- Map type: one button and a small picker (computers) ---------- */
+#maptypebtn{position:relative;z-index:1;display:inline-flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-color:transparent;background:transparent;box-shadow:none}
+#maptypebtn.on{color:var(--acc)}
+.mt-th{width:32px;height:32px;border-radius:8px;background:#0a1220 center/cover;border:1px solid var(--line)}
+.mt-nm{font-weight:500}.mt-ch{font-size:10px;opacity:.7}
+#maptypemenu{position:absolute;top:calc(100% + 8px);z-index:35;width:min(430px,calc(100vw - 16px));padding:12px 14px 14px;background:rgba(6,10,15,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px #000b,0 0 30px rgba(82,214,255,.08)}
+#maptypemenu[hidden]{display:none}
+#maptypemenu h2{margin:0 0 10px;font-size:14px}
+.mt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mt-tile{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:0;color:var(--fg);cursor:pointer;font:inherit;font-size:12.5px}
+.mt-img{width:100%;aspect-ratio:3/2;border-radius:10px;background:#0a1220 center/cover;border:2px solid transparent;outline:1px solid var(--line);transition:transform .15s,border-color .15s}
+.mt-tile:hover .mt-img{transform:translateY(-2px)}
+.mt-tile.on .mt-img{border-color:var(--acc);box-shadow:0 0 14px rgba(82,214,255,.45)}
+.mt-tile.on b{color:var(--acc)}
+@media(min-width:701px){#views button[data-view="political"],#views button[data-view="terrain"],#views button[data-view="satellite"],#views #globebtn{display:none}}
+@media(max-width:700px){#maptypebtn,#maptypemenu{display:none!important}}
