@@ -12,18 +12,19 @@ const TYPES = [
 const src = (t) => $(`#views button[data-view="${t.k}"]`);
 const btn = document.createElement('button');
 btn.id = 'maptypebtn'; btn.type = 'button'; btn.setAttribute('aria-haspopup', 'true'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'maptypemenu');
-btn.innerHTML = '<span class="mt-th" aria-hidden="true"></span><span class="mt-nm">Map</span><span class="mt-ch" aria-hidden="true">▾</span>';
-$('.pill', views).after(btn);
+btn.innerHTML = '<span class="mt-th" aria-hidden="true"></span>';
+btn.setAttribute('aria-label', 'Map type'); btn.title = 'Map type';
+$('#layerwrap').after(btn); // next to the Layers button
 const menu = document.createElement('div');
 menu.id = 'maptypemenu'; menu.hidden = true; menu.setAttribute('role', 'group'); menu.setAttribute('aria-label', 'Map type');
-menu.innerHTML = `<h2>Map type</h2><div class="mt-grid">${TYPES.map((t) => `<button type="button" class="mt-tile" data-k="${t.k}" title="${t.tip}"><span class="mt-img" style="background-image:url(/img/maptype/${t.img}.jpg)"></span><b>${t.name}</b></button>`).join('')}</div>`;
+menu.innerHTML = `<div class="mt-list">${TYPES.map((t) => `<button type="button" class="mt-tile" data-k="${t.k}" title="${t.tip}"><span class="mt-img" style="background-image:url(/img/maptype/${t.img}.jpg)"></span><b>${t.name}</b></button>`).join('')}</div>`;
 $('header').append(menu);
 
 function current() { return TYPES.find((t) => src(t)?.classList.contains('on')) || null; }
 function sync() {
   const c = current();
-  btn.classList.toggle('on', !!c);
-  if (c) { $('.mt-nm', btn).textContent = c.name; $('.mt-th', btn).style.backgroundImage = `url(/img/maptype/${c.img}.jpg)`; }
+  btn.classList.toggle('on', !!c); views.classList.toggle('nopill', !!c); // the glow is only for Stats now
+  if (c) { btn.title = `Map type: ${c.name}`; btn.setAttribute('aria-label', btn.title); $('.mt-th', btn).style.backgroundImage = `url(/img/maptype/${c.img}.jpg)`; }
   menu.querySelectorAll('.mt-tile').forEach((b) => { const on = c?.k === b.dataset.k; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   window.dispatchEvent(new Event('globe-change')); // moves the sliding glow behind the right button
 }

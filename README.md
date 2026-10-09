@@ -84,4 +84,4 @@ On the first visit of each browser session a front page shows over the map (a sl
 The photos on the front page cards are made from NASA Earth textures (public domain) taken from the `three-globe` npm package (MIT) by `scripts/build-landing-images.py`; the results are in `public/img/landing/`.
 
 ## Map type picker
-On computers the Map, Terrain, Satellite and 3D Earth buttons are one **Map type** button in the banner. It opens a small window with a picture for each type, like the layers switcher in Google Maps; Stats stays next to it. On phones the bottom bar still shows each type. The pictures are made by `scripts/build-maptype-images.py` from NASA textures and the site's own borders.
+On computers the Map, Terrain, Satellite and 3D Earth buttons are one **Map type** button next to Layers that shows only a picture of the current type; clicking it lists the names (Map, Terrain, Satellite, 3D Earth) vertically, each with a small picture, like the layers switcher in Google Maps. On phones the bottom bar still shows each type. The pictures are made by `scripts/build-maptype-images.py` from NASA textures and the site's own borders.
