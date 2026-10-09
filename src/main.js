@@ -225,7 +225,7 @@ map.on('mouseleave', 'fill', () => {
   tip.hidden = true;
 });
 map.on('click', 'fill', (e) => {
-  if (!e.features[0]) return;
+  if (!e.features[0] || window.__measuring) return; // while measuring, a click adds a point instead
   if (map.getLayer('planes') && map.queryRenderedFeatures(e.point, { layers: ['planes'] }).length) return; // a plane was clicked, not the country below
   if (sizeMode) { if (!map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length) addMover(e.features[0].id); return; }
   openCountry(e.features[0].id, 'overview', false);

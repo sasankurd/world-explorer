@@ -74,3 +74,6 @@ In a country's **Geography** tab, open **Cities** to see its cities (capital fir
 
 ## Play (trivia games)
 The **Play** button on the banner (next to Layers) opens a game window. Choose **Solo** (Flag quiz, Capital quiz, Bigger or smaller, Mystery country, Mix it up, Streak, Lightning; best scores are saved in your browser) or **With friends**: **Same device** (take turns, up to 6 players) or **Online room** (everyone on their own device with a 4-letter code; the host keeps score). The online room uses Supabase Realtime, so it only works once `public/auth-config.json` holds your Supabase URL and anon key (the same ones used for sign-in); without them it is greyed out.
+
+## Distance & measure
+Layers → **Distance & measure** opens a small draggable window. Add places by clicking the map or searching a city/address (up to 10; drag the A, B, C pins to adjust). Pick **Straight line**, **Walk**, **Bike**, **Car** or **Train** to see distance and travel time, per leg and in total, in km or miles. Walk, bike and car follow real roads using the free OpenStreetMap routing servers (routing.openstreetmap.de); if they cannot be reached, or for Train (no free train-route service exists), the figure is an estimate and is marked as such.
