@@ -72,7 +72,7 @@ function showLanding() {
   land.hidden = false; land.scrollTop = 0; document.body.classList.add('landing'); setNav('explore');
   if (!raf) { last = 0; raf = requestAnimationFrame(frame); }
 }
-function hideLanding() { land.hidden = true; document.body.classList.remove('landing'); try { sessionStorage.setItem('we-landed', '1'); } catch {} }
+function hideLanding() { land.hidden = true; setNav(''); document.body.classList.remove('landing'); try { sessionStorage.setItem('we-landed', '1'); } catch {} }
 const whenReady = (fn, tries = 30) => { if (fn()) return; if (tries > 0) setTimeout(() => whenReady(fn, tries - 1), 100); };
 const GO = {
   map() { hideLanding(); if (app.view === 'stats' || app.view === 'globe') click('[data-view="political"]'); },

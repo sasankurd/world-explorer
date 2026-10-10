@@ -608,3 +608,19 @@ body.landing #panel,body.landing #statbar{visibility:hidden}
 @media(min-width:701px){#views button[data-view="political"],#views button[data-view="terrain"],#views button[data-view="satellite"],#views #globebtn{display:none}}
 @media(max-width:700px){#maptypebtn,#maptypemenu{display:none!important}}
 #views.nopill .pill{opacity:0}
+
+/* ---------- banner order and the names-only banner on the front page ---------- */
+.srow[hidden]{display:none}
+header h1{order:0}#topnav{order:1}#search-wrap{order:2}
+#maptypebtn{order:3;margin-left:auto}#layerwrap{order:4}#views{order:5}#playtop{order:6}
+#account{order:7;margin-left:0;padding-left:12px;border-left:1px solid var(--line)}
+header{align-items:center}
+body.landing #search-wrap,body.landing #views,body.landing #playtop,body.landing #layerwrap,body.landing #maptypebtn,body.landing #maptypemenu,body.landing #settingsbtn,body.landing #settings,body.landing #layers{display:none!important}
+body.landing #topnav{display:flex!important}
+body.landing #account{margin-left:auto;border-left:0;padding-left:0}
+@media(max-width:700px){
+  body.landing header{flex-wrap:wrap}
+  body.landing #topnav{order:9;flex-basis:100%;overflow-x:auto;scrollbar-width:none}
+  body.landing #topnav button{white-space:nowrap}
+  #account{border-left:0;padding-left:0}
+}

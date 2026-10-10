@@ -47,3 +47,20 @@ light = np.clip(0.45 + 0.7 * (X * -0.4 + Y * 0.3 + Z * 0.85), 0.25, 1.15)[..., N
 bg[m] = np.clip(tex[m] * light[m] + rim[m], 0, 255)
 Image.fromarray(bg.astype(np.uint8)).save(out + 'globe.jpg', quality=82)
 print('done')
+# OpenStreetMap look: pale land, light blue sea, orange roads between real cities
+cities = json.load(open(borders.replace('borders.geojson', 'cities.json')))
+O = (28, 52, 28, 42)  # lon0, lon1, lat0, lat1 (the Middle East, zoomed in)
+def Q(lon, lat): return ((lon - O[0]) / (O[1] - O[0]) * W, (O[3] - lat) / (O[3] - O[2]) * H)
+im = Image.new('RGB', (W, H), (170, 211, 223)); d = ImageDraw.Draw(im)
+for f in json.load(open(borders))['features']:
+    g = f['geometry']; polys = g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']]
+    for poly in polys:
+        pts = [Q(*p) for p in poly[0]]
+        if max(x for x, _ in pts) < 0 or min(x for x, _ in pts) > W or max(y for _, y in pts) < 0 or min(y for _, y in pts) > H: continue
+        d.polygon(pts, fill=(242, 239, 233)); d.line(pts + [pts[0]], fill=(196, 170, 200), width=2)
+near = [(c[1], c[2], c[3]) for c in cities if O[0] < c[1] < O[1] and O[2] < c[2] < O[3] and c[3] > 600000]
+for i, (lo, la, _) in enumerate(near):
+    best = sorted(near, key=lambda c: (c[0] - lo) ** 2 + (c[1] - la) ** 2)[1:3]
+    for (lo2, la2, _) in best: d.line([Q(lo, la), Q(lo2, la2)], fill=(247, 164, 90), width=3)
+for lo, la, p in near: x, y = Q(lo, la); d.ellipse((x - 2, y - 2, x + 2, y + 2), fill=(255, 255, 255), outline=(120, 120, 120))
+im.save(out + 'osm.jpg', quality=82)

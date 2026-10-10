@@ -85,3 +85,6 @@ The photos on the front page cards are made from NASA Earth textures (public dom
 
 ## Map type picker
 On computers the Map, Terrain, Satellite and 3D Earth buttons are one **Map type** button next to Layers that shows only a picture of the current type; clicking it lists the names (Map, Terrain, Satellite, 3D Earth) vertically, each with a small picture, like the layers switcher in Google Maps. On phones the bottom bar still shows each type. The pictures are made by `scripts/build-maptype-images.py` from NASA textures and the site's own borders.
+
+## Banner (updated)
+Order, left to right: logo, text links, search, Map type (picture), Layers, Stats, Play, then Settings and Sign in. **OpenStreetMap** is now one of the choices in the Map type list (Map, Terrain, Satellite, OpenStreetMap, 3D Earth) instead of a Settings option; picking it switches country names off, as before. On the front page the banner only shows the logo, the text links and Sign in; the icon buttons, Play and Settings appear once you go into the map.

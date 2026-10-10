@@ -188,6 +188,7 @@ function setBaseMap(v, quiet) {
   try { localStorage.setItem('baseMap', baseMap); } catch {}
   $('#basemap').value = baseMap;
   applyView();
+  window.dispatchEvent(new CustomEvent('basemap-change', { detail: baseMap }));
 }
 function setMapTheme(t) {
   mapTheme = t;
