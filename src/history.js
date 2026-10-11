@@ -76,6 +76,7 @@ const NOTES = {
   '2000': 'The turn of the millennium.',
   '2010': 'The modern world (South Sudan, created in 2011, is the main newer country).',
 };
+const thumbOf = (s) => '/img/history/' + s.file.replace('.json', '.jpg');
 const fmtYear = (y) => (y < 0 ? `${(-y).toLocaleString('en')} BC` : y < 1000 ? `AD ${y}` : String(y));
 const eraOf = (y) => ERAS.find((e) => y <= e.to);
 
@@ -183,6 +184,21 @@ function showPanel(f) {
   <h3>Learn more</h3><div class="chips"><a target="_blank" rel="noopener" href="${p.u ? 'https://en.wikipedia.org/wiki/' + p.u : 'https://en.wikipedia.org/wiki/Special:Search?search=' + q}">Wikipedia</a><a target="_blank" rel="noopener" href="https://www.google.com/search?q=${enc(p.n + ' history')}">Search the web</a></div></div>`;
   panel.hidden = false; panel.scrollTop = 0;
   $('#close').onclick = () => { hidePanel(); select(null); };
+  addPhoto(p, panel);
+}
+// a picture from Wikipedia for the country or people, when the page has one and the network allows it
+async function addPhoto(p, panel) {
+  if (!p.u) return;
+  try {
+    const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(p.u), { headers: { Accept: 'application/json' } });
+    if (!r.ok) return; const j = await r.json();
+    const src = j.thumbnail?.source; if (!src || j.type === 'disambiguation' || panel.querySelector('h2')?.textContent !== p.n) return;
+    const fig = document.createElement('figure'); fig.className = 'h-photo';
+    const im = document.createElement('img'); im.src = src; im.alt = `${p.n}, from Wikipedia`; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer';
+    const cap = document.createElement('figcaption'); cap.textContent = 'Picture: Wikipedia'; fig.append(im, cap);
+    im.addEventListener('error', () => fig.remove());
+    panel.querySelector('.body')?.prepend(fig);
+  } catch {}
 }
 function hidePanel() { const panel = $('#panel'); if (active && panel.querySelector('.ph .flag')?.textContent === '🏛️') panel.hidden = true; }
 function select(id) {
@@ -236,11 +252,27 @@ function drawEras() {
     const b = document.createElement('button'); b.type = 'button'; b.dataset.first = first; b.dataset.era = e.key; b.style.flex = String(n); b.title = `${e.name}: ${fmtYear(index[first].year)}`; b.textContent = e.name; box.append(b);
   });
 }
+function drawStrip() {
+  const box = $('#h-strip'); box.innerHTML = '';
+  index.forEach((s, k) => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.i = k; b.setAttribute('aria-label', `${fmtYear(s.year)}, ${eraOf(s.year).name}`);
+    const im = document.createElement('img'); im.src = thumbOf(s); im.alt = ''; im.loading = 'lazy'; im.width = 110; im.height = 55;
+    const t = document.createElement('span'); t.textContent = fmtYear(s.year);
+    b.append(im, t); box.append(b);
+  });
+}
+$('#h-strip').addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) setIndex(+b.dataset.i, true); });
+function markStrip() {
+  const box = $('#h-strip'); let on = null;
+  box.querySelectorAll('button').forEach((b) => { const is = +b.dataset.i === idx; b.classList.toggle('on', is); if (is) { b.setAttribute('aria-current', 'true'); on = b; } else b.removeAttribute('aria-current'); });
+  if (on) { const l = on.offsetLeft - box.clientWidth / 2 + on.offsetWidth / 2; box.scrollTo({ left: l, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+}
 function setIndex(i, fromUser) {
   idx = Math.max(0, Math.min(index.length - 1, i));
   if (fromUser) stop();
   const y = index[idx].year, era = eraOf(y);
   $('#h-range').value = idx; $('#h-year').textContent = fmtYear(y);
+  const th = $('#h-thumb'); th.src = thumbOf(index[idx]); th.alt = `Map of the world in ${fmtYear(y)}`; th.hidden = false; markStrip();
   $('#h-era').textContent = era.name; $('#h-note').textContent = NOTES[y] || era.text;
   $('#h-eras').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.era === era.key));
   $('#h-prev').disabled = idx === 0; $('#h-next').disabled = idx === index.length - 1;
@@ -264,7 +296,7 @@ async function enter() {
   if (active) return;
   active = true; document.body.classList.add('history'); $('#hist').hidden = false;
   try {
-    if (!index) { index = await (await fetch('/data/history/index.json')).json(); drawEras(); $('#h-range').max = index.length - 1; }
+    if (!index) { index = await (await fetch('/data/history/index.json')).json(); drawEras(); drawStrip(); $('#h-range').max = index.length - 1; }
   } catch { active = false; document.body.classList.remove('history'); say('Could not load the history timeline. Check your connection and try again.', true); return; }
   ensureLayers(); showLayers(true); paintAll(); app.closePanel?.(); pad();
   const start = cur ? idx : index.findIndex((s) => s.year === 100);

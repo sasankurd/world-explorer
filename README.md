@@ -107,3 +107,10 @@ The site is now a workspace: the map fills the screen, with a compact top bar (E
 **Routes.** Still a single page. `?map` skips the front page. `#IRQ` still opens a country. New: `#share=…` opens a shared project read-only. Nothing else changed.
 
 **Code layout.** `src/workspace/` (shell, panel, dialogs, toasts), `src/projects/` (model, store, controller, views, forms, share, thumbnails, recent activity), `src/styles/` (workspace, projects, landing). Run the unit tests with `npm test`.
+
+## History pictures and country timelines
+
+- **Pictures on the timeline.** Every one of the 54 history snapshots has a small picture: NASA Blue Marble (three-globe, MIT) darkened, with that era's countries and peoples coloured on top. They show beside the year and in a scrollable strip under the slider; choosing one jumps to that date. Rebuild them with `python3 scripts/build-history-thumbs.py <three-globe>/example/img` (files in `public/img/history/`).
+- **Country window, History tab.** "Through the eras" lists which country, empire or people held the country's capital in each snapshot (for example Iraq: Abbasid Caliphate, Ilkhanate, Ottoman Empire, then Mesopotamia under Britain, then Iraq), each with the era's picture and a dot where the country is. Choosing an entry opens that era on the map. The data comes from `scripts/build-country-history.mjs` into `public/data/history/country-timeline.json`. 62 countries and territories (mostly very small ones) have no record because they are too small for the historical shapes; the tab says so.
+- **Wikipedia picture.** Clicking a country or people in the History layer also asks Wikipedia for its lead picture and shows it when there is one (needs internet; credited "Picture: Wikipedia").
+- Borders for early eras are approximate (Historical Basemaps, GPL-3.0).

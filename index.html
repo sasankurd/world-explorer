@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="/src/styles/workspace.css">
 <link rel="stylesheet" href="/src/styles/projects.css">
 <link rel="stylesheet" href="/src/styles/landing.css">
+<link rel="stylesheet" href="/src/styles/history.css">
 </head>
 <body>
 <script>try{if(!sessionStorage.getItem("we-landed")&&!location.hash&&!/map/.test(location.search))document.body.classList.add("landing");}catch(e){}</script>
@@ -93,12 +94,14 @@
       <div class="hh">
         <button id="h-play" type="button" aria-label="Play through the eras" title="Play through the eras">▶</button>
         <button id="h-prev" type="button" aria-label="Earlier snapshot" title="Earlier">◀</button>
+        <img id="h-thumb" class="h-thumb" alt="" width="88" height="44" hidden>
         <output id="h-year" class="sb-year" aria-live="polite">AD 100</output>
         <button id="h-next" type="button" aria-label="Later snapshot" title="Later">▶</button>
         <div class="h-era"><b id="h-era"></b><span id="h-note"></span></div>
       </div>
       <input id="h-range" type="range" min="0" max="53" step="1" value="0" aria-label="Time: drag from the Stone Age to today">
       <div id="h-eras" class="h-eras" role="group" aria-label="Jump to an era"></div>
+      <div id="h-strip" class="h-strip" role="group" aria-label="Every snapshot, with a small map of the world at that time"></div>
       <div class="h-tools"><span id="h-count" class="muted"></span><button type="button" id="h-names" class="on" title="Show the names of countries and peoples on the map">Names on map</button><button type="button" id="h-list" title="Every named country and people in this snapshot">Names list</button></div>
       <div id="h-table" hidden><input id="h-find" type="search" placeholder="Find a country or people in this era…" autocomplete="off"><div id="h-rows"></div></div>
       <p id="h-msg" class="sb-note" role="status" hidden></p>
@@ -205,6 +208,7 @@
 <script type="module" src="/src/main.js"></script>
 <script type="module" src="/src/timezones.js"></script>
 <script type="module" src="/src/history.js"></script>
+<script type="module" src="/src/countryhistory.js"></script>
 <script type="module" src="/src/stats.js"></script>
 <script type="module" src="/src/trade.js"></script>
 <script type="module" src="/src/flights.js"></script>
