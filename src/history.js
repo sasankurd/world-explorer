@@ -1,4 +1,5 @@
 // History: how the world's countries, peoples, names and borders looked in every era, from 123,000 BC to today.
+import { loadPhotos, getPhoto, eraTitle } from './eraphotos.js';
 // Data: "Historical Basemaps" by Andre Ourednik (GPL-3.0), 54 snapshots baked into /data/history/ by scripts/build-history.mjs.
 // Borders are approximate for most of the past. Dashed lines mean "roughly here".
 while (!window.__app) await new Promise((r) => setTimeout(r, 25));
@@ -76,7 +77,6 @@ const NOTES = {
   '2000': 'The turn of the millennium.',
   '2010': 'The modern world (South Sudan, created in 2011, is the main newer country).',
 };
-const thumbOf = (s) => '/img/history/' + s.file.replace('.json', '.jpg');
 const fmtYear = (y) => (y < 0 ? `${(-y).toLocaleString('en')} BC` : y < 1000 ? `AD ${y}` : String(y));
 const eraOf = (y) => ERAS.find((e) => y <= e.to);
 
@@ -256,10 +256,25 @@ function drawStrip() {
   const box = $('#h-strip'); box.innerHTML = '';
   index.forEach((s, k) => {
     const b = document.createElement('button'); b.type = 'button'; b.dataset.i = k; b.setAttribute('aria-label', `${fmtYear(s.year)}, ${eraOf(s.year).name}`);
-    const im = document.createElement('img'); im.src = thumbOf(s); im.alt = ''; im.loading = 'lazy'; im.width = 110; im.height = 55;
+    const im = document.createElement('img'); im.alt = ''; im.width = 104; im.height = 69; im.hidden = true; im.referrerPolicy = 'no-referrer';
     const t = document.createElement('span'); t.textContent = fmtYear(s.year);
     b.append(im, t); box.append(b);
   });
+}
+// the real pictures arrive from Wikipedia a moment later; until then (or without internet) each tile is plain
+function paintPhotos() {
+  if (!index) return;
+  $('#h-strip').querySelectorAll('button').forEach((b) => {
+    const s = index[+b.dataset.i], ph = getPhoto(eraTitle(s.year)), im = b.querySelector('img');
+    if (ph && im.getAttribute('src') !== ph.src) { im.src = ph.src; im.onload = () => { im.hidden = false; b.classList.add('pic'); }; im.onerror = () => { im.hidden = true; b.classList.remove('pic'); }; b.title = `${fmtYear(s.year)} · picture: ${ph.title} (Wikipedia)`; }
+  });
+  thumb();
+}
+function thumb() {
+  const th = $('#h-thumb'), s = index?.[idx], ph = s && getPhoto(eraTitle(s.year));
+  if (!ph) { th.hidden = true; th.removeAttribute('src'); return; }
+  if (th.getAttribute('src') !== ph.src) { th.hidden = true; th.onload = () => { th.hidden = false; }; th.onerror = () => { th.hidden = true; }; th.src = ph.src; }
+  th.alt = `${ph.title}, a picture from around ${fmtYear(s.year)} (Wikipedia)`;
 }
 $('#h-strip').addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) setIndex(+b.dataset.i, true); });
 function markStrip() {
@@ -272,7 +287,7 @@ function setIndex(i, fromUser) {
   if (fromUser) stop();
   const y = index[idx].year, era = eraOf(y);
   $('#h-range').value = idx; $('#h-year').textContent = fmtYear(y);
-  const th = $('#h-thumb'); th.src = thumbOf(index[idx]); th.alt = `Map of the world in ${fmtYear(y)}`; th.hidden = false; markStrip();
+  thumb(); markStrip();
   $('#h-era').textContent = era.name; $('#h-note').textContent = NOTES[y] || era.text;
   $('#h-eras').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.era === era.key));
   $('#h-prev').disabled = idx === 0; $('#h-next').disabled = idx === index.length - 1;
@@ -296,7 +311,7 @@ async function enter() {
   if (active) return;
   active = true; document.body.classList.add('history'); $('#hist').hidden = false;
   try {
-    if (!index) { index = await (await fetch('/data/history/index.json')).json(); drawEras(); drawStrip(); $('#h-range').max = index.length - 1; }
+    if (!index) { index = await (await fetch('/data/history/index.json')).json(); drawEras(); drawStrip(); loadPhotos(index.map((s) => eraTitle(s.year))).then(paintPhotos); $('#h-range').max = index.length - 1; }
   } catch { active = false; document.body.classList.remove('history'); say('Could not load the history timeline. Check your connection and try again.', true); return; }
   ensureLayers(); showLayers(true); paintAll(); app.closePanel?.(); pad();
   const start = cur ? idx : index.findIndex((s) => s.year === 100);

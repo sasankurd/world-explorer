@@ -2,9 +2,9 @@
 // Built from the same historical snapshots as the History layer (public/data/history). Where a country has no record, it says so.
 while (!window.__app) await new Promise((r) => setTimeout(r, 25));
 const app = window.__app;
-const LON0 = -170, SPAN = 360, LAT1 = 82, LATSPAN = 140;           // must match scripts/build-history-thumbs.py
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmtYear = (y) => (y < 0 ? `${(-y).toLocaleString('en')} BC` : y < 1000 ? `AD ${y}` : String(y));
+import { loadPhotos, getPhoto, eraTitle } from './eraphotos.js';
 let data = null, index = null, failed = false;
 async function load() {
   if (data || failed) return;
@@ -20,29 +20,24 @@ function group(rows) {
   }
   return out;
 }
+// the Wikipedia article for a row: the snapshot's own link when it has one, otherwise the name
+const polyTitle = (g, rows) => { const r = rows.find((x) => x[0] === g.from && x[1] === g.name); return (r?.[4] || g.name).replace(/_/g, ' '); };
 const range = (g) => (g.from === g.to ? fmtYear(g.from) : `${fmtYear(g.from)} to ${fmtYear(g.to)}`);
-function where(id) {
-  const k = app.cities?.find((c) => c.cc === id && c.cap) || null;
-  if (k) return [k.lng, k.lat];
-  const ll = app.countries[id]?.latlng; return ll ? [ll[1], ll[0]] : null;
-}
 function render(id, host) {
-  const rows = data[id] || [], gs = group(rows), pos = where(id), c = app.countries[id];
+  const rows = data[id] || [], gs = group(rows), c = app.countries[id];
   const box = document.createElement('section'); box.className = 'ch'; box.setAttribute('aria-label', `History of ${c.name} through the eras`);
   const h = document.createElement('h3'); h.textContent = 'Through the eras'; box.append(h);
   if (!gs.length) {
     const p = document.createElement('p'); p.className = 'muted'; p.textContent = `Our historical maps have no record for ${c.name}. Very small countries and islands are often too small to show on them. The Wikipedia links above are the best place to start.`; box.append(p); host.replaceWith(box); return;
   }
   const intro = document.createElement('p'); intro.className = 'muted ch-intro';
-  intro.textContent = `Which country, empire or people held ${c.capital || 'the middle of ' + c.name} in each snapshot of our historical maps. The dot marks the place. Choose an entry to see that era on the map.`; box.append(intro);
+  intro.textContent = `Which country, empire or people held ${c.capital || 'the middle of ' + c.name} in each snapshot of our historical maps, with a picture from Wikipedia from that time. Choose an entry to see that era on the map.`; box.append(intro);
   const ol = document.createElement('ol'); ol.className = 'ch-list';
   for (const g of gs) {
-    const snap = index.find((s) => s.year === g.from);
     const li = document.createElement('li'); const b = document.createElement('button'); b.type = 'button'; b.className = 'ch-row';
     b.setAttribute('aria-label', `${g.name}, ${range(g)}. Show this era on the map.`);
-    const fig = document.createElement('span'); fig.className = 'ch-pic';
-    const im = document.createElement('img'); im.alt = ''; im.width = 96; im.height = 48; im.loading = 'lazy'; if (snap) im.src = '/img/history/' + snap.file.replace('.json', '.jpg'); fig.append(im);
-    if (pos) { const d = document.createElement('i'); d.style.left = (((pos[0] - LON0 + 360) % 360) / SPAN * 100).toFixed(1) + '%'; d.style.top = Math.max(0, Math.min(100, (LAT1 - pos[1]) / LATSPAN * 100)).toFixed(1) + '%'; fig.append(d); }
+    const fig = document.createElement('span'); fig.className = 'ch-pic'; fig.dataset.poly = polyTitle(g, rows); fig.dataset.era = eraTitle(g.from);
+    const im = document.createElement('img'); im.alt = ''; im.width = 96; im.height = 64; im.hidden = true; im.referrerPolicy = 'no-referrer'; fig.append(im);
     const tx = document.createElement('span'); tx.className = 'ch-tx';
     tx.innerHTML = `<b>${esc(g.name)}</b><small>${esc(range(g))}</small>${g.ruler ? `<small>Ruled by ${esc(g.ruler)}</small>` : g.part ? `<small>Part of ${esc(g.part)}</small>` : ''}`;
     b.append(fig, tx);
@@ -56,7 +51,15 @@ function render(id, host) {
     li.append(b); ol.append(li);
   }
   box.append(ol);
-  const src = document.createElement('p'); src.className = 'ch-src muted'; src.textContent = 'Borders are approximate for early eras (source: Historical Basemaps, GPL-3.0). Pictures are small maps drawn from the same data over NASA Blue Marble.'; box.append(src);
+  // the real pictures: first the country or people itself, otherwise something from the same time
+  const figs = [...ol.querySelectorAll('.ch-pic')];
+  loadPhotos(figs.flatMap((f) => [f.dataset.poly, f.dataset.era])).then(() => {
+    for (const f of figs) {
+      const ph = getPhoto(f.dataset.poly) || getPhoto(f.dataset.era), im = f.querySelector('img'); if (!ph) continue;
+      im.onload = () => { im.hidden = false; f.classList.add('pic'); }; im.onerror = () => { im.hidden = true; }; im.src = ph.src; im.alt = ''; f.title = `Picture: ${ph.title} (Wikipedia)`;
+    }
+  });
+  const src = document.createElement('p'); src.className = 'ch-src muted'; src.textContent = 'Borders are approximate for early eras (source: Historical Basemaps, GPL-3.0). Pictures: Wikipedia (freely licensed lead images; where a country or people has none, one from the same period).'; box.append(src);
   host.replaceWith(box);
 }
 window.addEventListener('country-open', async (e) => {
