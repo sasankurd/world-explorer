@@ -113,7 +113,6 @@ const map = new maplibregl.Map({
   },
   center: [20, 25], zoom: 1.6, minZoom: 0.8, maxZoom: 19, dragRotate: false, attributionControl: { compact: true },
 });
-map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right'); // right side, because the country panel now sits on the left
 map.addControl(new maplibregl.ScaleControl(), 'bottom-right');
 map.touchZoomRotate.disableRotation();
 
@@ -248,15 +247,19 @@ function boundsOf(id) {
   return (boundsCache[id] = best);
 }
 // room to leave around a country so the open panel does not cover it
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const dur = (ms) => (reduceMotion.matches ? 0 : ms); // animations are skipped for people who asked for less motion
+const viewOffset = () => { const L = window.__layout || {}; return innerWidth < 700 ? [0, -(L.bottom || 0) / 2] : [(L.left || 0) / 2, 0]; }; // keeps a flown-to point clear of the panel
 function viewPadding() {
-  const narrow = innerWidth < 700;
-  if (sizeMode) return narrow ? { top: 30, bottom: Math.round(innerHeight * 0.46), left: 20, right: 20 } : { top: 60, bottom: 60, left: 60, right: 400 };
-  return narrow ? 30 : { top: 60, bottom: 60, left: 460, right: 60 };
+  const L = window.__layout || { left: 0, bottom: 0 }; // the workspace panel (left on computers, a sheet at the bottom on phones)
+  if (innerWidth < 700) return { top: 70, bottom: (L.bottom || 0) + 30, left: 20, right: 20 };
+  const left = (L.left || 0) + 50;
+  return sizeMode ? { top: 60, bottom: 60, left, right: 400 } : { top: 60, bottom: 60, left, right: 60 };
 }
 function flyTo(id) {
   if (window.__globe?.active) return window.__globe.flyCountry(id);
   const [[x0, y0], [x1, y1]] = boundsOf(id);
-  map.fitBounds([[x0, y0], [x1, y1]], { padding: viewPadding(), maxZoom: 6, duration: 900 });
+  map.fitBounds([[x0, y0], [x1, y1]], { padding: viewPadding(), maxZoom: 6, duration: dur(900) });
 }
 
 // ---------- country name labels ----------
@@ -383,8 +386,8 @@ function openCountry(id, tab = 'overview', fly = true) {
   if (fly) flyTo(id);
 
   const city = c.capital || c.name;
-  let h = `<div class="ph"><span class="flag">${c.flag}</span><h2>${c.name}</h2><button id="close" aria-label="Close">✕</button></div>
-  <div class="tabs">${TABS.map((t) => `<button data-tab="${t}" class="${t === tab ? 'on' : ''}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div><div class="body">`;
+  let h = `<div class="ph"><span class="flag">${c.flag}</span><h2>${c.name}</h2><button type="button" class="ph-save" data-save="country" aria-label="Save ${esc(c.name)} to a project"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Save</span></button><button id="close" type="button" aria-label="Close country details">✕</button></div>
+  <div class="tabs" role="tablist" aria-label="${esc(c.name)} sections">${TABS.map((t) => `<button type="button" role="tab" aria-selected="${t === tab}" data-tab="${t}" class="${t === tab ? 'on' : ''}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div><div class="body">`;
 
   if (tab === 'overview') {
     h += `<table>${localTimeRow(c)}${row('Official name', c.official)}${row('Capital', c.capital || '—')}${row('Region', [c.region, c.subregion].filter(Boolean).join(' · '))}
@@ -533,7 +536,7 @@ function fitMovers() {
     }
     x0 = Math.min(x0, best[0]); y0 = Math.min(y0, best[1]); x1 = Math.max(x1, best[2]); y1 = Math.max(y1, best[3]);
   }
-  map.fitBounds([[x0, y0], [x1, y1]], { padding: viewPadding(), maxZoom: 6, duration: 900 });
+  map.fitBounds([[x0, y0], [x1, y1]], { padding: viewPadding(), maxZoom: 6, duration: dur(900) });
 }
 function compare(a, b) { // a stays where it is, b is dropped on top of it
   clearMovers();
@@ -704,12 +707,13 @@ function localMatches(q) {
 function paint() {
   const { tokens } = localMatches(lastQ);
   results.innerHTML = matches.map((m, i) => {
-    const cls = i === act ? ' class="act"' : '';
+    const cls = ` role="option" aria-selected="${i === act}"` + (i === act ? ' class="act"' : '');
     if (m.kind === 'country') return `<li data-i="${i}"${cls}><span class="ic">${m.c.flag}</span><span class="tx">${hi(m.c.name, tokens)}<span class="muted"> · Country${m.c.capital ? ' · ' + escH(m.c.capital) : ''}</span></span></li>`;
     if (m.kind === 'city') return `<li data-i="${i}"${cls}><span class="ic">${m.cc ? m.cc.flag : '📍'}</span><span class="tx">${hi(m.k.name, tokens)}${m.k.cap ? ' <span class="cap">★ capital</span>' : ''}<span class="muted"> · ${escH(m.cc?.name || '')}${m.k.pop > 1 ? ' · ' + (m.k.pop >= 1e6 ? (m.k.pop / 1e6).toFixed(1) + ' M' : Math.round(m.k.pop / 1000) + ' k') : ''}</span></span></li>`;
     if (m.kind === 'place') return `<li data-i="${i}"${cls}><span class="ic">📍</span><span class="tx">${escH(m.name)}<span class="muted"> · ${escH(m.sub)}</span></span></li>`;
-    if (m.kind === 'ask') return `<li data-i="${i}"${cls} class="ask${i === act ? ' act' : ''}"><span class="ic">🔎</span><span class="tx">${m.busy ? 'Searching the map…' : m.none ? 'No more places found' : `Find “${escH(lastQ.trim())}” anywhere on the map`}</span></li>`;
+    if (m.kind === 'ask') return `<li data-i="${i}" role="option" aria-selected="${i === act}" class="ask${i === act ? ' act' : ''}"><span class="ic">🔎</span><span class="tx">${m.busy ? 'Searching the map…' : m.none ? 'No more places found' : `Find “${escH(lastQ.trim())}” anywhere on the map`}</span></li>`;
   }).join('');
+  input.setAttribute('aria-expanded', String(matches.length > 0));
   results.querySelector('li.act')?.scrollIntoView({ block: 'nearest' });
 }
 function refresh() {
@@ -738,27 +742,30 @@ async function askPlaces() {
 
 // a pin with the place's name stays on the map until you press Esc, click the map or pick something else
 let pin = null;
-const clearPin = () => { pin?.remove(); pin = null; };
+const clearPin = () => { if (!pin) return; pin.remove(); pin = null; window.dispatchEvent(new CustomEvent('place-clear')); };
 function showPin(name, lng, lat) {
   clearPin();
   const el = document.createElement('div'); el.className = 'pin'; el.innerHTML = `<span class="pt"></span><span class="pn">${escH(name)}</span>`;
   pin = new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lng, lat]).addTo(map);
 }
 map.on('click', clearPin);
-function goTo(name, lng, lat, zoom, bb) {
-  if (window.__globe?.active) return window.__globe.goTo(name, lng, lat, bb);
-  if (sizeMode) return;
+function goTo(name, lng, lat, zoom, bb, meta = {}) {
+  const onGlobe = !!window.__globe?.active;
+  if (sizeMode && !onGlobe) return;
+  const announce = () => window.dispatchEvent(new CustomEvent('place-select', { detail: { name, lng, lat, kind: meta.kind || 'place', ref: meta.ref || '', sub: meta.sub || '' } }));
+  if (onGlobe) { window.__globe.goTo(name, lng, lat, bb); return announce(); }
   showPin(name, lng, lat);
-  if (bb && bb[1] - bb[0] > 0.0005) map.fitBounds([[bb[2], bb[0]], [bb[3], bb[1]]], { padding: viewPadding(), maxZoom: 16, duration: 1100 });
-  else map.flyTo({ center: [lng, lat], zoom, duration: 1100 });
+  if (bb && bb[1] - bb[0] > 0.0005) map.fitBounds([[bb[2], bb[0]], [bb[3], bb[1]]], { padding: viewPadding(), maxZoom: 16, duration: dur(1100) });
+  else map.flyTo({ center: [lng, lat], zoom, duration: dur(1100), offset: viewOffset() });
+  announce(); // after the pin is placed, so clearing an older pin cannot close the new place's details
 }
 const pick = (m) => {
   if (!m) return;
   if (m.kind === 'ask') return m.busy ? undefined : askPlaces();
   input.value = ''; results.innerHTML = ''; matches = []; input.blur(); clearPin();
   if (m.kind === 'country') { if (sizeMode) { if (addMover(m.c.id)) flyTo(m.c.id); return; } return openCountry(m.c.id); }
-  if (m.kind === 'city') return goTo(m.k.name, m.k.lng, m.k.lat, m.k.cap ? 9 : m.k.pop > 1e6 ? 9.5 : 10.5);
-  if (m.kind === 'place') return goTo(m.name, m.lng, m.lat, 12, m.bb);
+  if (m.kind === 'city') return goTo(m.k.name, m.k.lng, m.k.lat, m.k.cap ? 9 : m.k.pop > 1e6 ? 9.5 : 10.5, null, { kind: 'city', ref: m.k.cc, sub: [m.cc?.name, m.k.cap ? 'Capital' : ''].filter(Boolean).join(' · ') });
+  if (m.kind === 'place') return goTo(m.name, m.lng, m.lat, 12, m.bb, { kind: 'place', sub: m.sub });
 };
 results.addEventListener('mousedown', (e) => e.preventDefault()); // keep the box focused while clicking
 results.addEventListener('click', (e) => { const li = e.target.closest('li'); if (li) pick(matches[li.dataset.i]); });
@@ -769,7 +776,7 @@ input.addEventListener('keydown', (e) => {
   } else if (e.key === 'Enter') { e.preventDefault(); if (matches.length) pick(matches[Math.max(act, 0)]); }
   else if (e.key === 'Escape') { if (input.value) { input.value = ''; results.innerHTML = ''; matches = []; } else { clearPin(); input.blur(); } }
 });
-document.addEventListener('click', (e) => { if (!e.target.closest('#search-wrap')) results.innerHTML = ''; });
+document.addEventListener('click', (e) => { if (!e.target.closest('#search-wrap,#results')) { results.innerHTML = ''; input.setAttribute('aria-expanded', 'false'); } });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pin && document.activeElement !== input) clearPin(); });
 document.addEventListener('keydown', (e) => { // press / to jump to the search box
   if (e.key === '/' && !e.target.closest('input,textarea,select,[contenteditable]')) { e.preventDefault(); input.focus(); input.select(); }
@@ -781,5 +788,5 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
+window.__app = { map, borders, goTo, clearPin, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
 map.on('load', () => { setTimeMode(true); if (baseMap === 'osm') setNames(false); }); // live country times are on by default; with OpenStreetMap saved, our names start switched off

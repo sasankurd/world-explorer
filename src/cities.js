@@ -146,8 +146,7 @@ function popOut(c) {
   el.innerHTML = `<header><span class="g" aria-hidden="true">⠿</span><b>${k2 ? k2.flag + ' ' : ''}${esc(c.name)}${c.cap ? ' ★' : ''}</b><button type="button" data-a="cmp" title="Add to the compare window" aria-label="Compare">⚖</button><button type="button" data-a="map" title="Show on the map" aria-label="Show on the map">📍</button><button type="button" data-a="x" title="Close" aria-label="Close">✕</button></header>
     <div class="cb"><table>${rows(c, ['time', 'weather', 'temp', 'pop', 'elev', 'sunrise', 'sunset'])}</table></div>`;
   const n = cards.size, hostBox = host.getBoundingClientRect();
-  const panelOpen = !$('#panel').hidden;
-  el.style.left = Math.min(hostBox.width - 270, (panelOpen ? 430 : 24) + n * 26) + 'px'; el.style.top = Math.min(hostBox.height - 200, 80 + n * 26) + 'px';
+  el.style.left = Math.min(hostBox.width - 270, ((window.__layout?.left || 0) + 24) + n * 26) + 'px'; el.style.top = Math.min(hostBox.height - 200, 80 + n * 26) + 'px';
   host.append(el); front(el); draggable(el, $('header', el)); resizable(el, 200, 120);
   el.addEventListener('click', (e) => {
     const a = e.target.closest('button')?.dataset.a; if (!a) return;

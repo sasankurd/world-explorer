@@ -1,4 +1,5 @@
-// Front page, top-bar links and the Units menu.
+// Front page and the Units rows in Settings.
+import { ago } from './projects/model.js';
 // The front page sits on top of the map and goes away when you choose where to go. The map keeps loading underneath.
 while (!window.__app) await new Promise((r) => setTimeout(r, 25));
 const app = window.__app;
@@ -18,21 +19,24 @@ drawUnits();
 umenu.addEventListener('click', (e) => { const b = e.target.closest('.seg button'); if (b) setUnit(b.closest('.seg').dataset.k, b.dataset.v); });
 
 // ---------- the front page ----------
-const ic = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const CARDS = [
-  ['earth', 'Live Earth', 'Spin, tilt and zoom a 3D globe with day and night.', ic('<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>')],
-  ['data', 'Country Data', 'Population, economy, health, education and more, by year.', ic('<path d="M5 20V10M12 20V4M19 20v-7"/>')],
-  ['flights', 'Flight Tracker', 'Planes in the air right now, and where each is going.', ic('<path d="M10.5 13.5L3 11l1.5-1.5 8-.5L17 4.5a1.8 1.8 0 0 1 2.5 2.5L15 11.5l-.5 8L13 21l-2.5-7.5z"/>')],
-  ['history', 'Historical Maps', 'See how borders and countries changed, from 123,000 BC.', ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')],
-  ['play', 'Play', 'Trivia games about the world, solo or with friends.', ic('<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r=".6" fill="currentColor"/><circle cx="18" cy="13.5" r=".6" fill="currentColor"/>')],
-  ['measure', 'Distance & measure', 'Distance and travel time by foot, bike, car or train.', ic('<path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/>')],
-];
+// A launch point, not a menu: one headline, two actions, and three small entry points. The tools themselves live in the map's Layers tab.
+const ic = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const land = document.createElement('section');
 land.id = 'landing'; land.hidden = true; land.setAttribute('aria-label', 'Welcome to World Explorer');
-land.innerHTML = `<div class="ld-hero"><canvas id="ld-globe" aria-hidden="true"></canvas><div class="ld-copy"><h2>The world, <em>in context.</em></h2><p>Explore our planet through maps, data, history and live global activity.</p>
-  <div class="ld-btns"><button type="button" class="ld-go" data-a="map">${ic('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>')} Explore the globe <span aria-hidden="true">→</span></button><button type="button" class="ld-alt" data-a="countries">${ic('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>')} Discover countries</button></div></div></div>
-  <div class="ld-cards">${CARDS.map(([k, t, d, i]) => `<button type="button" class="ld-card c-${k}" data-a="${k}"><span class="ld-ic">${i}</span><span class="ld-tx"><b>${t}</b><small>${d}</small></span><span class="ld-ar" aria-hidden="true">→</span></button>`).join('')}</div>
-  <p class="ld-foot">Map data © OpenStreetMap contributors · Borders: Natural Earth / world-atlas · Photos: NASA Blue Marble and Black Marble · Live data: Open-Meteo, OpenSky</p>`;
+land.innerHTML = `<div class="ld-hero"><canvas id="ld-globe" aria-hidden="true"></canvas><div class="ld-copy">
+    <h2>Explore the world.<br><em>Keep what matters.</em></h2>
+    <p>Search countries and cities on an interactive map, save places and map views, and organise them into projects.</p>
+    <div class="ld-btns"><button type="button" class="ld-go" data-a="map">${ic('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>')}Explore the map</button><button type="button" class="ld-alt" data-a="create">${ic('<path d="M12 5v14M5 12h14"/>')}Create a project</button></div></div></div>
+  <div class="ld-entry">
+    <section class="ld-box" aria-labelledby="ld-h-p"><h3 id="ld-h-p">Projects</h3><div id="ld-projects"></div></section>
+    <section class="ld-box" aria-labelledby="ld-h-d"><h3 id="ld-h-d">Discover</h3><ul class="ld-list">
+      <li><button type="button" data-a="random"><b>Open a random country</b><small>Facts, rankings and news for a place you may not know</small></button></li>
+      <li><button type="button" data-a="earth"><b>See the 3D globe</b><small>Spin, tilt and zoom the whole planet</small></button></li>
+      <li><button type="button" data-a="layers"><b>Browse layers and tools</b><small>Statistics, historical maps, live flights, distances and more</small></button></li>
+      <li><button type="button" data-a="play"><b>Play a trivia game</b><small>Flags and capitals, solo or with friends</small></button></li></ul></section>
+    <section class="ld-box" aria-labelledby="ld-h-r"><h3 id="ld-h-r">Recent activity</h3><div id="ld-recent"></div></section>
+  </div>
+  <p class="ld-foot">Map data © OpenStreetMap contributors · Borders: Natural Earth / world-atlas · Imagery: NASA Blue Marble and Black Marble, Esri · Live data: Open-Meteo, OpenSky</p>`;
 $('main').prepend(land);
 
 // a slowly turning Earth, drawn with the country borders and the lights of the cities
@@ -53,51 +57,63 @@ function frame(t) {
   if (!cv.width) size();
   const W = cv.width, H = cv.height, R = Math.min(H * 0.62, W * 0.36), cx = W * 0.72, cy = H * 0.62, tilt = 0.45;
   g.clearRect(0, 0, W, H);
-  const halo = g.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 1.35); halo.addColorStop(0, 'rgba(70,170,255,.35)'); halo.addColorStop(1, 'rgba(70,170,255,0)');
+  const halo = g.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 1.35); halo.addColorStop(0, 'rgba(76,208,242,.16)'); halo.addColorStop(1, 'rgba(76,208,242,0)');
   g.fillStyle = halo; g.fillRect(0, 0, W, H);
-  const body = g.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R); body.addColorStop(0, '#0f3a66'); body.addColorStop(0.6, '#07203d'); body.addColorStop(1, '#020a16');
+  const body = g.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R); body.addColorStop(0, '#12304f'); body.addColorStop(0.6, '#0a1c33'); body.addColorStop(1, '#050c18');
   g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fillStyle = body; g.fill();
   const st = Math.sin(tilt), ct = Math.cos(tilt);
   const proj = (lon, lat) => { const l = lon + rot, x = Math.cos(lat) * Math.sin(l), y0 = Math.sin(lat), z0 = Math.cos(lat) * Math.cos(l); const y = y0 * ct - z0 * st, z = y0 * st + z0 * ct; return [cx + x * R, cy - y * R, z]; };
-  g.lineWidth = Math.max(1, W / 1100); g.strokeStyle = 'rgba(110,200,255,.55)'; g.beginPath();
+  g.lineWidth = Math.max(1, W / 1100); g.strokeStyle = 'rgba(120,205,240,.5)'; g.beginPath();
   for (const ring of rings) { let pen = false; for (let i = 0; i < ring.length; i += 2) { const [x, y, z] = proj(ring[i], ring[i + 1]); if (z > 0) { pen ? g.lineTo(x, y) : g.moveTo(x, y); pen = true; } else pen = false; } }
   g.stroke();
-  for (const [lon, lat, s] of lights) { const [x, y, z] = proj(lon, lat); if (z <= 0.02) continue; const a = (0.35 + 0.65 * s) * Math.min(1, z * 2.2); g.fillStyle = `rgba(255,200,110,${a})`; g.beginPath(); g.arc(x, y, (1.1 + 2 * s) * (W / 1300), 0, 7); g.fill(); }
+  for (const [lon, lat, s] of lights) { const [x, y, z] = proj(lon, lat); if (z <= 0.02) continue; const a = (0.35 + 0.65 * s) * Math.min(1, z * 2.2); g.fillStyle = `rgba(245,179,74,${a})`; g.beginPath(); g.arc(x, y, (1.1 + 2 * s) * (W / 1300), 0, 7); g.fill(); }
   const shade = g.createLinearGradient(cx - R, cy, cx + R, cy); shade.addColorStop(0, 'rgba(0,0,0,.55)'); shade.addColorStop(0.55, 'rgba(0,0,0,0)'); g.save(); g.beginPath(); g.arc(cx, cy, R, 0, 7); g.clip(); g.fillStyle = shade; g.fillRect(cx - R, cy - R, R * 2, R * 2); g.restore();
-  g.lineWidth = 2 * (W / 1300); g.strokeStyle = 'rgba(120,200,255,.55)'; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
+  g.lineWidth = 2 * (W / 1300); g.strokeStyle = 'rgba(120,205,240,.4)'; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
 }
 new ResizeObserver(() => { cv.width = 0; }).observe(cv);
 
 function showLanding() {
-  land.hidden = false; land.scrollTop = 0; document.body.classList.add('landing'); setNav('explore');
+  land.hidden = false; land.scrollTop = 0; document.body.classList.add('landing'); drawEntry();
   if (!raf) { last = 0; raf = requestAnimationFrame(frame); }
 }
-function hideLanding() { land.hidden = true; setNav(''); document.body.classList.remove('landing'); try { sessionStorage.setItem('we-landed', '1'); } catch {} }
-const whenReady = (fn, tries = 30) => { if (fn()) return; if (tries > 0) setTimeout(() => whenReady(fn, tries - 1), 100); };
+function hideLanding() { land.hidden = true; document.body.classList.remove('landing'); try { sessionStorage.setItem('we-landed', '1'); } catch {} }
+
+// the three entry points are filled from what is saved on this device
+const P = () => window.__projects;
+const el = (tag, cls, ...kids) => { const e = document.createElement(tag); if (cls) e.className = cls; for (const k of kids) e.append(k.nodeType ? k : document.createTextNode(k)); return e; };
+function item(title, sub, onclick) { const b = el('button', 'ld-item', el('b', '', title), el('small', '', sub)); b.type = 'button'; b.addEventListener('click', onclick); const li = el('li', '', b); return li; }
+function drawEntry() {
+  const p = P(), box = $('#ld-projects'), rec = $('#ld-recent'); if (!p) return;
+  const list = p.store.state.status === 'ready' ? p.store.list() : [];
+  box.replaceChildren();
+  if (p.store.state.status === 'error') box.append(el('p', 'muted', 'Your saved projects could not be read. Open Projects to see why.'), act('Open Projects', () => { hideLanding(); window.__workspace.setTab('projects'); }));
+  else if (!list.length) box.append(el('p', 'muted', 'Keep places, notes and map views together. Projects are saved in this browser.'), act('Create a project', () => GO.create()));
+  else {
+    const ul = el('ul', 'ld-list');
+    for (const pr of list.slice(0, 3)) ul.append(item(pr.name, `${pr.places.length} ${pr.places.length === 1 ? 'place' : 'places'} · updated ${ago(pr.updatedAt)}`, () => { hideLanding(); p.openDetail(pr.id); }));
+    box.append(ul, act('All projects', () => { hideLanding(); window.__workspace.setTab('projects'); }));
+  }
+  rec.replaceChildren();
+  const items = p.recent.list().slice(0, 4);
+  if (!items.length) rec.append(el('p', 'muted', 'Countries and places you open will appear here, so you can pick up where you left off.'));
+  else { const ul = el('ul', 'ld-list'); for (const r of items) ul.append(item(r.name, ({ country: 'Country', city: 'City', place: 'Place', point: 'Map point' })[r.kind] + ' · ' + ago(r.at), () => { hideLanding(); r.kind === 'country' && app.countries[r.ref] ? app.openCountry(r.ref) : app.goTo(r.name, r.lng, r.lat, r.kind === 'city' ? 10 : 12, null, { kind: r.kind, ref: r.ref }); })); rec.append(ul); }
+}
+function act(label, fn) { const b = el('button', 'ld-more', label); b.type = 'button'; b.addEventListener('click', fn); return b; }
+
 const GO = {
-  map() { hideLanding(); if (app.view === 'stats' || app.view === 'globe') click('[data-view="political"]'); },
-  countries() { hideLanding(); $('#search')?.focus(); },
+  map() { hideLanding(); window.__workspace.setTab('explore'); },
+  create() { hideLanding(); P().create(); },
+  random() { hideLanding(); app.openCountry(app.list[Math.floor(Math.random() * app.list.length)].id); },
   earth() { hideLanding(); click('#globebtn'); },
-  data() { hideLanding(); if (app.view !== 'stats') click('[data-view="stats"]'); },
-  history() { hideLanding(); if (app.view !== 'stats') click('[data-view="stats"]'); whenReady(() => { const b = $('#sb-groups [data-history]'); if (!b) return false; if (!b.classList.contains('on')) b.click(); return true; }); },
-  flights() { hideLanding(); if (!$('#flightbtn').classList.contains('on')) click('#flightbtn'); },
+  layers() { hideLanding(); window.__workspace.setTab('layers'); },
   play() { hideLanding(); click('#playtop'); },
-  measure() { hideLanding(); if (!$('#measurebtn').classList.contains('on')) click('#measurebtn'); },
 };
 land.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (b) GO[b.dataset.a]?.(); });
-
-// ---------- links in the top bar ----------
-const nav = document.createElement('nav');
-nav.id = 'topnav'; nav.setAttribute('aria-label', 'Main');
-nav.innerHTML = [['explore', 'Explore'], ['countries', 'Countries'], ['earth', 'Live Earth'], ['history', 'History'], ['data', 'Data']].map(([k, t]) => `<button type="button" data-n="${k}">${t}</button>`).join('');
-$('header h1').after(nav);
-function setNav(k) { nav.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.n === k)); }
-nav.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const k = b.dataset.n; if (k === 'explore') showLanding(); else { GO[k](); setNav(k === 'countries' ? '' : k); } });
 $('header h1').style.cursor = 'pointer'; $('header h1').addEventListener('click', showLanding);
-window.addEventListener('view-change', (e) => { if (land.hidden) setNav(e.detail === 'stats' ? 'data' : e.detail === 'globe' ? 'earth' : ''); });
-window.addEventListener('globe-change', () => { if (land.hidden) setNav(app.view === 'globe' || $('#globebtn')?.classList.contains('on') ? 'earth' : ''); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !land.hidden) GO.map(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !land.hidden && !document.querySelector('dialog[open]')) GO.map(); });
 
+while (!window.__projects || !window.__workspace) await new Promise((r) => setTimeout(r, 25));
+window.__projects.store.subscribe(() => { if (!land.hidden) drawEntry(); });
 let seen = false; try { seen = sessionStorage.getItem('we-landed') === '1'; } catch {}
-if (!seen && !location.search.includes('map') && !location.hash) showLanding(); else setNav('');
+if (!seen && !location.search.includes('map') && !location.hash) showLanding();
 window.__landing = { show: showLanding, hide: hideLanding };

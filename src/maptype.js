@@ -1,8 +1,9 @@
-// One "Map type" button in the banner (like the layers switcher in Google Maps): a small window with Map, Terrain, Satellite and 3D Earth.
-// The four old buttons stay in the page (hidden on computers) so every other part of the site keeps working through them.
+// Map type: Map, Terrain, Satellite, OpenStreetMap or 3D Earth.
+// It is shown in two places that stay in step: a picker on the map (bottom left) and a grid in the Layers tab.
+// The hidden #views buttons still do the real work, because other parts of the site (search, stats, 3D Earth) press them.
 while (!window.__app) await new Promise((r) => setTimeout(r, 25));
 const $ = (s, r = document) => r.querySelector(s);
-const views = $('#views');
+const app = window.__app;
 const TYPES = [
   { k: 'political', name: 'Map', img: 'map', tip: 'Political map with country colours' },
   { k: 'terrain', name: 'Terrain', img: 'terrain', tip: 'Land height and shape' },
@@ -11,44 +12,68 @@ const TYPES = [
   { k: 'globe', name: '3D Earth', img: 'globe', tip: 'A globe you can spin and tilt' },
 ];
 const src = (t) => $(`#views button[data-view="${t.k === 'osm' ? 'political' : t.k}"]`);
-const app = window.__app;
-const btn = document.createElement('button');
-btn.id = 'maptypebtn'; btn.type = 'button'; btn.setAttribute('aria-haspopup', 'true'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'maptypemenu');
-btn.innerHTML = '<span class="mt-th" aria-hidden="true"></span>';
-btn.setAttribute('aria-label', 'Map type'); btn.title = 'Map type';
-$('#layerwrap').after(btn); // next to the Layers button
-const menu = document.createElement('div');
-menu.id = 'maptypemenu'; menu.hidden = true; menu.setAttribute('role', 'group'); menu.setAttribute('aria-label', 'Map type');
-menu.innerHTML = `<div class="mt-list">${TYPES.map((t) => `<button type="button" class="mt-tile" data-k="${t.k}" title="${t.tip}"><span class="mt-img" style="background-image:url(/img/maptype/${t.img}.jpg)"></span><b>${t.name}</b></button>`).join('')}</div>`;
-$('header').append(menu);
+const tileHtml = (t) => `<button type="button" class="mt-tile" data-k="${t.k}" title="${t.tip}" aria-pressed="false"><span class="mt-img" style="background-image:url(/img/maptype/${t.img}.jpg)"></span><b>${t.name}</b></button>`;
 
 function current() {
-  const on = TYPES.filter((t) => t.k !== 'osm' && src(t)?.classList.contains('on'))[0];
+  const on = TYPES.find((t) => t.k !== 'osm' && src(t)?.classList.contains('on'));
   if (on && on.k === 'political' && app.baseMap === 'osm') return TYPES.find((t) => t.k === 'osm');
   return on || null;
 }
-function sync() {
-  const c = current();
-  btn.classList.toggle('on', !!c); views.classList.toggle('nopill', !!c); // the glow is only for Stats now
-  if (c) { btn.title = `Map type: ${c.name}`; btn.setAttribute('aria-label', btn.title); $('.mt-th', btn).style.backgroundImage = `url(/img/maptype/${c.img}.jpg)`; }
-  menu.querySelectorAll('.mt-tile').forEach((b) => { const on = c?.k === b.dataset.k; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
-  window.dispatchEvent(new Event('globe-change')); // moves the sliding glow behind the right button
+function set(k) {
+  const t = TYPES.find((x) => x.k === k); if (!t) return false;
+  if (k === 'osm') { src(TYPES[0])?.click(); app.setBaseMap('osm'); }
+  else { if (k === 'political' && app.baseMap !== 'normal') app.setBaseMap('normal'); src(t)?.click(); }
+  sync();
+  return true;
 }
-sync();
-// follow the hidden buttons, whoever presses them (search, front page, 3D Earth switching itself off…)
+
+// ---- the picker on the map ----
+const bar = $('#mapbar'), btn = $('#mapbar-type');
+const menu = document.createElement('div');
+menu.id = 'maptypemenu'; menu.hidden = true; menu.setAttribute('role', 'group'); menu.setAttribute('aria-label', 'Map type');
+menu.innerHTML = `<div class="mt-list">${TYPES.map(tileHtml).join('')}</div>`;
+bar.append(menu);
+// ---- the grid in the Layers tab ----
+$('#maptypes').innerHTML = TYPES.map(tileHtml).join('');
+
+function sync() {
+  const c = current(), stats = app.view === 'stats';
+  const t = c || TYPES[0];
+  $('.mt-th', btn).style.backgroundImage = `url(/img/maptype/${t.img}.jpg)`;
+  $('#mapbar-type-n').textContent = stats ? 'Statistics' : c ? c.name : 'Map';
+  document.querySelectorAll('.mt-tile').forEach((b) => { const on = !stats && c?.k === b.dataset.k; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  const globe = c?.k === 'globe';
+  const dim = $('#ctl-dim'); dim.setAttribute('aria-pressed', String(globe)); $('#ctl-dim-t').textContent = globe ? '2D' : '3D';
+  dim.title = globe ? 'Back to the flat map' : 'Switch to the 3D globe';
+  dim.setAttribute('aria-label', dim.title);
+  window.dispatchEvent(new CustomEvent('maptype-change', { detail: c ? c.k : app.view }));
+}
 const mo = new MutationObserver(() => requestAnimationFrame(sync));
 TYPES.forEach((t) => src(t) && mo.observe(src(t), { attributes: true, attributeFilter: ['class'] }));
+$('#views button[data-view="stats"]') && mo.observe($('#views button[data-view="stats"]'), { attributes: true, attributeFilter: ['class'] });
 window.addEventListener('basemap-change', () => requestAnimationFrame(sync));
+window.addEventListener('globe-change', () => requestAnimationFrame(sync));
 
-function place() { const r = btn.getBoundingClientRect(), h = $('header').getBoundingClientRect(); menu.style.left = Math.max(8, Math.min(innerWidth - menu.offsetWidth - 8, r.left - h.left)) + 'px'; }
-function setOpen(on) { menu.hidden = !on; btn.setAttribute('aria-expanded', String(on)); if (on) { for (const id of ['#settings', '#usermenu', '#layers']) { const e = $(id); if (e) e.hidden = true; } place(); } }
+function setOpen(on) { menu.hidden = !on; btn.setAttribute('aria-expanded', String(on)); }
 btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(menu.hidden); });
-menu.addEventListener('click', (e) => {
-  const b = e.target.closest('.mt-tile'); if (!b) return; const k = b.dataset.k;
-  if (k === 'osm') { src(TYPES[0])?.click(); app.setBaseMap('osm'); }          // the Map view, drawn on OpenStreetMap
-  else { if (k === 'political' && app.baseMap !== 'normal') app.setBaseMap('normal'); src(TYPES.find((t) => t.k === k))?.click(); }
-  setOpen(false); sync();
-});
-document.addEventListener('click', (e) => { if (!menu.hidden && !e.target.closest('#maptypemenu,#maptypebtn')) setOpen(false); }, true);
+document.addEventListener('click', (e) => {
+  const tile = e.target.closest('.mt-tile');
+  if (tile) { set(tile.dataset.k); setOpen(false); return; }
+  if (!menu.hidden && !e.target.closest('#maptypemenu,#mapbar-type')) setOpen(false);
+}, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { setOpen(false); btn.focus(); } });
-window.addEventListener('resize', () => { if (!menu.hidden) place(); });
+
+// ---- 2D / 3D switch and zoom buttons ----
+$('#ctl-dim').addEventListener('click', () => { if (window.__globe?.active) window.__globe.toggle(false); else $('#globebtn').click(); });
+function zoomBy(dir) {
+  const g = window.__globe;
+  if (g?.active && g.viewer) { const cam = g.viewer.camera, h = cam.positionCartographic.height; if (dir > 0) cam.zoomIn(h * 0.4); else cam.zoomOut(h * 0.6); return; }
+  if (dir > 0) app.map.zoomIn(); else app.map.zoomOut();
+}
+$('#ctl-zin').addEventListener('click', () => zoomBy(1));
+$('#ctl-zout').addEventListener('click', () => zoomBy(-1));
+const limits = () => { const z = app.map.getZoom(); $('#ctl-zin').disabled = z >= app.map.getMaxZoom() - 0.01; $('#ctl-zout').disabled = z <= app.map.getMinZoom() + 0.01; };
+app.map.on('zoom', limits); limits();
+
+sync();
+window.__maptype = { TYPES, get current() { return current()?.k || null; }, set };

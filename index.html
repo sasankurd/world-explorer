@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f18">
+<meta name="description" content="Explore the world on an interactive map, save places and map views, and organise them into projects.">
 <title>World Explorer</title>
+<script>try{window.__shareHash=/^#share=/.test(location.hash)?location.hash.slice(7):"";}catch(e){window.__shareHash="";}</script>
 <script>try{var h=location.hash;if(/access_token=|error_description=|[#&]error=/.test(h)){sessionStorage.setItem("we-oauth",h);history.replaceState(null,"",location.pathname+location.search);}}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🌍%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,12 +14,22 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/src/style.css">
 <link rel="stylesheet" href="/src/timezones.css">
+<link rel="stylesheet" href="/src/styles/workspace.css">
+<link rel="stylesheet" href="/src/styles/projects.css">
+<link rel="stylesheet" href="/src/styles/landing.css">
 </head>
 <body>
+<script>try{if(!sessionStorage.getItem("we-landed")&&!location.hash&&!/map/.test(location.search))document.body.classList.add("landing");}catch(e){}</script>
+<a class="skip" href="#map">Skip to the map</a>
 <header>
   <h1><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10" /><ellipse cx="16" cy="16" rx="4.5" ry="10"/><path d="M6 16h20M8 10.5h16M8 21.5h16"/><ellipse class="orbit" cx="16" cy="16" rx="15" ry="5.5" transform="rotate(-24 16 16)"/></svg>World Explorer</h1>
-  <div id="search-wrap"><input id="search" type="search" placeholder="Search places…  ( / )" aria-label="Search countries, cities and places" autocomplete="off"><ul id="results"></ul></div>
-  <div id="views" role="group" aria-label="Map view">
+  <nav id="topnav" aria-label="Main">
+    <button type="button" data-tab="explore"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span class="nl">Explore</span></button>
+    <button type="button" data-tab="projects"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="nl">Projects</span><span id="projcount" class="count" hidden></span></button>
+    <button type="button" data-tab="layers"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg><span class="nl">Layers</span><span id="layercount" class="count" hidden></span></button>
+  </nav>
+  <div id="search-wrap"><label for="search" class="sr-only">Search countries, cities and places</label><input id="search" type="search" placeholder="Search places  ( / )" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="results" aria-autocomplete="list"></div>
+  <div id="views" role="group" aria-label="Map view" hidden>
     <span class="pill" aria-hidden="true"></span>
     <button data-view="political" class="on" title="Map" aria-label="Map"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></svg><span class="lb">Map</span></button>
     <button data-view="terrain" title="Terrain" aria-label="Terrain"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l7-12 4 7 3-4 6 9z"/></svg><span class="lb">Terrain</span></button>
@@ -24,18 +37,7 @@
     <button data-view="stats" title="Stats" aria-label="Stats"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-7"/></svg><span class="lb">Stats</span></button>
     <button id="globebtn" data-view="globe" title="See the Earth as a 3D globe you can spin, tilt and zoom" aria-label="3D Earth"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg><span class="lb">3D Earth</span></button>
   </div>
-  <button id="playtop" type="button" class="playtop" title="Play trivia games, solo or with friends" aria-label="Play games"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r=".6" fill="currentColor"/><circle cx="18" cy="13.5" r=".6" fill="currentColor"/></svg><span class="lb">Play</span></button>
-  <div id="layerwrap">
-    <button id="layersbtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="layers" title="Layers and tools" aria-label="Layers and tools"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg><span class="lb">Layers</span><span id="layercount" class="count" hidden></span></button>
-    <div id="layers" role="group" aria-label="Layers and tools" hidden>
-      <h2>Layers and tools</h2>
-      <button id="tradebtn" class="lr" type="button" title="Click a country to see curved lines to its main trade partners"><span class="tx"><b>Trade lines</b><small>Click a country to see its trade partners</small></span><i class="sw"><b></b></i></button>
-      <button id="flightbtn" class="lr" type="button" title="Show planes flying right now, and where each one is going"><span class="tx"><b>Live flights</b><small>Planes in the air right now</small></span><i class="sw"><b></b></i></button>
-      <button id="tzbtn" class="lr" type="button" aria-controls="timepanel"><span class="tx"><b>Time zones</b><small>World clock and zone guide</small></span><i class="sw"><b></b></i></button>
-      <button id="measurebtn" class="lr" type="button" aria-controls="measure" title="Measure distances and travel time between places"><span class="tx"><b>Distance &amp; measure</b><small>Distance and travel time between places</small></span><i class="sw"><b></b></i></button>
-      <button id="sizebtn" class="lr" type="button" title="Drag countries around to compare their real sizes"><span class="tx"><b>Real size</b><small>Drag countries to compare their size</small></span><i class="sw"><b></b></i></button>
-    </div>
-  </div>
+  <button id="playtop" type="button" class="playtop" aria-label="Play games"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r=".6" fill="currentColor"/><circle cx="18" cy="13.5" r=".6" fill="currentColor"/></svg><span class="lb">Play</span></button>
   <div id="account">
     <button id="settingsbtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg><span class="lbl">Settings</span></button>
     <button id="signinbtn" type="button" class="cta" title="Sign in or sign up" aria-label="Sign in or sign up"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span class="lb">Sign in</span></button>
@@ -119,7 +121,54 @@
     <div id="flightbar"><span id="fl-stat" role="status"></span><form id="fl-find" autocomplete="off"><input id="fl-q" type="search" placeholder="Find a flight, e.g. UAE1" aria-label="Find a flight by its call sign"></form></div>
   </div>
   <div id="scan" aria-hidden="true"></div>
-  <aside id="panel" hidden></aside>
+  <aside id="side" aria-label="Workspace panel">
+    <div id="side-grab"><button id="side-grab-btn" type="button" aria-label="Resize panel"><span></span></button></div>
+    <div id="side-head">
+      <div id="side-tabs" role="tablist" aria-label="Workspace sections">
+        <button type="button" role="tab" id="tab-explore" data-tab="explore" aria-controls="sv-explore" aria-selected="true">Explore</button>
+        <button type="button" role="tab" id="tab-projects" data-tab="projects" aria-controls="sv-projects" aria-selected="false">Projects</button>
+        <button type="button" role="tab" id="tab-layers" data-tab="layers" aria-controls="sv-layers" aria-selected="false">Layers</button>
+      </div>
+      <button id="side-collapse" type="button" aria-expanded="true" aria-controls="side-body"><span class="sc-ic" aria-hidden="true">‹</span><span class="sc-tx">Hide</span></button>
+    </div>
+    <div id="side-body">
+      <ul id="results" role="listbox" aria-label="Search results"></ul>
+      <section id="sv-explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="-1"><div id="explore-home"></div></section>
+      <section id="sv-projects" role="tabpanel" aria-labelledby="tab-projects" tabindex="-1" hidden></section>
+      <section id="sv-layers" role="tabpanel" aria-labelledby="tab-layers" tabindex="-1" hidden>
+        <h2 class="sv-h">Map type</h2>
+        <div id="maptypes" class="mt-grid" role="group" aria-label="Map type"></div>
+        <h2 class="sv-h">Layers and tools</h2>
+        <div id="layers" role="group" aria-label="Layers and tools">
+          <button id="statsrow" class="lr" type="button" title="Colour countries by population, economy and more, by year"><span class="tx"><b>Country statistics</b><small>Colour the map by a number, year by year</small></span><i class="sw"><b></b></i></button>
+          <button id="historyrow" class="lr" type="button" title="See how borders changed, from 123,000 BC"><span class="tx"><b>Historical maps</b><small>Borders and peoples from the Stone Age to 2010</small></span><i class="sw"><b></b></i></button>
+<button id="tradebtn" class="lr" type="button" title="Click a country to see curved lines to its main trade partners"><span class="tx"><b>Trade lines</b><small>Click a country to see its trade partners</small></span><i class="sw"><b></b></i></button>
+      <button id="flightbtn" class="lr" type="button" title="Show planes flying right now, and where each one is going"><span class="tx"><b>Live flights</b><small>Planes in the air right now</small></span><i class="sw"><b></b></i></button>
+      <button id="tzbtn" class="lr" type="button" aria-controls="timepanel"><span class="tx"><b>Time zones</b><small>World clock and zone guide</small></span><i class="sw"><b></b></i></button>
+      <button id="measurebtn" class="lr" type="button" aria-controls="measure" title="Measure distances and travel time between places"><span class="tx"><b>Distance &amp; measure</b><small>Distance and travel time between places</small></span><i class="sw"><b></b></i></button>
+      <button id="sizebtn" class="lr" type="button" title="Drag countries around to compare their real sizes"><span class="tx"><b>Real size</b><small>Drag countries to compare their size</small></span><i class="sw"><b></b></i></button>
+          <button id="playrow" class="lr act" type="button"><span class="tx"><b>Play trivia games</b><small>Flags, capitals and more, solo or with friends</small></span><span class="go" aria-hidden="true">›</span></button>
+        </div>
+        <p class="sv-note">Live flights use OpenSky's free feed and update about every 25 seconds. Satellite and terrain pictures come from Esri; street maps from OpenStreetMap.</p>
+      </section>
+      <aside id="panel" hidden aria-label="Country details"></aside>
+      <aside id="pdetail" hidden aria-label="Place details"></aside>
+    </div>
+  </aside>
+  <button id="side-open" type="button" aria-expanded="false" aria-controls="side"><span aria-hidden="true">›</span> Show panel</button>
+  <div id="mapctl">
+    <div class="ctl-group" role="group" aria-label="Zoom">
+      <button id="ctl-zin" type="button" aria-label="Zoom in" title="Zoom in">+</button>
+      <button id="ctl-zout" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+    </div>
+    <button id="ctl-dim" type="button" class="ctl-text" aria-pressed="false" title="Switch between the flat map and the 3D globe"><span id="ctl-dim-t">3D</span></button>
+  </div>
+  <div id="mapbar">
+    <button id="mapbar-type" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="maptypemenu"><span class="mt-th" aria-hidden="true"></span><span class="mb-t"><small>Map type</small><b id="mapbar-type-n">Map</b></span></button>
+    <button id="mapbar-save" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Save this view</span></button>
+  </div>
+  <div id="projchip" hidden><span class="pc-dot" aria-hidden="true"></span><span class="pc-t">Working in <b id="projchip-n"></b></span><button type="button" id="projchip-open">Open</button><button type="button" id="projchip-close" aria-label="Stop working in this project">✕</button></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
   <aside id="sizepanel" hidden></aside>
   <button id="timepanel-open" type="button" aria-label="Open world clock" aria-expanded="false">🕒 Time zones</button>
   <aside id="timepanel" aria-label="World clock and time zone controls" hidden>
@@ -167,6 +216,8 @@
 <script type="module" src="/src/games.js"></script>
 <script type="module" src="/src/measure.js"></script>
 <script type="module" src="/src/maptype.js"></script>
+<script type="module" src="/src/workspace/shell.js"></script>
+<script type="module" src="/src/projects/controller.js"></script>
 <script type="module" src="/src/landing.js"></script>
 </body>
 </html>

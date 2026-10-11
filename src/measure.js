@@ -38,12 +38,12 @@ win.innerHTML = `<header><span class="g" aria-hidden="true">⠿</span><b>📐 Di
   <div id="ms-out" class="ms-out"></div>
   </div>`;
 host.append(win);
-win.style.left = '70px'; win.style.top = '16px';
+win.style.left = '70px'; win.style.top = '16px'; let moved = false; // moved: the person dragged the window, so it is left where they put it
 let z = 30;
 (function drag() {
   const h = $('header', win); let on = false, sx, sy, ox, oy; h.style.touchAction = 'none';
   h.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) return; on = true; sx = e.clientX; sy = e.clientY; ox = win.offsetLeft; oy = win.offsetTop; h.setPointerCapture(e.pointerId); win.style.zIndex = ++z; });
-  h.addEventListener('pointermove', (e) => { if (!on) return; const p = win.parentElement; win.style.left = Math.max(0, Math.min(p.clientWidth - 80, ox + e.clientX - sx)) + 'px'; win.style.top = Math.max(0, Math.min(p.clientHeight - 40, oy + e.clientY - sy)) + 'px'; });
+  h.addEventListener('pointermove', (e) => { if (!on) return; moved = true; const p = win.parentElement; win.style.left = Math.max(0, Math.min(p.clientWidth - 80, ox + e.clientX - sx)) + 'px'; win.style.top = Math.max(0, Math.min(p.clientHeight - 40, oy + e.clientY - sy)) + 'px'; });
   h.addEventListener('pointerup', () => { on = false; }); h.addEventListener('pointercancel', () => { on = false; });
 })();
 
@@ -168,6 +168,7 @@ win.addEventListener('click', (e) => {
 const btn = $('#measurebtn');
 function setOpen(on) {
   active = on; win.hidden = !on; btn.classList.toggle('on', on); win.style.zIndex = ++z;
+  if (on && !moved) win.style.left = ((window.__layout?.left || 0) + 16) + 'px'; // clear of the left panel
   if (on) { setPick(true); update(); } else { setPick(false); markers.splice(0).forEach((m) => m.remove()); if (map.getSource(SRC)) map.getSource(SRC).setData({ type: 'FeatureCollection', features: [] }); }
 }
 btn.addEventListener('click', () => setOpen(!active));

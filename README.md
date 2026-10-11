@@ -88,3 +88,22 @@ On computers the Map, Terrain, Satellite and 3D Earth buttons are one **Map type
 
 ## Banner (updated)
 Order, left to right: logo, text links, search, Map type (picture), Layers, Stats, Play, then Settings and Sign in. **OpenStreetMap** is now one of the choices in the Map type list (Map, Terrain, Satellite, OpenStreetMap, 3D Earth) instead of a Settings option; picking it switches country names off, as before. On the front page the banner only shows the logo, the text links and Sign in; the icon buttons, Play and Settings appear once you go into the map.
+
+## Workspace and Projects (map-first redesign)
+
+The site is now a workspace: the map fills the screen, with a compact top bar (Explore, Projects, Layers, search, Play, Settings, Sign in), a collapsible panel on the left, and the country or place details inside that panel so the map stays visible. On phones the panel becomes a bottom sheet that you can drag, and a tab bar (Explore, Projects, Layers) stays at the bottom. The map has zoom buttons and a 2D/3D switch. The old front-page cards moved into the Layers tab (statistics, historical maps, trade lines, live flights, time zones, distance and measure, real size, play) and into the Discover box on the front page.
+
+**Projects** are saved map workspaces: a name, an optional description, saved places, notes, the map view (position and zoom) and the layers that were on (map type, theme, names, country times, trade lines, live flights).
+
+- Create one from the front page, the Projects tab, or while saving a place. Edit or delete it from its page; deleting asks first and can be undone for a few seconds.
+- "Save" in a country or place window saves it to a project you pick. "Save this view" at the bottom of the map saves the current view and layers. "Open on map" restores the view, the pins and the layers.
+- Add, edit and remove notes and places inside a project. Cards show a small preview, the number of places and when it was last changed.
+- Export backup / Import backup in the Projects tab writes and reads a JSON file.
+
+**How projects are saved.** In this browser only (`localStorage`, key `we-projects-v1`). They stay on this device and in this browser profile. They are not synced to other devices, and clearing site data or using private mode removes them (the site warns when the browser will not save). Use Export backup to keep a copy. The storage code (`src/projects/store.js`) takes the storage in as a parameter, so a Supabase-backed version can replace it later without changing the screens.
+
+**Sharing.** Setting a project's visibility to "Can be shared as a link" creates a read-only link of the form `…/#share=<data>`. The link holds a compressed copy of the project inside the address, which is never sent to a server. It is a snapshot: later edits do not change a link that was already shared, it cannot be taken back, and big projects may be too large for a link (the site says so; use the backup file instead). Opening a link treats everything in it as untrusted and validates it. Live shared pages with accounts would need the Supabase backend and are not built.
+
+**Routes.** Still a single page. `?map` skips the front page. `#IRQ` still opens a country. New: `#share=…` opens a shared project read-only. Nothing else changed.
+
+**Code layout.** `src/workspace/` (shell, panel, dialogs, toasts), `src/projects/` (model, store, controller, views, forms, share, thumbnails, recent activity), `src/styles/` (workspace, projects, landing). Run the unit tests with `npm test`.

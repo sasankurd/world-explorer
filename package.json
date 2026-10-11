@@ -1,12 +1,13 @@
 {
   "name": "world-explorer",
   "version": "0.1.0",
-  "description": "Interactive world map with country panels",
+  "description": "Interactive world map workspace with country panels and saved projects",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "data": "node scripts/build-data.mjs"
+    "data": "node scripts/build-data.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "country-json": "^2.3.0",
