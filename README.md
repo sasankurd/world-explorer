@@ -131,3 +131,6 @@ The site is now a workspace: the map fills the screen, with a compact top bar (P
 
 ## 3D Earth place names
 The 3D Earth settings have a **Place names** switch (on by default). It lays Esri's transparent "World Boundaries and Places" tiles, which carry names only, over whichever picture is showing. Esri's terms apply to these tiles as they do to the satellite picture.
+
+## Map tools bar and reset view
+Flights, Trade, Time and Measure moved out of the Layers tab into a small transparent bar at the top right of the map (icons only on phones). The round-arrow button above the zoom buttons resets the view: the opening world view on the flat map, or the globe's own Reset view in 3D.

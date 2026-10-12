@@ -146,10 +146,6 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
     </form>
   </section>
           <button id="historyrow" class="lr" type="button" title="See how borders changed, from 123,000 BC"><span class="tx"><b>Historical maps</b><small>Borders and peoples from the Stone Age to 2010</small></span><i class="sw"><b></b></i></button>
-<button id="tradebtn" class="lr" type="button" title="Click a country to see curved lines to its main trade partners"><span class="tx"><b>Trade lines</b><small>Click a country to see its trade partners</small></span><i class="sw"><b></b></i></button>
-      <button id="flightbtn" class="lr" type="button" title="Show planes flying right now, and where each one is going"><span class="tx"><b>Live flights</b><small>Planes in the air right now</small></span><i class="sw"><b></b></i></button>
-      <button id="tzbtn" class="lr" type="button" aria-controls="timepanel"><span class="tx"><b>Time zones</b><small>World clock and zone guide</small></span><i class="sw"><b></b></i></button>
-      <button id="measurebtn" class="lr" type="button" aria-controls="measure" title="Measure distances and travel time between places"><span class="tx"><b>Distance &amp; measure</b><small>Distance and travel time between places</small></span><i class="sw"><b></b></i></button>
       <button id="sizebtn" class="lr" type="button" title="Drag countries around to compare their real sizes"><span class="tx"><b>Real size</b><small>Drag countries to compare their size</small></span><i class="sw"><b></b></i></button>
           <button id="playrow" class="lr act" type="button"><span class="tx"><b>Play trivia games</b><small>Flags, capitals and more, solo or with friends</small></span><span class="go" aria-hidden="true">›</span></button>
         </div>
@@ -160,7 +156,14 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
     </div>
   </aside>
   <button id="side-open" type="button" aria-expanded="false" aria-controls="side"><span aria-hidden="true">›</span> Show panel</button>
+  <div id="maptools" role="toolbar" aria-label="Map tools">
+    <button id="flightbtn" class="mtool" type="button" title="Show planes flying right now, and where each one is going"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15.5v-1.7l-8-5V4a1.5 1.5 0 0 0-3 0v4.8l-8 5v1.7l8-2.4V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-4.9z"/></svg><span>Flights</span></button>
+    <button id="tradebtn" class="mtool" type="button" title="Click a country to see curved lines to its main trade partners"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17c2-8 14-8 16 0"/><path d="M17 14l3 3-4 1"/><circle cx="4" cy="17" r="1.3"/></svg><span>Trade</span></button>
+    <button id="tzbtn" class="mtool" type="button" aria-controls="timepanel" title="World clock and time zones"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Time</span></button>
+    <button id="measurebtn" class="mtool" type="button" aria-controls="measure" title="Measure distances and travel time between places"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span>Measure</span></button>
+  </div>
   <div id="mapctl">
+    <button id="ctl-reset" type="button" class="ctl-one" aria-label="Reset the map view" title="Reset the map view"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v4.5h4.5"/></svg></button>
     <div class="ctl-group" role="group" aria-label="Zoom">
       <button id="ctl-zin" type="button" aria-label="Zoom in" title="Zoom in">+</button>
       <button id="ctl-zout" type="button" aria-label="Zoom out" title="Zoom out">−</button>

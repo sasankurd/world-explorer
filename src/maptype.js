@@ -69,6 +69,11 @@ function zoomBy(dir) {
   if (g?.active && g.viewer) { const cam = g.viewer.camera, h = cam.positionCartographic.height; if (dir > 0) cam.zoomIn(h * 0.4); else cam.zoomOut(h * 0.6); return; }
   if (dir > 0) app.map.zoomIn(); else app.map.zoomOut();
 }
+// reset: the flat map goes back to the opening world view; in 3D it is the globe's own Reset view
+$('#ctl-reset').addEventListener('click', () => {
+  if (window.__globe?.active) { document.querySelector('#gl-home')?.click(); return; }
+  app.map.flyTo({ center: [20, 25], zoom: 1.6, bearing: 0, pitch: 0, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 900 });
+});
 $('#ctl-zin').addEventListener('click', () => zoomBy(1));
 $('#ctl-zout').addEventListener('click', () => zoomBy(-1));
 const limits = () => { const z = app.map.getZoom(); $('#ctl-zin').disabled = z >= app.map.getMaxZoom() - 0.01; $('#ctl-zout').disabled = z <= app.map.getMinZoom() + 0.01; };

@@ -61,7 +61,7 @@ h1{margin:0 6px 0 0;font-size:17px;white-space:nowrap;background:none;color:var(
 .av{background:var(--acc);color:var(--acc-ink)}
 .switch.on i{box-shadow:none}.lr.on .sw b{box-shadow:none}
 @media(max-width:1180px){#topnav .nl{display:none}#topnav button{padding:8px 10px}#playtop .lb,#signinbtn .lb,#settingsbtn .lbl{display:none}}
-body.landing #search-wrap,body.landing #playtop,body.landing #settingsbtn,body.landing #settings,body.landing #mapbar,body.landing #mapctl,body.landing #side,body.landing #side-open,body.landing #projchip{display:none!important}
+body.landing #search-wrap,body.landing #playtop,body.landing #settingsbtn,body.landing #settings,body.landing #mapbar,body.landing #mapctl,body.landing #maptools,body.landing #side,body.landing #side-open,body.landing #projchip{display:none!important}
 body.landing #topnav .nl{display:inline}
 
 /* ---------- the map area ---------- */
@@ -268,3 +268,14 @@ dialog.wd[open]{animation:pin .2s cubic-bezier(.2,.9,.25,1)}
 
 /* the Explore, Projects and Layers links are not shown in the top bar on computers; the panel's own tabs do that job */
 @media(min-width:701px){#topnav{display:none!important}}
+
+/* small transparent tool bar at the top of the map */
+#maptools{position:absolute;right:12px;top:calc(12px + var(--sb,0px));z-index:30;display:flex;gap:2px;padding:3px;background:rgba(8,18,32,.38);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);border-radius:10px}
+#maptools .mtool{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 9px;background:none;border:1px solid transparent;border-radius:7px;color:var(--fg);font-size:12.5px;font-weight:600;cursor:pointer}
+#maptools .mtool .ic{width:16px;height:16px;flex:none}
+#maptools .mtool:hover{background:rgba(255,255,255,.12)}
+#maptools .mtool.on{background:rgba(76,208,242,.22);border-color:var(--acc);color:var(--acc)}
+#maptools .mtool:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+#mapctl .ctl-one .ic{width:20px;height:20px}
+@media(min-width:701px){#timepanel,#sizepanel,#gl-panel{top:calc(58px + var(--sb,0px))!important}}
+@media(max-width:700px){#maptools{left:auto;right:10px;top:calc(10px + var(--sb,0px))}#maptools .mtool span{display:none}#maptools .mtool{width:34px;padding:0;justify-content:center}}
