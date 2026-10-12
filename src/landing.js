@@ -117,7 +117,7 @@ function drawEntry() {
 function act(label, fn) { const b = el('button', 'ld-more', label); b.type = 'button'; b.addEventListener('click', fn); return b; }
 
 const GO = {
-  map() { if (locked()) return GO.create(); hideLanding(); window.__workspace.setTab('explore'); },
+  map() { if (locked()) return GO.create(); hideLanding(); window.__workspace.setTab('projects'); },
   create() { hideLanding(); P().create(); },
   random() { hideLanding(); app.openCountry(app.list[Math.floor(Math.random() * app.list.length)].id); },
   earth() { hideLanding(); click('#globebtn'); },
@@ -134,7 +134,7 @@ function gateCheck() {
   const lk = locked();
   if (lk && land.hidden) { showLanding(); return; }                       // the last project was deleted, or a shared one was closed
   if (lk) { paintGate(); drawEntry(); return; }
-  if (!land.hidden && land.classList.contains('gated')) { hideLanding(); window.__workspace.setTab('explore'); }   // the first project was just created: open the map
+  if (!land.hidden && land.classList.contains('gated')) { hideLanding(); window.__workspace.setTab('projects'); }   // the first project was just created: open the map
   else if (!land.hidden) drawEntry();
 }
 window.__projects.store.subscribe(gateCheck);

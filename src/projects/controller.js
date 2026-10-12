@@ -8,7 +8,7 @@ import * as M from './model.js';
 import { encodeShare, decodeShare, shareUrl, MAX_PAYLOAD } from './share.js';
 import { projectDialog, saveDialog } from './forms.js';
 import { renderList, renderDetail } from './views.js';
-import { renderExplore, renderPlace } from '../workspace/explore.js';
+import { renderPlace } from '../workspace/explore.js';
 import { confirmDialog, textDialog, modal } from '../workspace/dialog.js';
 import { toast } from '../workspace/toast.js';
 import { $, h } from '../workspace/dom.js';
@@ -57,18 +57,6 @@ function renderProjects({ focus = '' } = {}) {
   const badge = $('#projcount'); badge.textContent = n; badge.hidden = !n;
 }
 
-function renderExploreTab() {
-  const p = working();
-  renderExplore($('#explore-home'), {
-    recent: recent.list(), active: p && !workingShared ? p : null,
-    onOpenActive: () => { viewId = activeId; showingShared = false; ws.setTab('projects'); renderProjects({ focus: 'heading' }); },
-    onOpenRecent: openPlace,
-    onRandom: () => { const l = app.list; hideLanding(); app.openCountry(l[Math.floor(Math.random() * l.length)].id); },
-    onLayers: () => ws.setTab('layers'),
-    onPlay: () => $('#playtop').click(),
-  });
-}
-
 function renderChip() {
   const p = working(), chip = $('#projchip');
   chip.hidden = !p;
@@ -81,7 +69,7 @@ function renderPins() {
   pins.visible(!window.__globe?.active);
 }
 
-function renderAll() { renderProjects(); renderExploreTab(); renderChip(); renderPins(); }
+function renderAll() { renderProjects(); renderChip(); renderPins(); }
 
 store.subscribe(() => {
   if (activeId && !store.get(activeId)) activeId = '';
@@ -111,7 +99,7 @@ function fitPlaces(project) {
 async function showOnMap(project, { transient = false, view = true } = {}) {
   activeId = transient ? '' : project.id; workingShared = transient;
   hideLanding(); closeDetails();
-  renderChip(); renderPins(); renderExploreTab(); renderProjects();
+  renderChip(); renderPins(); renderProjects();
   if (mobile.matches) ws.close(); // phones: give the whole screen back to the map
   if (!view) return; // only the pins were wanted, the caller moves the map itself
   if (project.view) {
@@ -309,7 +297,7 @@ function detailCtx(p, readOnly) {
     onEditPlace: (pl) => editPlace(pl, p), onRemovePlace: (pl) => removePlace(pl, p),
     onEditNote: (n) => editNote(n, p), onRemoveNote: (n) => removeNote(n, p),
     onAddNote: (text, placeId) => store.update(p.id, (x) => M.addNote(x, text, placeId)),
-    onFindPlace: () => { ws.setTab('explore'); $('#search').focus(); },
+    onFindPlace: () => { ws.open(); $('#search').focus(); },
   };
 }
 
@@ -318,14 +306,14 @@ window.addEventListener('country-open', (e) => {
   const id = e.detail?.id, c = app.countries[id]; if (!c) return;
   currentCountry = id;
   $('#pdetail').hidden = true;
-  if (e.detail.tab === 'overview' || !e.detail.tab) { recent.push({ kind: 'country', name: c.name, ref: id, lat: c.latlng?.[0] ?? 0, lng: c.latlng?.[1] ?? 0 }); renderExploreTab(); }
+  if (e.detail.tab === 'overview' || !e.detail.tab) { recent.push({ kind: 'country', name: c.name, ref: id, lat: c.latlng?.[0] ?? 0, lng: c.latlng?.[1] ?? 0 }); }
 });
 window.addEventListener('country-close', () => { currentCountry = ''; });
 
 window.addEventListener('place-select', (e) => {
   const pl = e.detail; if (!pl || !Number.isFinite(pl.lng)) return;
   app.closePanel();
-  recent.push(pl); renderExploreTab();
+  recent.push(pl);
   const box = $('#pdetail');
   renderPlace(box, pl, {
     onSave: () => savePlace({ kind: pl.kind, name: pl.name, ref: pl.ref, lng: pl.lng, lat: pl.lat }),
@@ -347,10 +335,9 @@ $('#mapbar-save').addEventListener('click', () => saveViewTo());
 $('#projchip-open').addEventListener('click', () => { if (workingShared) showingShared = true; else { viewId = activeId; showingShared = false; } ws.setTab('projects'); renderProjects({ focus: 'heading' }); });
 $('#projchip-close').addEventListener('click', () => { activeId = ''; workingShared = false; renderAll(); toast('Pins removed from the map. The project is still saved.'); });
 window.addEventListener('globe-change', () => { pins.visible(!window.__globe?.active); });
-window.addEventListener('workspace-tab', (e) => { if (e.detail === 'explore') renderExploreTab(); });
 
 // ---------------------------------------------------------------- start
-renderProjects(); renderExploreTab(); // the Projects tab shows its loading state first
+renderProjects(); // the Projects tab shows its loading state first
 requestAnimationFrame(() => store.init());
 
 window.__projects = { store, recent, create: newProject, showOnMap, openDetail: (id) => { viewId = id; showingShared = false; ws.setTab('projects'); renderProjects({ focus: 'heading' }); }, get activeId() { return activeId; }, get sharedOpen() { return !!shared && showingShared; } };

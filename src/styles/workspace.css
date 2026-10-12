@@ -190,18 +190,6 @@ main{--rail:0px;--sheet:0px}
 .lr.on .sw{background:rgba(76,208,242,.35);border-color:var(--acc)}.lr.on .sw b{transform:translateX(18px);background:var(--acc)}
 #timepanel-open{display:none!important}
 
-/* explore home */
-.ex-h{margin:20px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.ex-list{list-style:none;margin:0;padding:0}
-.ex-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:8px 10px;background:none;border:1px solid transparent;border-radius:10px;min-height:48px}
-.ex-item:hover{background:var(--raised);border-color:var(--line)}
-.ex-item svg{color:var(--acc2);width:20px;height:20px}
-.ex-item b{display:block;font-weight:600}.ex-item small{display:block;color:var(--muted);font-size:12.5px}
-.ex-start{display:flex;flex-direction:column;gap:8px;align-items:stretch}
-.ex-start .btn{justify-content:flex-start}
-.ex-active{display:flex;align-items:center;gap:12px;margin-top:14px;padding:10px 12px;border:1px solid rgba(245,179,74,.45);border-radius:12px;background:rgba(245,179,74,.06)}
-.ex-active>div{flex:1;min-width:0}.ex-active b,.ex-active small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ex-active small{color:var(--muted);font-size:12.5px}
-.ex-dot{width:10px;height:10px;border-radius:50%;background:var(--acc2);flex:none}
 
 /* ---------- phones: the panel becomes a sheet above a bottom tab bar ---------- */
 @media(max-width:700px){

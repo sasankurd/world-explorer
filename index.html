@@ -28,7 +28,6 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
 <header>
   <h1><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10" /><ellipse cx="16" cy="16" rx="4.5" ry="10"/><path d="M6 16h20M8 10.5h16M8 21.5h16"/><ellipse class="orbit" cx="16" cy="16" rx="15" ry="5.5" transform="rotate(-24 16 16)"/></svg>World Explorer</h1>
   <nav id="topnav" aria-label="Main">
-    <button type="button" data-tab="explore"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span class="nl">Explore</span></button>
     <button type="button" data-tab="projects"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="nl">Projects</span><span id="projcount" class="count" hidden></span></button>
     <button type="button" data-tab="layers"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg><span class="nl">Layers</span><span id="layercount" class="count" hidden></span></button>
   </nav>
@@ -89,16 +88,14 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
     <div id="side-grab"><button id="side-grab-btn" type="button" aria-label="Resize panel"><span></span></button></div>
     <div id="side-head">
       <div id="side-tabs" role="tablist" aria-label="Workspace sections">
-        <button type="button" role="tab" id="tab-explore" data-tab="explore" aria-controls="sv-explore" aria-selected="true">Explore</button>
-        <button type="button" role="tab" id="tab-projects" data-tab="projects" aria-controls="sv-projects" aria-selected="false">Projects</button>
+        <button type="button" role="tab" id="tab-projects" data-tab="projects" aria-controls="sv-projects" aria-selected="true">Projects</button>
         <button type="button" role="tab" id="tab-layers" data-tab="layers" aria-controls="sv-layers" aria-selected="false">Layers</button>
       </div>
       <button id="side-collapse" type="button" aria-expanded="true" aria-controls="side-body"><span class="sc-ic" aria-hidden="true">‹</span><span class="sc-tx">Hide</span></button>
     </div>
     <div id="side-body">
       <ul id="results" role="listbox" aria-label="Search results"></ul>
-      <section id="sv-explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="-1"><div id="explore-home"></div></section>
-      <section id="sv-projects" role="tabpanel" aria-labelledby="tab-projects" tabindex="-1" hidden></section>
+      <section id="sv-projects" role="tabpanel" aria-labelledby="tab-projects" tabindex="-1"></section>
       <section id="sv-layers" role="tabpanel" aria-labelledby="tab-layers" tabindex="-1" hidden>
         <h2 class="sv-h">Map type</h2>
         <div id="maptypes" class="mt-grid" role="group" aria-label="Map type"></div>
