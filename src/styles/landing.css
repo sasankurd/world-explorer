@@ -28,3 +28,19 @@
 .ld-foot{margin:18px 16px 0;text-align:center;font-size:11.5px;color:var(--muted)}
 @media(min-width:900px){.ld-entry{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:700px){#landing{padding-bottom:16px}.ld-hero{min-height:360px}.ld-copy{padding-top:26px}.ld-btns button{flex:1;justify-content:center}}
+
+/* No project yet: the map stays closed and the front page asks for one */
+#landing:not(.gated) .ld-lock{display:none}
+#landing.gated .ld-open,#landing.gated .ld-go,#landing.gated .ld-entry{display:none}
+body.gated main>*:not(#landing):not(#toasts){visibility:hidden!important}
+body.gated #topnav{display:none!important}
+.ld-how{position:relative;padding:6px clamp(18px,5vw,64px) 0}
+.ld-how ol{list-style:none;margin:0;padding:0;display:grid;gap:12px;counter-reset:s}
+.ld-how li{counter-increment:s;position:relative;padding:14px 16px 14px 56px;background:rgba(11,18,28,.88);border:1px solid var(--line);border-radius:14px}
+.ld-how li::before{content:counter(s);position:absolute;left:16px;top:14px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--acc);border:1px solid var(--acc)}
+.ld-how b{display:block;font-size:15px}.ld-how span{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+#ld-gatemsg{position:relative;padding:0 clamp(18px,5vw,64px)}#ld-gatemsg:empty{display:none}
+.ld-err{margin:0 0 8px;color:#ffb4a8;font-size:14px}
+@media(min-width:900px){.ld-how ol{grid-template-columns:repeat(3,1fr)}}
+#landing.gated .ld-alt{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+#landing.gated .ld-alt:hover{background:#7adcf6;border-color:#7adcf6;color:var(--acc-ink)}

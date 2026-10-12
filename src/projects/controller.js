@@ -278,6 +278,7 @@ function closeShared() {
   shared = null; showingShared = false;
   history.replaceState(null, '', location.pathname + location.search);
   renderAll(); renderProjects({ focus: 'heading' });
+  window.dispatchEvent(new Event('gate-check'));   // without a project of your own, closing a shared one goes back to the front page
 }
 
 // ---------------------------------------------------------------- what the views call
@@ -352,7 +353,7 @@ window.addEventListener('workspace-tab', (e) => { if (e.detail === 'explore') re
 renderProjects(); renderExploreTab(); // the Projects tab shows its loading state first
 requestAnimationFrame(() => store.init());
 
-window.__projects = { store, recent, create: newProject, showOnMap, openDetail: (id) => { viewId = id; showingShared = false; ws.setTab('projects'); renderProjects({ focus: 'heading' }); }, get activeId() { return activeId; } };
+window.__projects = { store, recent, create: newProject, showOnMap, openDetail: (id) => { viewId = id; showingShared = false; ws.setTab('projects'); renderProjects({ focus: 'heading' }); }, get activeId() { return activeId; }, get sharedOpen() { return !!shared && showingShared; } };
 
 // a read-only project opened from a share link
 if (window.__shareHash) {

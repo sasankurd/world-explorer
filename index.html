@@ -21,7 +21,9 @@
 <link rel="stylesheet" href="/src/styles/stats.css">
 </head>
 <body>
-<script>try{if(!sessionStorage.getItem("we-landed")&&!location.hash&&!/map/.test(location.search))document.body.classList.add("landing");}catch(e){}</script>
+<script>try{var n=0,raw=null;try{raw=localStorage.getItem("we-projects-v1");if(raw){var d=JSON.parse(raw);n=d&&d.projects?d.projects.length:0}}catch(e){n=raw?-1:0}
+window.__noProjects=n<=0&&!/^#share=/.test(location.hash);
+if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!sessionStorage.getItem("we-landed")&&!location.hash&&!/map/.test(location.search))document.body.classList.add("landing");}catch(e){}</script>
 <a class="skip" href="#map">Skip to the map</a>
 <header>
   <h1><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10" /><ellipse cx="16" cy="16" rx="4.5" ry="10"/><path d="M6 16h20M8 10.5h16M8 21.5h16"/><ellipse class="orbit" cx="16" cy="16" rx="15" ry="5.5" transform="rotate(-24 16 16)"/></svg>World Explorer</h1>

@@ -1,5 +1,6 @@
 // Front page and the Units rows in Settings.
 import { ago } from './projects/model.js';
+import { isLocked } from './workspace/gate.js';
 // The front page sits on top of the map and goes away when you choose where to go. The map keeps loading underneath.
 while (!window.__app) await new Promise((r) => setTimeout(r, 25));
 const app = window.__app;
@@ -25,8 +26,11 @@ const land = document.createElement('section');
 land.id = 'landing'; land.hidden = true; land.setAttribute('aria-label', 'Welcome to World Explorer');
 land.innerHTML = `<div class="ld-hero"><canvas id="ld-globe" aria-hidden="true"></canvas><div class="ld-copy">
     <h2>Explore the world.<br><em>Keep what matters.</em></h2>
-    <p>Search countries and cities on an interactive map, save places and map views, and organise them into projects.</p>
+    <p class="ld-open">Search countries and cities on an interactive map, save places and map views, and organise them into projects.</p>
+    <p class="ld-lock">World Explorer works inside projects. Create your first project, then explore the map, save places and views, and keep notes in it. Projects are saved in this browser.</p>
     <div class="ld-btns"><button type="button" class="ld-go" data-a="map">${ic('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>')}Explore the map</button><button type="button" class="ld-alt" data-a="create">${ic('<path d="M12 5v14M5 12h14"/>')}Create a project</button></div></div></div>
+  <div id="ld-gatemsg" class="ld-lock" role="status"></div>
+  <section class="ld-how ld-lock" aria-label="How it works"><ol><li><b>Create a project</b><span>Give it a name. It keeps your places, notes and map view together.</span></li><li><b>The map opens inside it</b><span>Search, zoom and click countries as usual.</span></li><li><b>Save as you explore</b><span>Pin countries, cities and map views to your project.</span></li></ol></section>
   <div class="ld-entry">
     <section class="ld-box" aria-labelledby="ld-h-p"><h3 id="ld-h-p">Projects</h3><div id="ld-projects"></div></section>
     <section class="ld-box" aria-labelledby="ld-h-d"><h3 id="ld-h-d">Discover</h3><ul class="ld-list">
@@ -72,11 +76,19 @@ function frame(t) {
 }
 new ResizeObserver(() => { cv.width = 0; }).observe(cv);
 
+// the map needs a project: locked until at least one exists (or a shared read-only project is open)
+const locked = () => {
+  const p = window.__projects;
+  if (!p) return !!window.__noProjects;
+  return isLocked({ status: p.store.state.status, count: p.store.state.status === 'ready' ? p.store.list().length : 0, sharedOpen: p.sharedOpen, bypass: !!window.__gateBypass });
+};
+function paintGate() { const on = locked(); land.classList.toggle('gated', on); document.body.classList.toggle('gated', on); return on; }
 function showLanding() {
+  paintGate();
   land.hidden = false; land.scrollTop = 0; document.body.classList.add('landing'); drawEntry();
   if (!raf) { last = 0; raf = requestAnimationFrame(frame); }
 }
-function hideLanding() { land.hidden = true; document.body.classList.remove('landing'); try { sessionStorage.setItem('we-landed', '1'); } catch {} }
+function hideLanding() { if (locked()) return false; land.hidden = true; document.body.classList.remove('gated'); document.body.classList.remove('landing'); try { sessionStorage.setItem('we-landed', '1'); } catch {} }
 
 // the three entry points are filled from what is saved on this device
 const P = () => window.__projects;
@@ -84,6 +96,10 @@ const el = (tag, cls, ...kids) => { const e = document.createElement(tag); if (c
 function item(title, sub, onclick) { const b = el('button', 'ld-item', el('b', '', title), el('small', '', sub)); b.type = 'button'; b.addEventListener('click', onclick); const li = el('li', '', b); return li; }
 function drawEntry() {
   const p = P(), box = $('#ld-projects'), rec = $('#ld-recent'); if (!p) return;
+  const gm = $('#ld-gatemsg'); gm.replaceChildren();
+  if (p.store.state.status === 'error') {
+    gm.append(el('p', 'ld-err', 'Your saved projects could not be read, so the map stays closed until that is fixed.'), act('See what went wrong', () => { window.__gateBypass = true; hideLanding(); window.__workspace.setTab('projects'); }));
+  }
   const list = p.store.state.status === 'ready' ? p.store.list() : [];
   box.replaceChildren();
   if (p.store.state.status === 'error') box.append(el('p', 'muted', 'Your saved projects could not be read. Open Projects to see why.'), act('Open Projects', () => { hideLanding(); window.__workspace.setTab('projects'); }));
@@ -101,7 +117,7 @@ function drawEntry() {
 function act(label, fn) { const b = el('button', 'ld-more', label); b.type = 'button'; b.addEventListener('click', fn); return b; }
 
 const GO = {
-  map() { hideLanding(); window.__workspace.setTab('explore'); },
+  map() { if (locked()) return GO.create(); hideLanding(); window.__workspace.setTab('explore'); },
   create() { hideLanding(); P().create(); },
   random() { hideLanding(); app.openCountry(app.list[Math.floor(Math.random() * app.list.length)].id); },
   earth() { hideLanding(); click('#globebtn'); },
@@ -110,10 +126,19 @@ const GO = {
 };
 land.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (b) GO[b.dataset.a]?.(); });
 $('header h1').style.cursor = 'pointer'; $('header h1').addEventListener('click', showLanding);
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !land.hidden && !document.querySelector('dialog[open]')) GO.map(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !land.hidden && !locked() && !document.querySelector('dialog[open]')) GO.map(); });
 
 while (!window.__projects || !window.__workspace) await new Promise((r) => setTimeout(r, 25));
-window.__projects.store.subscribe(() => { if (!land.hidden) drawEntry(); });
+function gateCheck() {
+  if (window.__projects?.store.state.status === 'ready') window.__gateBypass = false;
+  const lk = locked();
+  if (lk && land.hidden) { showLanding(); return; }                       // the last project was deleted, or a shared one was closed
+  if (lk) { paintGate(); drawEntry(); return; }
+  if (!land.hidden && land.classList.contains('gated')) { hideLanding(); window.__workspace.setTab('explore'); }   // the first project was just created: open the map
+  else if (!land.hidden) drawEntry();
+}
+window.__projects.store.subscribe(gateCheck);
+window.addEventListener('gate-check', gateCheck);
 let seen = false; try { seen = sessionStorage.getItem('we-landed') === '1'; } catch {}
-if (!seen && !location.search.includes('map') && !location.hash) showLanding();
+if (locked() || (!seen && !location.search.includes('map') && !location.hash)) showLanding();
 window.__landing = { show: showLanding, hide: hideLanding };
