@@ -1,5 +1,6 @@
 // Reads the current map view and layers so a project can save them, and puts them back when a project is opened.
 // It uses the same buttons and hooks as the rest of the site, so nothing here draws on the map by itself.
+import { STAT_LABELS } from './model.js';
 const $ = (s, r = document) => r.querySelector(s);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const wrap = (lng) => ((((lng + 180) % 360) + 360) % 360) - 180;
@@ -17,10 +18,13 @@ export function capture() {
   const cur = window.__maptype?.current;
   const base = g?.active ? 'globe' : ['political', 'terrain', 'satellite', 'osm'].includes(cur) ? cur : 'political';
   const caveats = [];
-  if (app.view === 'stats') caveats.push(window.__history?.active ? 'The Historical maps view is not saved. The project keeps the normal map instead.' : 'The Statistics view is not saved. The project keeps the normal map instead.');
+  const S = window.__stats;
+  if (window.__history?.active) caveats.push('The Historical maps layer is not saved. The project keeps the normal map instead.');
+  else if (app.statsOn && S?.mode === 'heat') caveats.push('The People heat layer is not saved.');
+  else if (app.statsOn && S?.mode === 'stat' && !Object.hasOwn(STAT_LABELS, S.key)) caveats.push('Statistics you added yourself are not saved, because they exist only in this browser.');
   return {
     view: { center, zoom },
-    layers: { base, theme: app.mapTheme, names: isOn('#names'), times: !!app.timeMode, flights: isOn('#flightbtn'), trade: isOn('#tradebtn') },
+    layers: { base, theme: app.mapTheme, names: isOn('#names'), times: !!app.timeMode, flights: isOn('#flightbtn'), trade: isOn('#tradebtn'), stats: app.statsOn && !window.__history?.active && S?.mode === 'stat' && Object.hasOwn(STAT_LABELS, S.key) ? S.key : '' },
     caveats,
   };
 }
@@ -42,6 +46,8 @@ export async function restore(project) {
     if (isOn(id) !== want) $(id)?.click();
     if (want && !isOn(id)) warnings.push(`${label} could not be switched on.`);
   }
+  if (L.stats) { if (window.__stats) window.__stats.show(L.stats); else warnings.push('Statistics could not be switched on.'); }
+  else if (app.statsOn) app.setStats(false);
   const v = project.view;
   if (v) {
     const g = window.__globe;
@@ -54,6 +60,6 @@ export async function restore(project) {
 
 export const describeLayers = (L) => {
   const base = { political: 'Map', terrain: 'Terrain', satellite: 'Satellite', osm: 'OpenStreetMap', globe: '3D Earth' }[L.base];
-  const on = [L.flights && 'Live flights', L.trade && 'Trade lines', L.times && 'Country times'].filter(Boolean);
+  const on = [L.flights && 'Live flights', L.trade && 'Trade lines', L.times && 'Country times', L.stats && STAT_LABELS[L.stats]].filter(Boolean);
   return { base, theme: L.theme === 'light' ? 'Light' : 'Dark', on };
 };

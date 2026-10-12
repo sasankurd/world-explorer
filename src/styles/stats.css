@@ -1,0 +1,46 @@
+/* Statistics as a layer: its controls sit in the side panel (Layers tab), right under the Statistics row, not in a banner over the map */
+#layers #statbar{position:static;z-index:auto;max-height:none;overflow:visible;margin:2px 0 12px;padding:12px;background:rgba(255,255,255,.03);
+  border:1px solid var(--line);border-radius:12px;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;animation:none;display:block}
+#layers #statbar[hidden]{display:none}
+#statbar .sb-groups{display:grid;gap:12px;max-height:210px;overflow:auto;padding:2px 6px 2px 0;scrollbar-width:thin;border-bottom:1px solid var(--line);padding-bottom:10px}
+#statbar .sbg,#statbar .sbc{display:flex}
+#statbar .sbg{flex-direction:column;gap:5px}
+#statbar .sbl{display:block;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+#statbar .sbc{flex-wrap:wrap}
+#statbar .sbc button{min-height:30px}
+#statbar .sbc button.on,#statbar .h-tools button.on,#statbar .sb-tools button.on{border-color:var(--acc);color:var(--acc);background:rgba(82,214,255,.1)}
+#statbar .sb-time{margin-top:14px;gap:8px 12px}
+#statbar .sb-year{font-size:22px}
+#statbar .sb-rangewrap{min-width:140px;flex:1 1 140px}
+#statbar .sb-legend{min-width:0;width:100%}
+#statbar .sb-tools{margin-left:0;width:100%}
+#statbar #sb-rows{grid-template-columns:1fr;max-height:220px}
+#statbar .sb-note{max-width:none;font-size:12.5px;line-height:1.45}
+#statbar #sb-add{max-width:none}
+#statbar .h-era{min-width:100%}
+#statbar .h-eras{flex-wrap:wrap;gap:4px}
+#statbar .h-eras button{flex:1 1 auto!important;font-size:12px;padding:4px 8px;white-space:normal;text-align:center}
+#statbar .h-tools .muted{width:100%}
+.h-strip{max-width:100%}
+
+/* religion charts */
+.sb-rel{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:8px}
+.rel-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px}
+.rel-head h3{margin:0;font-size:15px}
+.rel-x{padding:3px 11px;font-size:12.5px;border-radius:99px}
+.rel-bar .rb-track{display:flex;height:16px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#0a111a}
+.rel-bar .rb-track span{display:block;min-width:2px}
+.rb-legend{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:3px 14px}
+.rb-legend li{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+.rb-legend li.on{color:var(--fg);font-weight:600}
+.rb-legend i{width:10px;height:10px;border-radius:3px;flex:none}
+.rb-legend span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rb-legend b{font-variant-numeric:tabular-nums;color:var(--fg);font-weight:600}
+.rel-sum{margin:0;font-size:13px}
+.rel-cap{font-size:12px;font-weight:600;color:var(--muted);margin-top:4px}
+.rel-cols{width:100%;max-width:340px;height:auto;display:block}
+.rel-foot{margin:0;font-size:12px;line-height:1.45}
+/* the country window's religion block uses the same bar */
+.rel-panel h3{margin-top:14px}
+.rel-panel .rel-foot{margin-top:6px}
+@media(max-width:700px){#statbar .sbg,#statbar .sbc{display:flex}#statbar .sbl{display:block}#statbar .sb-groups{gap:12px}.rb-legend{grid-template-columns:1fr}}

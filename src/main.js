@@ -120,16 +120,17 @@ map.touchZoomRotate.disableRotation();
 let sizeMode = false;
 let timeMode = false;
 let view = 'political';
+let statsOn = false; // the Statistics layer: colours countries by a number, on top of whichever map type is showing
 let mapTheme = 'dark';
 let baseMap = 'normal'; // what the standard Map view is drawn on: 'normal' (flat colours) or 'osm' (OpenStreetMap's standard tile layer)
 try { if (localStorage.getItem('baseMap') === 'osm') baseMap = 'osm'; } catch {}
 try { if (localStorage.getItem('mapTheme') === 'light') mapTheme = 'light'; } catch {}
 document.body.dataset.map = mapTheme;
 const hook = () => window.__app?.statsHook;
-const isDark = () => mapTheme === 'dark' || (view === 'stats' && !!hook()?.heat);
+const isDark = () => mapTheme === 'dark' || (statsOn && !!hook()?.heat);
 
 function colorFor(c) {
-  if (view === 'stats') return hook()?.color(c) ?? '#333';
+  if (statsOn) return hook()?.color(c) ?? '#333';
   if (view === 'satellite') return 'rgba(255,255,255,0.02)';
   if (view === 'terrain') return 'rgba(255,255,255,0.02)';
   return politicalColor(c, isDark());
@@ -138,7 +139,7 @@ function recolor() { for (const c of list) map.setFeatureState({ source: 'countr
 // Stats view: the number for each country, written under its name on the map
 let statNums = false;
 function updateStatLabels() {
-  const h = hook(), on = view === 'stats' && !!h?.numbers;
+  const h = hook(), on = statsOn && !!h?.numbers;
   if (!on && !statNums) return;
   statNums = on;
   document.body.classList.toggle('statnums', on);
@@ -153,7 +154,8 @@ function updateStatLabels() {
 }
 function applyView() {
   const dark = isDark();
-  document.body.classList.toggle('heat', view === 'stats' && !!hook()?.heat);
+  document.body.classList.toggle('heat', statsOn && !!hook()?.heat);
+  document.body.classList.toggle('statson', statsOn);
   document.body.dataset.view = view;
   document.body.dataset.map = mapTheme;
   const vis = (id, on) => map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
@@ -169,15 +171,17 @@ function applyView() {
   map.setPaintProperty('terrain', 'raster-brightness-max', dark ? 0.42 : 1);
   map.setPaintProperty('terrain', 'raster-saturation', dark ? -0.35 : 0);
   map.setPaintProperty('terrain', 'raster-contrast', dark ? 0.2 : 0);
-  map.setPaintProperty('sea', 'background-color', dark ? '#03060a' : view === 'stats' ? '#eef2f6' : '#cfe5f5');
+  map.setPaintProperty('sea', 'background-color', dark ? '#03060a' : statsOn && view === 'political' && baseMap !== 'osm' ? '#eef2f6' : '#cfe5f5');
   map.setPaintProperty('line', 'line-color', view === 'satellite' ? '#ffffff' : view === 'terrain' ? (dark ? '#52d6ff' : '#7a3b3b') : dark ? 'rgba(130,200,255,0.45)' : '#ffffff');
   map.setPaintProperty('selected', 'line-color', dark || view === 'satellite' ? '#52d6ff' : '#111');
   map.setPaintProperty('movers-line', 'line-color', dark ? '#e8f6ff' : '#111');
+  // with the Statistics layer on, the colours are drawn clearly enough to read but still let the map type underneath show through
+  const sel = ['boolean', ['feature-state', 'selected'], false];
   map.setPaintProperty('fill', 'fill-opacity', view === 'satellite' || view === 'terrain'
-    ? ['case', ['boolean', ['feature-state', 'selected'], false], 0.25, 0.01]
+    ? (statsOn ? ['case', sel, 0.8, 0.66] : ['case', sel, 0.25, 0.01])
     : osmOn // countries are tinted lightly so the streets and coastlines underneath still show
-      ? ['case', ['boolean', ['feature-state', 'selected'], false], 0.7, dark ? 0.5 : 0.4]
-      : ['case', ['boolean', ['feature-state', 'selected'], false], 0.95, dark ? 0.9 : 0.82]);
+      ? (statsOn ? ['case', sel, 0.85, 0.66] : ['case', sel, 0.7, dark ? 0.5 : 0.4])
+      : ['case', sel, 0.95, dark ? 0.9 : 0.82]);
   recolor();
 }
 function setNames(on) { labelsOn = on; $('#names').classList.toggle('on', on); labelSig = ''; updateLabels(); }
@@ -208,6 +212,7 @@ $('#views').addEventListener('click', (e) => {
   window.dispatchEvent(new CustomEvent('view-change', { detail: view }));
 });
 function setView(v) { document.querySelector(`#views button[data-view="${v}"]`)?.click(); }
+function setStats(on) { on = !!on; if (on === statsOn) return; statsOn = on; applyView(); window.dispatchEvent(new CustomEvent('stats-layer', { detail: on })); }
 
 // ---------- hover + click ----------
 const tip = $('#tip');
@@ -216,7 +221,7 @@ map.on('mousemove', 'fill', (e) => {
   const f = e.features[0]; if (!f) return;
   map.getCanvas().style.cursor = sizeMode && map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length ? 'grab' : 'pointer';
   const c = countries[f.id];
-  tip.hidden = false; tip.textContent = `${c.flag} ${c.name}` + (view === 'stats' && hook() ? hook().tip(c) : tzData[c.id] ? ` · ${tzText(tzData[c.id][0], 'hm')}` : '');
+  tip.hidden = false; tip.textContent = `${c.flag} ${c.name}` + (statsOn && hook() ? hook().tip(c) : tzData[c.id] ? ` · ${tzText(tzData[c.id][0], 'hm')}` : '');
   tip.style.left = e.point.x + 14 + 'px'; tip.style.top = e.point.y + 14 + 'px';
 });
 map.on('mouseleave', 'fill', () => {
@@ -788,5 +793,5 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { map, borders, goTo, clearPin, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
+window.__app = { setStats, get statsOn() { return statsOn; }, map, borders, goTo, clearPin, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
 map.on('load', () => { setTimeMode(true); if (baseMap === 'osm') setNames(false); }); // live country times are on by default; with OpenStreetMap saved, our names start switched off

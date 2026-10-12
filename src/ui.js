@@ -27,21 +27,23 @@ const tzbtn = $('#tzbtn'), tzpanel = $('#timepanel');
 tzbtn.addEventListener('click', () => $(tzpanel.hidden ? '#timepanel-open' : '#timepanel-close').click());
 // Statistics and Historical maps are modes of the map, so these two rows follow the real state
 const statsRow = $('#statsrow'), histRow = $('#historyrow');
+// when Statistics opens, bring its controls into view inside the panel
+const focusStats = () => setTimeout(() => $('#statbar')?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 80);
 statsRow.addEventListener('click', () => {
   const app = window.__app; if (!app) return;
-  if (app.view === 'stats') $('#maptypes [data-k="political"]').click(); else $('#views [data-view="stats"]').click();
+  if (app.statsOn && !window.__history?.active) app.setStats(false); else if (window.__history?.active) { $('#sb-groups [data-back]')?.click(); } else { app.setStats(true); focusStats(); }
 });
 histRow.addEventListener('click', () => {
   const app = window.__app; if (!app) return;
-  if (window.__history?.active) { $('#maptypes [data-k="political"]').click(); return; }
-  if (app.view !== 'stats') $('#views [data-view="stats"]').click();
-  let tries = 0; const go = () => { const b = $('#sb-groups [data-history]'); if (b) { if (!b.classList.contains('on')) b.click(); } else if (tries++ < 30) setTimeout(go, 100); }; go();
+  if (window.__history?.active) { app.setStats(false); return; }
+  if (!app.statsOn) app.setStats(true);
+  let tries = 0; const go = () => { const b = $('#sb-groups [data-history]'); if (b) { if (!b.classList.contains('on')) b.click(); focusStats(); } else if (tries++ < 30) setTimeout(go, 100); }; go();
 });
 $('#playrow').addEventListener('click', () => $('#playtop').click());
 
 const rows = [...lmenu.querySelectorAll('.lr:not(.act)')];
 function syncModes() {
-  const app = window.__app, stats = app?.view === 'stats', hist = !!window.__history?.active || document.body.classList.contains('history');
+  const app = window.__app, stats = !!app?.statsOn, hist = !!window.__history?.active || document.body.classList.contains('history');
   statsRow.classList.toggle('on', stats && !hist); histRow.classList.toggle('on', hist);
   count();
 }
@@ -56,6 +58,7 @@ rows.forEach((r) => ob.observe(r, { attributes: true, attributeFilter: ['class']
 new MutationObserver(syncTz).observe(tzpanel, { attributes: true, attributeFilter: ['hidden'] });
 new MutationObserver(syncModes).observe(document.body, { attributes: true, attributeFilter: ['class', 'data-view'] });
 window.addEventListener('view-change', syncModes);
+window.addEventListener('stats-layer', syncModes);
 syncTz(); syncModes();
 
 // ---------- the name that appears under an icon-only header button when the mouse rests on it ----------

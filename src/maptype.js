@@ -37,11 +37,11 @@ bar.append(menu);
 $('#maptypes').innerHTML = TYPES.map(tileHtml).join('');
 
 function sync() {
-  const c = current(), stats = app.view === 'stats';
+  const c = current();
   const t = c || TYPES[0];
   $('.mt-th', btn).style.backgroundImage = `url(/img/maptype/${t.img}.jpg)`;
-  $('#mapbar-type-n').textContent = stats ? 'Statistics' : c ? c.name : 'Map';
-  document.querySelectorAll('.mt-tile').forEach((b) => { const on = !stats && c?.k === b.dataset.k; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  $('#mapbar-type-n').textContent = c ? c.name : 'Map';
+  document.querySelectorAll('.mt-tile').forEach((b) => { const on = c?.k === b.dataset.k; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   const globe = c?.k === 'globe';
   const dim = $('#ctl-dim'); dim.setAttribute('aria-pressed', String(globe)); $('#ctl-dim-t').textContent = globe ? '2D' : '3D';
   dim.title = globe ? 'Back to the flat map' : 'Switch to the 3D globe';
@@ -50,7 +50,6 @@ function sync() {
 }
 const mo = new MutationObserver(() => requestAnimationFrame(sync));
 TYPES.forEach((t) => src(t) && mo.observe(src(t), { attributes: true, attributeFilter: ['class'] }));
-$('#views button[data-view="stats"]') && mo.observe($('#views button[data-view="stats"]'), { attributes: true, attributeFilter: ['class'] });
 window.addEventListener('basemap-change', () => requestAnimationFrame(sync));
 window.addEventListener('globe-change', () => requestAnimationFrame(sync));
 

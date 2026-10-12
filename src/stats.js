@@ -1,4 +1,5 @@
 // The Stats bar: pick a statistic, drag the year slider, watch the map change. Also the "where people live" heat view.
+import { loadReligion, sharesOf, worldShares, shareBar, trendColumns, GROUPS as REL, SOURCE as REL_SOURCE, isProjection, biggest, pct as relPct } from './religion.js';
 import { allDefs, defOf, loadSeries, valueAt, fmtVal, domainOf, norm, ramp, rampCss, NODATA, customStats, saveCustomStats, matcher, parsePasted, fetchWorldBank } from './series.js';
 
 while (!window.__app) await new Promise((r) => setTimeout(r, 25));
@@ -68,6 +69,7 @@ function renderChips() {
   const heat = `<div class="sbg"><span class="sbl">Where people live</span><div class="sbc"><button type="button" class="${mode === 'heat' ? 'on' : ''}" data-heat="1">People heat</button></div></div>`;
   const hist = `<div class="sbg"><span class="sbl">History</span><div class="sbc"><button type="button" class="${mode === 'history' ? 'on' : ''}" data-history="1" title="How the world's countries, names and borders looked in every era">World through time</button></div></div>`;
   $('#sb-groups').innerHTML = groups.filter((g) => g !== yours).map(html).join('') + heat + hist + html(yours);
+  $('#sb-groups .on')?.scrollIntoView({ block: 'nearest' });
 }
 $('#sb-groups').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
@@ -86,7 +88,7 @@ $('#sb-groups').addEventListener('click', (e) => {
 const note = (t) => { $('#sb-note').textContent = t; };
 async function select(k) {
   leaveHistory(); stopPlay(); mode = 'stat'; key = k; def = defOf(k) || defOf('population');
-  setHeatLayer(false); renderChips();
+  setHeatLayer(false); renderChips(); drawRel();
   $('#sb-time').classList.remove('heatmode');
   note('Loading…');
   const mine = ++seq;
@@ -104,13 +106,16 @@ function adopt(s) {
   series = s; def = defOf(key) || def; dom = domainOf(def, s);
   const still = s.static;
   for (const el of [playBtn, yearOut, $('.sb-rangewrap')]) el.hidden = !!still;
-  range.min = s.first; range.max = s.last;
-  year = userYear == null ? s.last : Math.min(Math.max(userYear, s.first), s.last);
+  range.min = s.first; range.max = s.last; range.step = s.step || 1;
+  year = userYear == null ? (s.projected ? s.first : s.last) : Math.min(Math.max(userYear, s.first), s.last);
+  if (s.step) year = Math.min(s.last, s.first + Math.round((year - s.first) / s.step) * s.step);      // series with data only every few years: land on a year that has data
   syncYear(false);
   $('#sb-min').textContent = s.first; $('#sb-max').textContent = s.last;
   drawLegend();
   const src = def.custom ? (def.wb ? 'World Bank data' : 'your numbers') : s.live ? 'live World Bank data' : s.static ? 'country facts' : 'saved data; checking the World Bank for newer years';
-  note(`${def.label}: ${def.unit}. ${still ? '' : `${s.first}–${s.last}. `}Source: ${src}.`);
+  if (def.religion != null) note(`${def.label}: ${def.unit}. 2010 is an estimate; 2020 to 2050 are projections, not measurements. Countries with very small populations are left out. Source: ${REL_SOURCE}, CC BY 4.0.`);
+  else note(`${def.label}: ${def.unit}. ${still ? '' : `${s.first}–${s.last}. `}Source: ${src}.`);
+  drawRel();
   recolorSoon();
 }
 function drawLegend() {
@@ -121,7 +126,8 @@ function drawLegend() {
 
 // ---------- the year slider ----------
 function syncYear(recolor = true) {
-  range.value = year; yearOut.textContent = year;
+  range.value = year; yearOut.textContent = year + (def.religion != null && isProjection(year) ? '*' : '');
+  drawRel();
   if (recolor) recolorSoon();
 }
 range.addEventListener('input', () => { year = +range.value; userYear = year; stopPlay(); syncYear(); });
@@ -134,7 +140,7 @@ playBtn.addEventListener('click', () => {
   playBtn.textContent = '❚❚'; playBtn.classList.add('on');
   playing = setInterval(() => {
     if (year >= series.last) { stopPlay(); return; }
-    year++; userYear = year; syncYear();
+    year = Math.min(series.last, year + (series.step || 1)); userYear = year; syncYear();
   }, 380);
 });
 
@@ -202,11 +208,10 @@ function close() {
   if (map.getLayer('heat')) map.setLayoutProperty('heat', 'visibility', 'none');
   fitOffset();
 }
-window.addEventListener('view-change', (e) => (e.detail === 'stats' ? open() : close()));
+window.addEventListener('stats-layer', (e) => (e.detail ? open() : close()));
 window.addEventListener('maptheme-change', () => { if (isOpen()) { drawLegend(); recolorSoon(); } });
-function fitOffset() { document.documentElement.style.setProperty('--sb', bar.hidden ? '0px' : bar.offsetHeight + 'px'); }
-new ResizeObserver(fitOffset).observe(bar);
-window.__stats = { show(k) { if (app.view !== 'stats') app.setView('stats'); select(k); }, select };
+function fitOffset() { document.documentElement.style.setProperty('--sb', '0px'); }
+window.__stats = { show(k) { app.setStats(true); select(k); }, select, get key() { return key; }, get mode() { return mode; }, get year() { return year; }, get religion() { return mode === 'stat' && def.religion != null && app.statsOn; } };
 
 // ---------- add your own statistic ----------
 const form = $('#sb-add'), msg = $('#sa-msg');
@@ -246,17 +251,28 @@ form.addEventListener('submit', async (e) => {
   } catch (err) { say(err.message || 'Could not add that statistic.', true); }
 });
 
-// ---------- minimize the stats bar (also folds away by itself when you search) ----------
-const minBtn = document.createElement('button');
-minBtn.type = 'button'; minBtn.id = 'sb-min-btn';
-bar.prepend(minBtn);
-function setMin(on) {
-  bar.classList.toggle('min', on);
-  minBtn.textContent = on ? '📊 Stats ▾' : '▴ Hide';
-  minBtn.setAttribute('aria-expanded', String(!on));
-  minBtn.title = on ? 'Show the stats menu' : 'Hide the stats menu to see more of the map';
-  fitOffset();
+
+// ---------- religion charts: shown under the legend whenever a religion statistic is chosen ----------
+let relId = null;                         // a country picked on the map, or null for the whole world
+const relBox = $('#sb-rel');
+async function drawRel() {
+  const on = isOpen() && mode === 'stat' && def.religion != null;
+  relBox.hidden = !on; if (!on) return;
+  let data; try { data = await loadReligion(); } catch { relBox.replaceChildren(Object.assign(document.createElement('p'), { className: 'muted', textContent: 'The religion figures could not be loaded. Check your connection and choose the statistic again.' })); return; }
+  if (relBox.hidden || def.religion == null) return;
+  const el = (t, c, ...k) => { const e = document.createElement(t); if (c) e.className = c; for (const x of k) e.append(x.nodeType ? x : document.createTextNode(x)); return e; };
+  const y = year, c = relId ? countries[relId] : null;
+  const shares = c ? sharesOf(data, c.id, y) : worldShares(data, y);
+  const head = el('div', 'rel-head', el('h3', '', `${c ? c.name : 'The world'}, ${y}${isProjection(y) ? '*' : ''}`));
+  if (c) { const b = el('button', 'rel-x', 'Show the whole world'); b.type = 'button'; b.onclick = () => { relId = null; drawRel(); }; head.append(b); }
+  const out = [head];
+  if (!shares) out.push(el('p', 'muted', `There are no reliable religion figures for ${c ? c.name : 'this'} in this data. Very small countries are left out because the source rounds every group to the nearest 10,000.`));
+  else {
+    out.push(shareBar(shares, { highlight: def.religion }));
+    const lead = biggest(shares); out.push(el('p', 'rel-sum', `Largest group: ${REL[lead].label} (${relPct(shares[lead])}).`));
+    const cap = el('div', 'rel-cap', 'How the mix changes, 2010 to 2050'); out.push(cap, trendColumns(data, c ? c.id : null, { year: y }));
+  }
+  out.push(el('p', 'rel-foot muted', c ? 'Click another country on the map to compare, or choose a different religion above to colour the map.' : 'Click a country on the map to see its own religion chart.', el('br'), '* Projection by Pew Research Center, not a measurement.'));
+  relBox.replaceChildren(...out);
 }
-minBtn.onclick = () => setMin(!bar.classList.contains('min'));
-setMin(false);
-document.querySelector('#search')?.addEventListener('focus', () => { if (!bar.hidden) setMin(true); });
+window.addEventListener('country-open', (e) => { if (isOpen() && mode === 'stat' && def.religion != null && e.detail?.id) { relId = e.detail.id; drawRel(); } });

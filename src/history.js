@@ -86,7 +86,7 @@ const cache = new Map();
 const dark = () => app.isDark();
 // keep the map's centre in the part of the screen that the Stats bar does not cover
 const bar = $('#statbar');
-const pad = () => map.setPadding({ top: active ? bar.offsetHeight : 0, bottom: 0, left: 0, right: 0 });
+const pad = () => map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 }); // the timeline lives in the side panel now, so the map needs no space of its own
 new ResizeObserver(() => { if (active) { pad(); drawLabels(); } }).observe(bar);
 function colorExpr() {
   const d = dark();

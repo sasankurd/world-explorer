@@ -5,6 +5,8 @@
 //  - Everything else, and newer years, is loaded live from the World Bank when you open it
 //    (api.worldbank.org, free and open). If the World Bank does not answer, saved data is used where we have it.
 
+import { loadReligion, seriesFor, GROUPS as REL } from './religion.js';
+
 export const INDICATORS = [
   { key: 'population', label: 'Population', group: 'People', wb: 'SP.POP.TOTL', baked: true, kind: 'log', fmt: 'num', unit: 'people' },
   { key: 'growth', label: 'Growth', group: 'People', derive: 'population', kind: 'lin', dom: [-1, 4], fmt: 'pct', unit: 'population growth per year' },
@@ -17,6 +19,7 @@ export const INDICATORS = [
   { key: 'milspend', label: 'Spending', group: 'Military power', wb: 'MS.MIL.XPND.CD', kind: 'log', fmt: 'usd', unit: 'military spending, US dollars' },
   { key: 'milgdp', label: '% of economy', group: 'Military power', wb: 'MS.MIL.XPND.GD.ZS', kind: 'lin', dom: [0, 6], fmt: 'pct', unit: 'military spending as % of GDP' },
   { key: 'armed', label: 'Armed forces', group: 'Military power', wb: 'MS.MIL.TOTL.P1', kind: 'log', fmt: 'num', unit: 'people in the armed forces' },
+  ...['Christians', 'Muslims', 'Unaffiliated', 'Hindus', 'Buddhists', 'Folk', 'Other', 'Jews'].map((label, i) => ({ key: 'rel_' + REL[i].key, label, group: 'Religion', religion: i, kind: 'lin', dom: [0, 100], fmt: 'pct', unit: `% of people who are ${REL[i].label.toLowerCase()}` })),
   { key: 'area', label: 'Area', group: 'Land', staticArea: true, kind: 'log', fmt: 'area', unit: 'km²' },
 ];
 
@@ -108,6 +111,7 @@ export function loadSeries(key, countries, onUpgrade) {
   const ids = new Set(Object.keys(countries));
   const def = defOf(key); if (!def) return Promise.reject(new Error('Unknown statistic'));
   const p = (async () => {
+    if (def.religion != null) return seriesFor(await loadReligion(), def.religion);
     if (def.staticArea) {
       const v = {}; for (const c of Object.values(countries)) if (c.area) v[c.id] = [c.area];
       return finish({ y0: 0, v, static: true, live: false }, ids);

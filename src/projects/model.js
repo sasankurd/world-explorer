@@ -32,6 +32,8 @@ export function sanitizeView(raw) {
   if (!Array.isArray(c) || !inRange(c[0], -540, 540) || !inRange(c[1], -85.1, 85.1) || !inRange(raw.zoom, 0, 22)) return null;
   return { center: [Math.round(c[0] * 1e5) / 1e5, Math.round(c[1] * 1e5) / 1e5], zoom: Math.round(raw.zoom * 100) / 100 };
 }
+// the Statistics layer: which built-in statistic was showing ('' = layer off). Your own added statistics live in this browser only, so they are not saved here.
+export const STAT_LABELS = { population: 'Population', growth: 'Population growth', density: 'Density', internet: 'Internet users', lifeexp: 'Age span', gdp: 'Economy', gdppc: 'Income per person', tourism: 'Tourists', milspend: 'Military spending', milgdp: 'Military % of economy', armed: 'Armed forces', area: 'Area', rel_christians: 'Religion: Christians', rel_muslims: 'Religion: Muslims', rel_unaffiliated: 'Religion: Unaffiliated', rel_hindus: 'Religion: Hindus', rel_buddhists: 'Religion: Buddhists', rel_folk: 'Religion: Folk religions', rel_other: 'Religion: Other religions', rel_jews: 'Religion: Jews' };
 export function sanitizeLayers(raw) {
   const r = raw && typeof raw === 'object' ? raw : {};
   return {
@@ -41,6 +43,7 @@ export function sanitizeLayers(raw) {
     times: r.times === true,
     flights: r.flights === true,
     trade: r.trade === true,
+    stats: typeof r.stats === 'string' && Object.hasOwn(STAT_LABELS, r.stats) ? r.stats : '',
   };
 }
 export const defaultLayers = () => sanitizeLayers({});

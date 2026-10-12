@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="/src/styles/projects.css">
 <link rel="stylesheet" href="/src/styles/landing.css">
 <link rel="stylesheet" href="/src/styles/history.css">
+<link rel="stylesheet" href="/src/styles/stats.css">
 </head>
 <body>
 <script>try{if(!sessionStorage.getItem("we-landed")&&!location.hash&&!/map/.test(location.search))document.body.classList.add("landing");}catch(e){}</script>
@@ -35,7 +36,6 @@
     <button data-view="political" class="on" title="Map" aria-label="Map"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></svg><span class="lb">Map</span></button>
     <button data-view="terrain" title="Terrain" aria-label="Terrain"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l7-12 4 7 3-4 6 9z"/></svg><span class="lb">Terrain</span></button>
     <button data-view="satellite" title="Satellite" aria-label="Satellite"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-4 4 3 3-2 6 4"/><circle cx="16" cy="9" r="1.2"/></svg><span class="lb">Satellite</span></button>
-    <button data-view="stats" title="Stats" aria-label="Stats"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-7"/></svg><span class="lb">Stats</span></button>
     <button id="globebtn" data-view="globe" title="See the Earth as a 3D globe you can spin, tilt and zoom" aria-label="3D Earth"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg><span class="lb">3D Earth</span></button>
   </div>
   <button id="playtop" type="button" class="playtop" aria-label="Play games"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r=".6" fill="currentColor"/><circle cx="18" cy="13.5" r=".6" fill="currentColor"/></svg><span class="lb">Play</span></button>
@@ -78,7 +78,32 @@
     </div>
     <p id="gl-stat" role="status" hidden></p>
   </section>
-  <section id="statbar" hidden aria-label="Statistics">
+  <div id="flights" hidden>
+    <div id="flightcard" hidden></div>
+    <div id="flightbar"><span id="fl-stat" role="status"></span><form id="fl-find" autocomplete="off"><input id="fl-q" type="search" placeholder="Find a flight, e.g. UAE1" aria-label="Find a flight by its call sign"></form></div>
+  </div>
+  <div id="scan" aria-hidden="true"></div>
+  <aside id="side" aria-label="Workspace panel">
+    <div id="side-grab"><button id="side-grab-btn" type="button" aria-label="Resize panel"><span></span></button></div>
+    <div id="side-head">
+      <div id="side-tabs" role="tablist" aria-label="Workspace sections">
+        <button type="button" role="tab" id="tab-explore" data-tab="explore" aria-controls="sv-explore" aria-selected="true">Explore</button>
+        <button type="button" role="tab" id="tab-projects" data-tab="projects" aria-controls="sv-projects" aria-selected="false">Projects</button>
+        <button type="button" role="tab" id="tab-layers" data-tab="layers" aria-controls="sv-layers" aria-selected="false">Layers</button>
+      </div>
+      <button id="side-collapse" type="button" aria-expanded="true" aria-controls="side-body"><span class="sc-ic" aria-hidden="true">‹</span><span class="sc-tx">Hide</span></button>
+    </div>
+    <div id="side-body">
+      <ul id="results" role="listbox" aria-label="Search results"></ul>
+      <section id="sv-explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="-1"><div id="explore-home"></div></section>
+      <section id="sv-projects" role="tabpanel" aria-labelledby="tab-projects" tabindex="-1" hidden></section>
+      <section id="sv-layers" role="tabpanel" aria-labelledby="tab-layers" tabindex="-1" hidden>
+        <h2 class="sv-h">Map type</h2>
+        <div id="maptypes" class="mt-grid" role="group" aria-label="Map type"></div>
+        <h2 class="sv-h">Layers and tools</h2>
+        <div id="layers" role="group" aria-label="Layers and tools">
+          <button id="statsrow" class="lr" type="button" title="Colour countries by population, economy and more, by year"><span class="tx"><b>Statistics</b><small>Colour countries by population, religion, economy and more</small></span><i class="sw"><b></b></i></button>
+<section id="statbar" hidden aria-label="Statistics">
     <div class="sb-groups" id="sb-groups"></div>
     <div class="sb-time" id="sb-time">
       <button id="sb-play" type="button" aria-label="Play through the years" title="Play through the years">▶</button>
@@ -107,6 +132,7 @@
       <p id="h-msg" class="sb-note" role="status" hidden></p>
     </div>
     <div id="sb-table" hidden><input id="sb-find" type="search" placeholder="Find a country in this list…" autocomplete="off"><div id="sb-rows"></div></div>
+    <div id="sb-rel" class="sb-rel" hidden aria-live="polite"></div>
     <p class="sb-note" id="sb-note"></p>
     <form id="sb-add" hidden autocomplete="off">
       <div class="sb-addhead"><strong>Add your own statistic</strong><button type="button" id="sb-add-close" aria-label="Close">✕</button></div>
@@ -119,31 +145,6 @@
       <div class="sa-actions"><button type="submit" class="on">Add statistic</button><span id="sa-msg" class="muted" role="status"></span></div>
     </form>
   </section>
-  <div id="flights" hidden>
-    <div id="flightcard" hidden></div>
-    <div id="flightbar"><span id="fl-stat" role="status"></span><form id="fl-find" autocomplete="off"><input id="fl-q" type="search" placeholder="Find a flight, e.g. UAE1" aria-label="Find a flight by its call sign"></form></div>
-  </div>
-  <div id="scan" aria-hidden="true"></div>
-  <aside id="side" aria-label="Workspace panel">
-    <div id="side-grab"><button id="side-grab-btn" type="button" aria-label="Resize panel"><span></span></button></div>
-    <div id="side-head">
-      <div id="side-tabs" role="tablist" aria-label="Workspace sections">
-        <button type="button" role="tab" id="tab-explore" data-tab="explore" aria-controls="sv-explore" aria-selected="true">Explore</button>
-        <button type="button" role="tab" id="tab-projects" data-tab="projects" aria-controls="sv-projects" aria-selected="false">Projects</button>
-        <button type="button" role="tab" id="tab-layers" data-tab="layers" aria-controls="sv-layers" aria-selected="false">Layers</button>
-      </div>
-      <button id="side-collapse" type="button" aria-expanded="true" aria-controls="side-body"><span class="sc-ic" aria-hidden="true">‹</span><span class="sc-tx">Hide</span></button>
-    </div>
-    <div id="side-body">
-      <ul id="results" role="listbox" aria-label="Search results"></ul>
-      <section id="sv-explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="-1"><div id="explore-home"></div></section>
-      <section id="sv-projects" role="tabpanel" aria-labelledby="tab-projects" tabindex="-1" hidden></section>
-      <section id="sv-layers" role="tabpanel" aria-labelledby="tab-layers" tabindex="-1" hidden>
-        <h2 class="sv-h">Map type</h2>
-        <div id="maptypes" class="mt-grid" role="group" aria-label="Map type"></div>
-        <h2 class="sv-h">Layers and tools</h2>
-        <div id="layers" role="group" aria-label="Layers and tools">
-          <button id="statsrow" class="lr" type="button" title="Colour countries by population, economy and more, by year"><span class="tx"><b>Country statistics</b><small>Colour the map by a number, year by year</small></span><i class="sw"><b></b></i></button>
           <button id="historyrow" class="lr" type="button" title="See how borders changed, from 123,000 BC"><span class="tx"><b>Historical maps</b><small>Borders and peoples from the Stone Age to 2010</small></span><i class="sw"><b></b></i></button>
 <button id="tradebtn" class="lr" type="button" title="Click a country to see curved lines to its main trade partners"><span class="tx"><b>Trade lines</b><small>Click a country to see its trade partners</small></span><i class="sw"><b></b></i></button>
       <button id="flightbtn" class="lr" type="button" title="Show planes flying right now, and where each one is going"><span class="tx"><b>Live flights</b><small>Planes in the air right now</small></span><i class="sw"><b></b></i></button>
@@ -209,6 +210,7 @@
 <script type="module" src="/src/timezones.js"></script>
 <script type="module" src="/src/history.js"></script>
 <script type="module" src="/src/countryhistory.js"></script>
+<script type="module" src="/src/religionpanel.js"></script>
 <script type="module" src="/src/stats.js"></script>
 <script type="module" src="/src/trade.js"></script>
 <script type="module" src="/src/flights.js"></script>

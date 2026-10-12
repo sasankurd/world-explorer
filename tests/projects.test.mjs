@@ -79,7 +79,7 @@ test('view and layers are validated', () => {
   assert.equal(sanitizeView({ center: [0, 95], zoom: 3 }), null);
   assert.equal(sanitizeView({ center: [0, 0], zoom: 99 }), null);
   assert.equal(sanitizeView('x'), null);
-  assert.deepEqual(sanitizeLayers({ base: 'nonsense', flights: 'yes', theme: 'light' }), { base: 'political', theme: 'light', names: true, times: false, flights: false, trade: false });
+  assert.deepEqual(sanitizeLayers({ base: 'nonsense', flights: 'yes', theme: 'light' }), { base: 'political', theme: 'light', names: true, times: false, flights: false, trade: false, stats: '' });
   const r = setViewAndLayers(mk(), { center: [43.7, 33], zoom: 5.234 }, { base: 'satellite', flights: true });
   assert.equal(r.project.view.zoom, 5.23); assert.equal(r.project.layers.base, 'satellite'); assert.equal(r.project.layers.flights, true);
   assert.equal(setViewAndLayers(mk(), null, {}).ok, false);
@@ -212,4 +212,11 @@ test('recent activity keeps the latest few, newest first, without duplicates', (
   for (const n of ['A', 'B', 'C', 'A', 'D']) rc.push({ kind: 'point', name: n, lng: 1, lat: 1 });
   assert.deepEqual(rc.list().map((r) => r.name), ['D', 'A', 'C']);
   rc.push({ kind: 'point', name: '', lng: 1, lat: 1 }); assert.equal(rc.list().length, 3);
+});
+
+test('the statistics layer is saved only for built-in statistics', () => {
+  assert.equal(sanitizeLayers({ stats: 'rel_muslims' }).stats, 'rel_muslims');
+  assert.equal(sanitizeLayers({ stats: 'c_my_own' }).stats, '');
+  assert.equal(sanitizeLayers({ stats: '<img onerror=x>' }).stats, '');
+  assert.equal(sanitizeLayers({}).stats, '');
 });
