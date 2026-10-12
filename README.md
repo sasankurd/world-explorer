@@ -128,3 +128,6 @@ The site is now a workspace: the map fills the screen, with a compact top bar (P
 - **Two exceptions, on purpose.** (1) Opening a read-only share link (`#share=…`) shows that shared project and its map without a project of your own; closing it without saving a copy returns to the front page. (2) If the saved projects are damaged and cannot be read, the front page offers "See what went wrong", which opens only the Projects tab so the data can be fixed.
 - **Honest limit.** Projects live in this browser (see "Workspace and Projects"), so this is a product rule, not security: someone can clear site data, use another browser, or switch off scripts and see no gate. There are no accounts behind it.
 - **Top bar.** The Projects and Layers links are no longer in the top bar on computers; the same two tabs (Projects, Layers) are at the top of the side panel. On phones the bottom tab bar stays (it is the phone navigation), except on the lock screen.
+
+## 3D Earth place names
+The 3D Earth settings have a **Place names** switch (on by default). It lays Esri's transparent "World Boundaries and Places" tiles, which carry names only, over whichever picture is showing. Esri's terms apply to these tiles as they do to the satellite picture.

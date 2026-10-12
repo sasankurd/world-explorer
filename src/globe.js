@@ -19,6 +19,7 @@ const btn = $('#globebtn'), wrap = $('#globe'), view = $('#gl-view'), stat = $('
 let C = null, viewer = null, active = false, starting = null;
 let cfg = { ionToken: '' };
 let borders = null, ds = null, cityLabels = null, cityDots = null, countryLabels = null;
+let namesOn = true, namesLayer = null;
 let selected = null, pinEntity = null, spinOn = true, spinHold = 0, style = 'satellite';
 const shapes = {}; // country id -> { entity, sphere }
 
@@ -46,10 +47,20 @@ async function imageryFor(name) {
   if (name === 'night') return tiles('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png', 8, 'Night lights: NASA Black Marble (GIBS)');
   return C.TileMapServiceImageryProvider.fromUrl(C.buildModuleUrl('Assets/Textures/NaturalEarthII')); // comes with the library
 }
+// names only: Esri's transparent boundaries-and-places tiles, drawn over whichever picture is showing
+function applyNames() {
+  const L = viewer.imageryLayers;
+  if (namesLayer) { L.remove(namesLayer, true); namesLayer = null; }
+  if (!namesOn) return;
+  try {
+    namesLayer = L.addImageryProvider(new C.UrlTemplateImageryProvider({ url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', maximumLevel: 13, credit: 'Names © Esri' }));
+  } catch { say('Place names are not reachable right now.', true); }
+}
 async function setStyle(name) {
   style = name;
   const layers = viewer.imageryLayers; layers.removeAll();
   try { layers.addImageryProvider(await imageryFor(name)); } catch { say('That picture layer is not reachable right now.', true); }
+  applyNames();
   viewer.scene.globe.baseColor = C.Color.fromCssColorString(name === 'night' ? '#02040a' : '#0a1b2a');
 }
 
@@ -193,6 +204,7 @@ wrap.addEventListener('click', (e) => {
   if (e.target.closest('#gl-x')) toggle(false);
 });
 $('#gl-style').addEventListener('change', (e) => viewer && setStyle(e.target.value));
+$('#gl-names').addEventListener('click', (e) => { const b = e.currentTarget; setTimeout(() => { namesOn = b.classList.contains('on'); if (viewer) applyNames(); }); }); // after the shared switch handler flips it
 $('#gl-terrain').addEventListener('click', (e) => {
   const on = e.currentTarget.classList.toggle('on'); e.currentTarget.setAttribute('aria-checked', String(on));
   viewer.scene.verticalExaggeration = on ? 2.2 : 1;
