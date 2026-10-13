@@ -1,6 +1,7 @@
 // Interface language. The Settings menu lists the world's most spoken languages; the choice is remembered on this device.
 // This translates the main controls (top bar, settings, panel tabs, map tools). Text made while using the site
 // (project names, statistics, country facts, news) stays as it is.
+import { STATS_T } from './i18n-stats.js';
 export const LANGS = [
   ['en', 'English'], ['zh', '中文 (Mandarin)'], ['hi', 'हिन्दी (Hindi)'], ['es', 'Español'], ['fr', 'Français'],
   ['ar', 'العربية (Arabic)'], ['bn', 'বাংলা (Bengali)'], ['pt', 'Português'], ['ru', 'Русский'], ['ur', 'اردو (Urdu)'], ['id', 'Bahasa Indonesia'], ['ckb', 'کوردی (Sorani)'],
@@ -41,6 +42,7 @@ const T = {
   'Close': ['关闭', 'बंद करें', 'Cerrar', 'Fermer', 'إغلاق', 'বন্ধ করুন', 'Fechar', 'Закрыть', 'بند کریں', 'Tutup', 'داخستن'],
   'Show statistics': ['显示统计', 'आँकड़े दिखाएँ', 'Mostrar datos', 'Afficher les statistiques', 'إظهار الإحصاءات', 'পরিসংখ্যান দেখান', 'Mostrar estatísticas', 'Показать статистику', 'اعداد و شمار دکھائیں', 'Tampilkan statistik', 'ئامار پیشان بدە'],
 };
+Object.assign(T, STATS_T);
 const $$ = (s) => [...document.querySelectorAll(s)];
 // [selector, key, attribute (omit for text)]
 const TARGETS = [
@@ -72,10 +74,28 @@ function apply() {
   document.documentElement.lang = lang;
   document.body.classList.toggle('rtl', RTL.has(lang));
   TARGETS.forEach(setOne);
+  window.__tlStats?.();
+  const sb = document.querySelector('#statbar'); if (sb) sb.dataset.tl = lang === 'en' ? '' : '1';
   for (const sel of LIVE) for (const el of $$(sel)) { const k = keyOf(el.textContent); if (k) el.textContent = tr(k); }
 }
+// the statistics controls are redrawn by their own script, so they are translated whenever they change
+const statLang = (root) => {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const raw = n.nodeValue, txt = raw.trim(); if (!txt) continue;
+    const k = keyOf(txt); if (!k) continue;
+    const want = tr(k); if (txt !== want) n.nodeValue = raw.replace(txt, want);
+  }
+};
+function watchStats() {
+  const bar = document.querySelector('#statbar'); if (!bar) return;
+  let busy = false;
+  const run = () => { if (busy) return; busy = true; try { statLang(bar); } finally { busy = false; } };
+  new MutationObserver(() => { if (lang !== 'en' || bar.dataset.tl) run(); }).observe(bar, { childList: true, subtree: true, characterData: true });
+  window.__tlStats = run;
+}
 function watchLive() {
-  const mo = new MutationObserver((list) => { if (lang === 'en') return; for (const m of list) { const el = m.target.nodeType === 3 ? m.target.parentElement : m.target; const k = keyOf(el.textContent); if (k && el.textContent !== tr(k)) el.textContent = tr(k); } });
+  const mo = new MutationObserver((list) => { if (lang === 'en') return; for (const m of list) { const el = m.target.nodeType === 3 ? m.target.parentElement : m.target; if (!el) continue; const k = keyOf(el.textContent); if (k && el.textContent !== tr(k)) el.textContent = tr(k); } });
   for (const sel of LIVE) for (const el of $$(sel)) mo.observe(el, { childList: true, characterData: true, subtree: true });
 }
 export function setLang(code) {
@@ -92,7 +112,7 @@ export function initLang() {
     sel.value = lang;
     sel.addEventListener('change', () => setLang(sel.value));
   }
-  watchLive(); apply();
+  watchLive(); watchStats(); apply();
   const again = () => lang !== 'en' && apply();
   window.addEventListener('layout-change', again); window.addEventListener('maptype-change', again);
   setTimeout(again, 1200); setTimeout(again, 3500); // parts of the page are drawn a moment after load
