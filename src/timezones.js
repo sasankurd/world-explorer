@@ -51,7 +51,9 @@ function setEnabled(on) {
   toggle.textContent = on ? 'Hide time zones on map' : 'Show time zones on map';
   for (const { el } of guides) el.hidden = !on;
   if (map.getLayer('timezone-lines')) map.setLayoutProperty('timezone-lines', 'visibility', on ? 'visible' : 'none');
+  window.dispatchEvent(new CustomEvent('tz-change', { detail: on }));
 }
+window.__tz = { toggle: () => setEnabled(!enabled), get enabled() { return enabled; } };
 function setupTimezoneLayer() {
   if (!map.getSource('timezone-lines')) {
     map.addSource('timezone-lines', { type: 'geojson', data: { type: 'FeatureCollection', features: lineFeatures } });

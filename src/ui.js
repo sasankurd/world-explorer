@@ -23,8 +23,8 @@ anim.addEventListener('click', () => setAnim(!anim.classList.contains('on'), tru
 
 // ---------- layers and tools (rows in the Layers tab) ----------
 const lmenu = $('#layers'), lcount = $('#layercount');
-const tzbtn = $('#tzbtn'), tzpanel = $('#timepanel');
-tzbtn.addEventListener('click', () => $(tzpanel.hidden ? '#timepanel-open' : '#timepanel-close').click());
+const tzbtn = $('#tzbtn');
+tzbtn.addEventListener('click', () => window.__tz?.toggle()); // straight on/off for the zone lines and labels, no extra window
 // Statistics and Historical maps are modes of the map, so these two rows follow the real state
 const statsRow = $('#statsrow'), histRow = $('#historyrow');
 // when Statistics opens, bring its controls into view inside the panel
@@ -52,10 +52,10 @@ function count() {
   lcount.textContent = n; lcount.hidden = !n;
   rows.forEach((r) => r.setAttribute('aria-pressed', String(r.classList.contains('on'))));
 }
-const syncTz = () => { tzbtn.classList.toggle('on', !tzpanel.hidden); count(); };
+const syncTz = () => { tzbtn.classList.toggle('on', !!window.__tz?.enabled); tzbtn.setAttribute('aria-pressed', String(!!window.__tz?.enabled)); count(); };
+window.addEventListener('tz-change', syncTz);
 const ob = new MutationObserver(syncModes);
 rows.forEach((r) => ob.observe(r, { attributes: true, attributeFilter: ['class'] }));
-new MutationObserver(syncTz).observe(tzpanel, { attributes: true, attributeFilter: ['hidden'] });
 new MutationObserver(syncModes).observe(document.body, { attributes: true, attributeFilter: ['class', 'data-view'] });
 window.addEventListener('view-change', syncModes);
 window.addEventListener('stats-layer', syncModes);
