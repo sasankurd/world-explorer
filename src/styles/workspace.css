@@ -281,3 +281,8 @@ dialog.wd[open]{animation:pin .2s cubic-bezier(.2,.9,.25,1)}
 @media(max-width:700px){#maptools{left:50%;top:calc(10px + var(--sb,0px))}#maptools .mtool span{display:none}#maptools .mtool{width:34px;padding:0;justify-content:center}}
 .lr[hidden]{display:none!important}
 #maptools .mtool{white-space:nowrap}
+
+/* Statistics controls float under the top tool bar, not in the side panel */
+#statbar{left:calc(50% + var(--rail,0px) / 2);right:auto;top:calc(60px + var(--sb,0px));transform:translateX(-50%);width:min(780px,calc(100% - var(--rail,0px) - 24px));max-height:calc(100% - 150px);overflow:auto;padding:10px 12px;background:rgba(8,18,32,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:12px;box-shadow:var(--shadow);z-index:29;animation:none!important}
+#statbar .sb-groups{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-height:150px}
+@media(max-width:700px){#statbar{left:50%;width:calc(100% - 20px);top:calc(54px + var(--sb,0px));max-height:calc(100% - var(--sheet,0px) - 70px)}}

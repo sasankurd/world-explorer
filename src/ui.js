@@ -30,15 +30,15 @@ tzbtn.addEventListener('click', () => {
   window.__tz?.set(on); app?.setTimeMode(on);
 });
 // Stats and Real size live in the top bar; they press the (hidden) rows that hold the real logic
-$('#statstop').addEventListener('click', () => { const was = window.__app?.statsOn; $('#statsrow').click(); if (!was) window.__workspace?.setTab('layers'); });
+$('#statstop').addEventListener('click', () => { $('#statsrow').click(); });
 $('#sizetop').addEventListener('click', () => $('#sizebtn').click());
 // Statistics and Historical maps are modes of the map, so these two rows follow the real state
 const statsRow = $('#statsrow'), histRow = $('#historyrow');
 // when Statistics opens, bring its controls into view inside the panel
-const focusStats = () => setTimeout(() => $('#statbar')?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 80);
+const focusStats = () => {};
 statsRow.addEventListener('click', () => {
   const app = window.__app; if (!app) return;
-  if (app.statsOn && !window.__history?.active) app.setStats(false); else if (window.__history?.active) { $('#sb-groups [data-back]')?.click(); } else { app.setStats(true); focusStats(); }
+  if (app.statsOn && !window.__history?.active) app.setStats(false); else if (window.__history?.active) { $('#sb-groups [data-back]')?.click(); } else { app.setStats(true); }
 });
 histRow.addEventListener('click', () => {
   const app = window.__app; if (!app) return;
