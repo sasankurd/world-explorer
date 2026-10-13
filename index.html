@@ -102,7 +102,7 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
         <div id="maptypes" class="mt-grid" role="group" aria-label="Map type"></div>
         <h2 class="sv-h">Layers and tools</h2>
         <div id="layers" role="group" aria-label="Layers and tools">
-          <button id="statsrow" class="lr" type="button" title="Colour countries by population, economy and more, by year"><span class="tx"><b>Statistics</b><small>Colour countries by population, religion, economy and more</small></span><i class="sw"><b></b></i></button>
+          <button id="statsrow" class="lr" hidden type="button" title="Colour countries by population, economy and more, by year"><span class="tx"><b>Statistics</b><small>Colour countries by population, religion, economy and more</small></span><i class="sw"><b></b></i></button>
 <section id="statbar" hidden aria-label="Statistics">
     <div class="sb-groups" id="sb-groups"></div>
     <div class="sb-time" id="sb-time">
@@ -145,8 +145,8 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
       <div class="sa-actions"><button type="submit" class="on">Add statistic</button><span id="sa-msg" class="muted" role="status"></span></div>
     </form>
   </section>
-          <button id="historyrow" class="lr" type="button" title="See how borders changed, from 123,000 BC"><span class="tx"><b>Historical maps</b><small>Borders and peoples from the Stone Age to 2010</small></span><i class="sw"><b></b></i></button>
-      <button id="sizebtn" class="lr" type="button" title="Drag countries around to compare their real sizes"><span class="tx"><b>Real size</b><small>Drag countries to compare their size</small></span><i class="sw"><b></b></i></button>
+          <button id="historyrow" class="lr" hidden type="button" title="See how borders changed, from 123,000 BC"><span class="tx"><b>Historical maps</b><small>Borders and peoples from the Stone Age to 2010</small></span><i class="sw"><b></b></i></button>
+      <button id="sizebtn" class="lr" hidden type="button" title="Drag countries around to compare their real sizes"><span class="tx"><b>Real size</b><small>Drag countries to compare their size</small></span><i class="sw"><b></b></i></button>
           <button id="playrow" class="lr act" type="button"><span class="tx"><b>Play trivia games</b><small>Flags, capitals and more, solo or with friends</small></span><span class="go" aria-hidden="true">›</span></button>
         </div>
         <p class="sv-note">Live flights use OpenSky's free feed and update about every 25 seconds. Satellite and terrain pictures come from Esri; street maps from OpenStreetMap.</p>
@@ -157,9 +157,11 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
   </aside>
   <button id="side-open" type="button" aria-expanded="false" aria-controls="side"><span aria-hidden="true">›</span> Show panel</button>
   <div id="maptools" role="toolbar" aria-label="Map tools">
+    <button id="statstop" class="mtool" type="button" aria-pressed="false" title="Colour countries by population, religion, economy and more"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Stats</span></button>
+    <button id="sizetop" class="mtool" type="button" aria-pressed="false" title="Drag countries around to compare their real sizes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Real size</span></button>
     <button id="flightbtn" class="mtool" type="button" title="Show planes flying right now, and where each one is going"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15.5v-1.7l-8-5V4a1.5 1.5 0 0 0-3 0v4.8l-8 5v1.7l8-2.4V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-4.9z"/></svg><span>Flights</span></button>
     <button id="tradebtn" class="mtool" type="button" title="Click a country to see curved lines to its main trade partners"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17c2-8 14-8 16 0"/><path d="M17 14l3 3-4 1"/><circle cx="4" cy="17" r="1.3"/></svg><span>Trade</span></button>
-    <button id="tzbtn" class="mtool" type="button" aria-pressed="false" title="Show or hide the time zone lines on the map"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Time</span></button>
+    <button id="tzbtn" class="mtool" type="button" aria-pressed="false" title="Show or hide the time zone lines and the time in each country"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Time</span></button>
     <button id="measurebtn" class="mtool" type="button" aria-controls="measure" title="Measure distances and travel time between places"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span>Measure</span></button>
   </div>
   <div id="mapctl">

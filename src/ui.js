@@ -24,7 +24,14 @@ anim.addEventListener('click', () => setAnim(!anim.classList.contains('on'), tru
 // ---------- layers and tools (rows in the Layers tab) ----------
 const lmenu = $('#layers'), lcount = $('#layercount');
 const tzbtn = $('#tzbtn');
-tzbtn.addEventListener('click', () => window.__tz?.toggle()); // straight on/off for the zone lines and labels, no extra window
+// Time: straight on/off for the zone lines and the clock in each country, no extra window
+tzbtn.addEventListener('click', () => {
+  const app = window.__app, on = !(window.__tz?.enabled || app?.timeMode);
+  window.__tz?.set(on); app?.setTimeMode(on);
+});
+// Stats and Real size live in the top bar; they press the (hidden) rows that hold the real logic
+$('#statstop').addEventListener('click', () => { const was = window.__app?.statsOn; $('#statsrow').click(); if (!was) window.__workspace?.setTab('layers'); });
+$('#sizetop').addEventListener('click', () => $('#sizebtn').click());
 // Statistics and Historical maps are modes of the map, so these two rows follow the real state
 const statsRow = $('#statsrow'), histRow = $('#historyrow');
 // when Statistics opens, bring its controls into view inside the panel
@@ -45,14 +52,16 @@ const rows = [...lmenu.querySelectorAll('.lr:not(.act)')];
 function syncModes() {
   const app = window.__app, stats = !!app?.statsOn, hist = !!window.__history?.active || document.body.classList.contains('history');
   statsRow.classList.toggle('on', stats && !hist); histRow.classList.toggle('on', hist);
-  count();
+  syncTz();
 }
 function count() {
   const n = rows.filter((r) => r.classList.contains('on')).length;
   lcount.textContent = n; lcount.hidden = !n;
   rows.forEach((r) => r.setAttribute('aria-pressed', String(r.classList.contains('on'))));
 }
-const syncTz = () => { tzbtn.classList.toggle('on', !!window.__tz?.enabled); tzbtn.setAttribute('aria-pressed', String(!!window.__tz?.enabled)); count(); };
+const syncTz = () => { const on = !!(window.__tz?.enabled || window.__app?.timeMode); tzbtn.classList.toggle('on', on); tzbtn.setAttribute('aria-pressed', String(on)); count(); };
+const mirror = (row, btn) => { const f = () => { const on = row.classList.contains('on'); btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', String(on)); }; new MutationObserver(f).observe(row, { attributes: true, attributeFilter: ['class'] }); f(); };
+mirror($('#statsrow'), $('#statstop')); mirror($('#sizebtn'), $('#sizetop'));
 window.addEventListener('tz-change', syncTz);
 const ob = new MutationObserver(syncModes);
 rows.forEach((r) => ob.observe(r, { attributes: true, attributeFilter: ['class'] }));

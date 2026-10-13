@@ -279,3 +279,5 @@ dialog.wd[open]{animation:pin .2s cubic-bezier(.2,.9,.25,1)}
 #mapctl .ctl-one .ic{width:20px;height:20px}
 @media(min-width:701px){#timepanel,#sizepanel,#gl-panel{top:calc(58px + var(--sb,0px))!important}}
 @media(max-width:700px){#maptools{left:50%;top:calc(10px + var(--sb,0px))}#maptools .mtool span{display:none}#maptools .mtool{width:34px;padding:0;justify-content:center}}
+.lr[hidden]{display:none!important}
+#maptools .mtool{white-space:nowrap}
