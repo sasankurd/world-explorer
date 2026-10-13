@@ -87,3 +87,11 @@ document.querySelectorAll('#playtop, #signinbtn, #settingsbtn').forEach((el) => 
   el.addEventListener('pointerenter', show); el.addEventListener('pointerleave', hide); el.addEventListener('pointerdown', hide);
   el.addEventListener('focus', (e) => { if (el.matches(':focus-visible')) show(e); }); el.addEventListener('blur', hide);
 });
+
+// Hide / show the floating statistics controls without turning the statistic off
+{
+  const bar = $('#statbar'), hb = $('#sb-hide');
+  const fold = (on) => { bar.classList.toggle('folded', on); hb.setAttribute('aria-expanded', String(!on)); $('.sbh-t', hb).textContent = on ? 'Show statistics' : 'Hide'; $('.sbh-i', hb).textContent = on ? '▾' : '▴'; };
+  hb.addEventListener('click', () => fold(!bar.classList.contains('folded')));
+  new MutationObserver(() => { if (!bar.hidden) fold(false); }).observe(bar, { attributes: true, attributeFilter: ['hidden'] }); // opens fresh each time
+}
