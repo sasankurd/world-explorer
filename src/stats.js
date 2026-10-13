@@ -69,7 +69,6 @@ function renderChips() {
   const heat = `<div class="sbg"><span class="sbl">Where people live</span><div class="sbc"><button type="button" class="${mode === 'heat' ? 'on' : ''}" data-heat="1">People heat</button></div></div>`;
   const hist = `<div class="sbg"><span class="sbl">History</span><div class="sbc"><button type="button" class="${mode === 'history' ? 'on' : ''}" data-history="1" title="How the world's countries, names and borders looked in every era">World through time</button></div></div>`;
   $('#sb-groups').innerHTML = groups.filter((g) => g !== yours).map(html).join('') + heat + hist + html(yours);
-  $('#sb-groups .on')?.scrollIntoView({ block: 'nearest' });
 }
 $('#sb-groups').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;

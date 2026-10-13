@@ -296,3 +296,40 @@ dialog.wd[open]{animation:pin .2s cubic-bezier(.2,.9,.25,1)}
 
 /* right-to-left languages: flip the text of the menus, not the map */
 body.rtl #settings,body.rtl #side,body.rtl #maptools,body.rtl #statbar,body.rtl header #search{direction:rtl}
+
+/* compact statistics panel: narrower and shorter so the map stays in view */
+body #statbar{width:min(500px,calc(100% - var(--rail,0px) - 24px));max-height:min(300px,calc(100% - 150px));padding:7px 10px;border-radius:10px;font-size:12.5px}
+body #statbar .sb-groups{grid-template-columns:1fr;gap:5px;max-height:104px;padding-bottom:6px}
+body #statbar .sbg{flex-direction:row;align-items:flex-start;gap:8px}
+body #statbar .sbl{flex:0 0 74px;font-size:11px;padding-top:5px;line-height:1.2}
+body #statbar .sbc{gap:4px}
+body #statbar .sbc button,#statbar .sb-tools button{min-height:24px;padding:2px 9px;font-size:12px}
+#sb-hide{min-height:22px;padding:0 8px;font-size:11.5px;margin-bottom:3px}
+body #statbar .sb-time{margin-top:6px;gap:5px 10px}
+body #statbar .sb-year{font-size:17px;min-width:48px}
+body #statbar #sb-play{width:28px;height:28px}
+body #statbar .sb-note{font-size:11.5px;line-height:1.35;margin-top:4px}
+body #statbar .sb-legend{font-size:11px}
+@media(max-width:700px){body #statbar{width:calc(100% - 20px);max-height:min(270px,calc(100% - var(--sheet,0px) - 70px))}#statbar .sbl{flex-basis:62px}}
+
+/* compact statistics panel: narrow and short so the map stays visible */
+body #statbar{width:min(500px,calc(100% - var(--rail,0px) - 24px));max-height:min(300px,calc(100% - 150px));padding:7px 9px;border-radius:10px;font-size:12.5px}
+body #statbar .sb-groups{grid-template-columns:1fr 1fr;gap:6px 12px;max-height:104px;padding-bottom:6px}
+body #statbar .sbg{gap:3px}
+body #statbar .sbl{font-size:11px}
+body #statbar .sbc{gap:4px}
+body #statbar .sbc button{min-height:24px;padding:2px 8px;font-size:12px}
+body #statbar .sb-time{margin-top:7px;gap:5px 9px}
+body #statbar .sb-year{font-size:17px;min-width:44px}
+body #statbar #sb-play{width:30px;height:30px;min-width:30px}
+body #statbar .sb-rangewrap{min-width:110px}
+body #statbar .sb-legend{font-size:11px}
+body #statbar .sb-tools button{min-height:24px;padding:2px 8px;font-size:12px}
+body #statbar .sb-note{font-size:11px;line-height:1.35;margin-top:4px}
+#sb-hide{min-height:22px;margin-bottom:3px;padding:0 8px;font-size:11.5px}
+@media(max-width:700px){body #statbar{width:calc(100% - 20px);max-height:min(260px,calc(100% - var(--sheet,0px) - 70px))}body #statbar .sb-groups{max-height:84px}}
+body #statbar .sb-groups{display:flex;flex-wrap:wrap;align-content:flex-start;gap:4px;max-height:118px;overflow:auto}
+body #statbar .sbg{flex:1 1 100%;flex-direction:row;flex-wrap:nowrap;align-items:flex-start;gap:6px}
+body #statbar .sbl{flex:none;width:74px;padding-top:5px;white-space:normal;line-height:1.15}
+body #statbar .sbc{flex:1}
+body #statbar{max-height:min(330px,calc(100% - 150px))}
