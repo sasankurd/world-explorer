@@ -134,3 +134,6 @@ The 3D Earth settings have a **Place names** switch (on by default). It lays Esr
 
 ## Map tools bar and reset view
 Flights, Trade, Time and Measure moved out of the Layers tab into a small transparent bar at the top right of the map (icons only on phones). The round-arrow button above the zoom buttons resets the view: the opening world view on the flat map, or the globe's own Reset view in 3D.
+
+## Language setting
+Settings has a **Language** list with the most spoken languages: English, Mandarin Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu and Indonesian. The choice is remembered on this device (`we-lang`); Arabic and Urdu switch the menus to right-to-left. It translates the main controls (top bar, Settings, panel tabs, map tools). Text made while you use the site (project names, statistics, country facts, news, game questions) stays in English. To add a string or a language, edit `src/i18n.js`. The translations were written without a native-speaker review, so have one checked before launch.

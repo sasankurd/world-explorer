@@ -1,4 +1,5 @@
 // Header and Layers-tab behaviour: the Settings menu, the animations switch, the layer rows and short name tips on icon buttons.
+import { initLang } from './i18n.js';
 const $ = (s, r = document) => r.querySelector(s);
 
 // ---------- settings menu ----------
@@ -95,3 +96,5 @@ document.querySelectorAll('#playtop, #signinbtn, #settingsbtn').forEach((el) => 
   hb.addEventListener('click', () => fold(!bar.classList.contains('folded')));
   new MutationObserver(() => { if (!bar.hidden) fold(false); }).observe(bar, { attributes: true, attributeFilter: ['hidden'] }); // opens fresh each time
 }
+
+initLang();

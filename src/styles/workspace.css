@@ -293,3 +293,6 @@ dialog.wd[open]{animation:pin .2s cubic-bezier(.2,.9,.25,1)}
 #statbar.folded{width:auto;max-height:none;overflow:visible;padding:4px}
 #statbar.folded>:not(#sb-hide){display:none!important}
 #statbar.folded #sb-hide{margin:0}
+
+/* right-to-left languages: flip the text of the menus, not the map */
+body.rtl #settings,body.rtl #side,body.rtl #maptools,body.rtl #statbar,body.rtl header #search{direction:rtl}
