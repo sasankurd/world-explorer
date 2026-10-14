@@ -115,7 +115,7 @@ main{--rail:0px;--sheet:0px}
 .ppin{position:relative;display:flex;flex-direction:column-reverse;align-items:center;gap:3px;padding:0;background:none;border:0;cursor:pointer;color:var(--fg)}
 .ppin:hover,.ppin:active{background:none;transform:none}
 .ppin .pd{width:16px;height:16px;border-radius:50%;background:var(--acc2);border:2px solid #fff;box-shadow:0 2px 8px #000a;transition:transform .15s}
-.ppin .pn{display:none;max-width:170px;padding:2px 9px;background:var(--solid);border:1px solid rgba(245,179,74,.7);border-radius:8px;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 14px #000a}
+.ppin .pn{display:none;max-width:150px;padding:1px 7px;background:var(--solid);border:1px solid rgba(245,179,74,.7);border-radius:7px;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 14px #000a}
 .ppin.names .pn,.ppin:hover .pn,.ppin:focus-visible .pn,.ppin.sel .pn{display:block}
 .ppin:hover .pd,.ppin:focus-visible .pd,.ppin.sel .pd{transform:scale(1.35)}
 .ppin.sel .pd{background:#fff;border-color:var(--acc2)}

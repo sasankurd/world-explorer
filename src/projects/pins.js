@@ -2,6 +2,7 @@
 // Pins are real buttons, so they can be reached with the keyboard. They are not drawn on the 3D globe yet.
 import * as maplibregl from 'maplibre-gl';
 
+const NAME_ZOOM = 5; // zoomed out, saved places are small dots; their names appear when you zoom in, or on hover and selection
 export function createPins(map, { onSelect } = {}) {
   let markers = new Map(), selected = '', showAllNames = true;
   const el = (p) => {
@@ -23,9 +24,10 @@ export function createPins(map, { onSelect } = {}) {
     }
     mark();
   }
+  map.on('zoomend', () => mark());
   function clear() { markers.forEach((m) => m.remove()); markers = new Map(); selected = ''; }
   function mark() {
-    markers.forEach((m, id) => { const e = m.getElement(); e.classList.toggle('sel', id === selected); e.classList.toggle('names', showAllNames); });
+    markers.forEach((m, id) => { const e = m.getElement(); e.classList.toggle('sel', id === selected); e.classList.toggle('names', showAllNames && map.getZoom() >= NAME_ZOOM); });
   }
   return {
     show, clear,
