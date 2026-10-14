@@ -355,3 +355,4 @@ body #statbar #sb-rows{max-height:90px}
   #side-head{border-right:1px solid rgba(255,255,255,.12)}
   #side[data-mini="true"] #side-head{border-right:0}
 }
+@media(min-width:701px){#side[data-mini="true"]{grid-template-rows:auto}#side[data-mini="true"] #side-body{height:0;max-height:0;padding:0;overflow:hidden}}

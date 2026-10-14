@@ -19,7 +19,7 @@ const btn = $('#globebtn'), wrap = $('#globe'), view = $('#gl-view'), stat = $('
 let C = null, viewer = null, active = false, starting = null;
 let cfg = { ionToken: '' };
 let borders = null, ds = null, cityLabels = null, cityDots = null, countryLabels = null;
-let namesOn = true, namesLayer = null;
+let namesOn = true, namesLayer = null, namesHook = false;
 let selected = null, pinEntity = null, spinOn = true, spinHold = 0, style = 'satellite';
 const shapes = {}; // country id -> { entity, sphere }
 
@@ -48,12 +48,19 @@ async function imageryFor(name) {
   return C.TileMapServiceImageryProvider.fromUrl(C.buildModuleUrl('Assets/Textures/NaturalEarthII')); // comes with the library
 }
 // names only: Esri's transparent boundaries-and-places tiles, drawn over whichever picture is showing
+// the name tiles stop at a fixed detail level; zoomed in closer than that they would be blown up into huge letters, so they fade out there
+function fitNames() {
+  if (!namesLayer || !viewer) return;
+  const h = viewer.camera.positionCartographic.height;
+  namesLayer.alpha = h > 40000 ? 1 : h > 15000 ? (h - 15000) / 25000 : 0;
+}
 function applyNames() {
   const L = viewer.imageryLayers;
   if (namesLayer) { L.remove(namesLayer, true); namesLayer = null; }
   if (!namesOn) return;
   try {
-    namesLayer = L.addImageryProvider(new C.UrlTemplateImageryProvider({ url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', maximumLevel: 13, credit: 'Names © Esri' }));
+    namesLayer = L.addImageryProvider(new C.UrlTemplateImageryProvider({ url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', maximumLevel: 12, credit: 'Names © Esri' }));
+    fitNames();
   } catch { say('Place names are not reachable right now.', true); }
 }
 async function setStyle(name) {
@@ -61,6 +68,7 @@ async function setStyle(name) {
   const layers = viewer.imageryLayers; layers.removeAll();
   try { layers.addImageryProvider(await imageryFor(name)); } catch { say('That picture layer is not reachable right now.', true); }
   applyNames();
+  if (!namesHook) { namesHook = true; viewer.camera.changed.addEventListener(fitNames); viewer.camera.percentageChanged = 0.05; }
   viewer.scene.globe.baseColor = C.Color.fromCssColorString(name === 'night' ? '#02040a' : '#0a1b2a');
 }
 
