@@ -91,7 +91,7 @@ Order, left to right: logo, text links, search, Map type (picture), Layers, Stat
 
 ## Workspace and Projects (map-first redesign)
 
-The site is now a workspace: the map fills the screen, with a compact top bar (Projects, Layers, search, Play, Settings, Sign in), a collapsible panel on the left, and the country or place details inside that panel so the map stays visible. On phones the panel becomes a bottom sheet that you can drag, and a tab bar (Projects, Layers) stays at the bottom. The map has zoom buttons and a 2D/3D switch. The old front-page cards moved into the Layers tab (statistics, historical maps, trade lines, live flights, time zones, distance and measure, real size, play) and into the Discover box on the front page.
+The site is now a workspace: the map fills the screen, with a compact top bar (Projects, Layers, search, Play, Settings, Sign in), a fixed, see-through panel on the left (section icons stacked down its side on computers), and the country or place details inside that panel so the map stays visible. On phones the panel becomes a bottom sheet that you can drag, and a tab bar (Projects, Layers) stays at the bottom. The map has zoom buttons and a 2D/3D switch. The old front-page cards moved into the Layers tab (statistics, historical maps, trade lines, live flights, time zones, distance and measure, real size, play) and into the Discover box on the front page.
 
 **Projects** are saved map workspaces: a name, an optional description, saved places, notes, the map view (position and zoom) and the layers that were on (map type, theme, names, country times, trade lines, live flights).
 

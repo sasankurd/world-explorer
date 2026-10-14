@@ -52,7 +52,7 @@ const TARGETS = [
   ['.srow:has(#anim) b', 'Animations'], ['.srow:has(#anim) small', 'Sliding tabs, sweeps and glow'],
   ['.srow:has(#lang) b', 'Language'], ['.srow:has(#lang) small', 'Most spoken languages'],
   ['#search', 'Search places', 'placeholder'], ['#playtop .lb', 'Play'], ['#signinbtn .lb', 'Sign in'],
-  ['#tab-projects', 'Projects'], ['#tab-layers', 'Layers'], ['#topnav [data-tab=projects] .nl', 'Projects'], ['#topnav [data-tab=layers] .nl', 'Layers'],
+  ['#tab-projects .tl', 'Projects'], ['#tab-layers .tl', 'Layers'], ['#topnav [data-tab=projects] .nl', 'Projects'], ['#topnav [data-tab=layers] .nl', 'Layers'],
   ['#statstop span', 'Stats'], ['#sizetop span', 'Real size'], ['#flightbtn span', 'Flights'], ['#tradebtn span', 'Trade'], ['#tzbtn span', 'Time'], ['#measurebtn span', 'Measure'],
   ['#mapbar-type small', 'Map type'], ['#mapbar-save span', 'Save this view'],
   ['#sv-layers .sv-h:nth-of-type(1)', 'Map type'], ['#sv-layers .sv-h:nth-of-type(2)', 'Layers and tools'],

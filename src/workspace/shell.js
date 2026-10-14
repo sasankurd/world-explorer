@@ -13,7 +13,7 @@ const TABS = ['projects', 'layers'];
 const pref = (v) => { try { return v === undefined ? localStorage.getItem('we-side') : localStorage.setItem('we-side', v); } catch { return null; } };
 
 let tab = 'projects';
-let desktopOpen = pref() !== 'collapsed';
+let desktopOpen = true; // on computers the panel is fixed open; only the phone sheet opens and closes
 let snap = 'closed'; // phones: closed | half | full
 
 const landing = () => body.classList.contains('landing');
@@ -49,7 +49,7 @@ function setTab(name, { open = true } = {}) {
   window.dispatchEvent(new CustomEvent('workspace-tab', { detail: name }));
 }
 function openPanel() { if (mobile.matches) { if (snap === 'closed') snap = 'half'; } else { desktopOpen = true; pref('open'); } render(); }
-function closePanel() { if (mobile.matches) snap = 'closed'; else { desktopOpen = false; pref('collapsed'); } render(); }
+function closePanel() { if (mobile.matches) snap = 'closed'; render(); } // fixed open on computers
 
 // ---------- tabs ----------
 $('#side-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
