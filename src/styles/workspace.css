@@ -332,3 +332,26 @@ body #statbar #sb-rows{max-height:90px}
   #side[data-open="false"]{transform:none;opacity:1;visibility:visible;pointer-events:auto}
   #side .ph{background:rgba(8,18,32,.7)}
 }
+
+/* icon rail: icons only; a name slides in under an icon on hover or focus, and stays under the chosen one while the panel is open */
+@media(min-width:701px){
+  #side{grid-template-columns:54px minmax(0,1fr);width:min(390px,calc(100% - 24px));transition:width .32s cubic-bezier(.2,.8,.2,1),bottom .32s,background .25s,box-shadow .25s}
+  #side[data-mini="true"]{width:54px;bottom:auto;grid-template-columns:54px 0}
+  #side[data-mini="true"] #side-body{opacity:0;visibility:hidden;pointer-events:none;overflow:hidden}
+  #side-body{transition:opacity .22s .1s}
+  #side-head{padding:8px 4px;gap:6px}
+  #side-tabs button,#side-collapse{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;width:100%;min-height:44px;padding:9px 0;border:1px solid transparent;border-radius:12px;background:none;color:var(--muted);transition:background .18s,color .18s,border-color .18s,padding .22s}
+  #side-tabs button .ic,#side-collapse .sc-ic{width:22px;height:22px;font-size:20px;line-height:22px;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+  #side-tabs button:hover .ic,#side-collapse:hover .sc-ic{transform:scale(1.14)}
+  #side-tabs button .tl,#side-collapse .sc-tx{display:block;max-height:0;opacity:0;overflow:hidden;font-size:10.5px;line-height:1.15;transform:translateY(-4px);transition:max-height .22s,opacity .2s,transform .22s}
+  #side-tabs button:hover .tl,#side-tabs button:focus-visible .tl,#side-collapse:hover .sc-tx,#side-collapse:focus-visible .sc-tx,
+  #side[data-mini="false"] #side-tabs button[aria-selected="true"] .tl{max-height:16px;opacity:1;transform:none;margin-top:3px}
+  #side-tabs button:hover,#side-collapse:hover{background:rgba(255,255,255,.1);color:var(--fg)}
+  #side[data-mini="false"] #side-tabs button[aria-selected="true"]{background:rgba(76,208,242,.16);border-color:var(--acc);color:var(--acc)}
+  #side[data-mini="true"] #side-tabs button[aria-selected="true"]{background:none;border-color:transparent;color:var(--muted)}
+  #side-collapse{margin:6px 0 0;display:none!important}
+  #side[data-mini="false"] #side-collapse{display:flex!important}
+  #side-collapse .sc-ic{transform:none}
+  #side-head{border-right:1px solid rgba(255,255,255,.12)}
+  #side[data-mini="true"] #side-head{border-right:0}
+}

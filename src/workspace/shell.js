@@ -13,14 +13,15 @@ const TABS = ['projects', 'layers'];
 const pref = (v) => { try { return v === undefined ? localStorage.getItem('we-side') : localStorage.setItem('we-side', v); } catch { return null; } };
 
 let tab = 'projects';
-let desktopOpen = true; // on computers the panel is fixed open; only the phone sheet opens and closes
+let desktopOpen = false; // on computers the panel rests as a narrow icon rail; choosing an icon opens it
 let snap = 'closed'; // phones: closed | half | full
 
 const landing = () => body.classList.contains('landing');
 const isOpen = () => (mobile.matches ? snap !== 'closed' : desktopOpen);
 
 function render() {
-  const open = isOpen() && !landing();
+  const open = (mobile.matches ? snap !== 'closed' : true) && !landing(); // on computers the rail is always there
+  side.dataset.mini = String(!mobile.matches && !desktopOpen);
   side.dataset.open = String(open);
   side.dataset.snap = mobile.matches ? snap : '';
   side.inert = !open;
@@ -49,7 +50,7 @@ function setTab(name, { open = true } = {}) {
   window.dispatchEvent(new CustomEvent('workspace-tab', { detail: name }));
 }
 function openPanel() { if (mobile.matches) { if (snap === 'closed') snap = 'half'; } else { desktopOpen = true; pref('open'); } render(); }
-function closePanel() { if (mobile.matches) snap = 'closed'; render(); } // fixed open on computers
+function closePanel() { if (mobile.matches) snap = 'closed'; else desktopOpen = false; render(); }
 
 // ---------- tabs ----------
 $('#side-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
@@ -111,6 +112,9 @@ new MutationObserver(() => {
   if (has) openPanel(); else render();
 }).observe(results, { childList: true });
 input.addEventListener('input', () => { if (input.value.trim() && !landing()) openPanel(); });
+
+// ---------- clicking the map folds the panel back to its icon rail (unless that click opened a country) ----------
+app.map.on('click', () => { if (mobile.matches || landing()) return; setTimeout(() => { if (desktopOpen && !side.dataset.detail && !side.dataset.search) closePanel(); }, 0); });
 
 // ---------- misc ----------
 mobile.addEventListener('change', render);
