@@ -468,3 +468,9 @@ body.history .cl,body.history .timezone-label{display:none!important}
 .seg button.on{background:rgba(82,214,255,.2);color:var(--acc)}
 .srow[hidden]{display:none}
 header h1{user-select:none}
+
+/* city pins when zoomed out: a small mark, name on hover */
+.cpin.far .pn{display:none}
+.cpin.far:hover .pn{display:block}
+.cpin.far .pt{width:8px;height:8px;border-radius:50%;border:1.5px solid #fff;background:var(--acc)}
+.cpin .pn{font-size:11.5px;padding:1px 6px}

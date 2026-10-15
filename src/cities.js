@@ -91,6 +91,9 @@ const rows = (c, keys) => keys.map((k) => { const f = fieldOf(k); return `<tr><t
 
 // ---------- the pins that show where cities are ----------
 const pins = new Map();
+const FAR_ZOOM = 5; // zoomed out, a city pin is just a small mark; its name shows when you zoom in or point at it
+const fitPins = () => { const far = map.getZoom() < FAR_ZOOM; for (const p of pins.values()) p.getElement().classList.toggle('far', far); };
+map.on('zoom', fitPins);
 function syncPins() {
   const want = new Map();
   for (const x of cards.values()) want.set(keyOf(x.city), x.city);
@@ -100,6 +103,7 @@ function syncPins() {
     const el = document.createElement('div'); el.className = 'cpin'; el.innerHTML = `<span class="pn">${esc(c.name)}</span><span class="pt"></span>`;
     pins.set(k, new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([c.lng, c.lat]).addTo(map));
   }
+  fitPins();
 }
 const showOnMap = (c) => map.flyTo({ center: [c.lng, c.lat], zoom: Math.max(map.getZoom(), c.cap || c.pop > 1e6 ? 8.5 : 9.5), duration: 1100 });
 
