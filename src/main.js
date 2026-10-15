@@ -120,6 +120,7 @@ map.touchZoomRotate.disableRotation();
 let sizeMode = false;
 let timeMode = false;
 let view = 'political';
+let viralsOn = false, viralsPrevNames = null; // the Virals layer: a see-through map with only country borders and names
 let statsOn = false; // the Statistics layer: colours countries by a number, on top of whichever map type is showing
 let mapTheme = 'dark';
 let baseMap = 'normal'; // what the standard Map view is drawn on: 'normal' (flat colours) or 'osm' (OpenStreetMap's standard tile layer)
@@ -182,7 +183,20 @@ function applyView() {
     : osmOn // countries are tinted lightly so the streets and coastlines underneath still show
       ? (statsOn ? ['case', sel, 0.85, 0.66] : ['case', sel, 0.7, dark ? 0.5 : 0.4])
       : ['case', sel, 0.95, dark ? 0.9 : 0.82]);
+  if (viralsOn) { // see-through countries: just clear borders and the names
+    map.setPaintProperty('fill', 'fill-opacity', ['case', sel, 0.22, 0.03]);
+    map.setPaintProperty('line', 'line-color', view === 'political' && !dark ? '#3a566f' : '#7fe3ff');
+    map.setPaintProperty('line', 'line-width', 1.1);
+    map.setPaintProperty('line', 'line-opacity', 1);
+  } else { map.setPaintProperty('line', 'line-width', 0.6); map.setPaintProperty('line', 'line-opacity', 0.8); }
+  document.body.classList.toggle('virals', viralsOn);
   recolor();
+}
+function setVirals(on) {
+  on = !!on; if (on === viralsOn) return; viralsOn = on;
+  if (on) { viralsPrevNames = labelsOn; if (!labelsOn) setNames(true); } else if (viralsPrevNames === false && labelsOn) { setNames(false); }
+  applyView();
+  window.dispatchEvent(new CustomEvent('virals-layer', { detail: on }));
 }
 function setNames(on) { labelsOn = on; $('#names').classList.toggle('on', on); labelSig = ''; updateLabels(); }
 function setBaseMap(v, quiet) {
@@ -793,5 +807,5 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { setStats, get statsOn() { return statsOn; }, map, borders, goTo, clearPin, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
+window.__app = { setVirals, get viralsOn() { return viralsOn; }, setStats, get statsOn() { return statsOn; }, map, borders, goTo, clearPin, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
 map.on('load', () => { setTimeMode(true); if (baseMap === 'osm') setNames(false); }); // live country times are on by default; with OpenStreetMap saved, our names start switched off

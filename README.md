@@ -140,3 +140,6 @@ Settings has a **Language** list with the most spoken languages: English, Mandar
 
 ## Resizing the statistics panel
 Drag the small grip in the bottom-right corner of the statistics panel to make it bigger or smaller (the arrow keys work on the grip too; double-click it to go back to the default size). The size is remembered on this device (`we-statsize`).
+
+## Virals layer
+**Layers → Virals** makes the map see-through: country colours almost vanish, leaving clear borders and the country names (clocks under the names are hidden). It works over the Map, Terrain and Satellite pictures; turning it off restores the previous names setting.
