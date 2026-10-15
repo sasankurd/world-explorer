@@ -98,3 +98,35 @@ document.querySelectorAll('#playtop, #signinbtn, #settingsbtn').forEach((el) => 
 }
 
 initLang();
+
+// Resize the floating statistics panel: drag the corner grip (or use the arrow keys on it); double-click resets. The size is remembered.
+{
+  const bar = $('#statbar'), KEY = 'we-statsize';
+  const grip = document.createElement('button');
+  grip.type = 'button'; grip.id = 'sb-grip'; grip.title = 'Drag to resize (double-click to reset)'; grip.setAttribute('aria-label', 'Resize the statistics panel. Use the arrow keys, or drag.');
+  grip.style.touchAction = 'none';
+  bar.append(grip);
+  const limits = () => ({ minW: 300, minH: 120, maxW: Math.max(300, bar.parentElement.clientWidth - 24), maxH: Math.max(120, bar.parentElement.clientHeight - 140) });
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  let size = null; try { size = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
+  const apply = () => {
+    if (!size || bar.classList.contains('folded')) { bar.style.width = ''; bar.style.maxHeight = ''; bar.style.height = ''; return; }
+    const L = limits();
+    bar.style.width = clamp(size.w, L.minW, L.maxW) + 'px';
+    bar.style.maxHeight = 'none'; bar.style.height = clamp(size.h, L.minH, L.maxH) + 'px';
+  };
+  const save = () => { try { size ? localStorage.setItem(KEY, JSON.stringify(size)) : localStorage.removeItem(KEY); } catch {} };
+  let d = null;
+  grip.addEventListener('pointerdown', (e) => { const r = bar.getBoundingClientRect(); d = { x: e.clientX, y: e.clientY, w: r.width, h: r.height }; grip.setPointerCapture(e.pointerId); e.preventDefault(); });
+  grip.addEventListener('pointermove', (e) => { if (!d) return; size = { w: d.w + (e.clientX - d.x) * 2, h: d.h + (e.clientY - d.y) }; apply(); }); // the panel stays centred, so width changes on both sides
+  const end = () => { if (d) { d = null; save(); } };
+  grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
+  grip.addEventListener('dblclick', () => { size = null; apply(); save(); });
+  grip.addEventListener('keydown', (e) => {
+    const k = { ArrowRight: [40, 0], ArrowLeft: [-40, 0], ArrowDown: [0, 24], ArrowUp: [0, -24] }[e.key]; if (!k) return;
+    e.preventDefault(); const r = bar.getBoundingClientRect(); size = { w: r.width + k[0], h: r.height + k[1] }; apply(); save();
+  });
+  new MutationObserver(apply).observe(bar, { attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('resize', apply);
+  apply();
+}

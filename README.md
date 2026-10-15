@@ -137,3 +137,6 @@ Flights, Trade, Time and Measure moved out of the Layers tab into a small transp
 
 ## Language setting
 Settings has a **Language** list with the most spoken languages: English, Mandarin Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, Indonesian and Kurdish (Sorani). The choice is remembered on this device (`we-lang`); Arabic, Urdu and Kurdish Sorani switch the menus to right-to-left. It translates the main controls (top bar, Settings, panel tabs, map tools) and the statistics controls (topic groups and names, buttons; strings live in `src/i18n-stats.js`). The year, numbers and the explanatory note under the statistics stay as they are. Text made while you use the site (project names, statistics, country facts, news, game questions) stays in English. To add a string or a language, edit `src/i18n.js`. The translations were written without a native-speaker review, so have one checked before launch.
+
+## Resizing the statistics panel
+Drag the small grip in the bottom-right corner of the statistics panel to make it bigger or smaller (the arrow keys work on the grip too; double-click it to go back to the default size). The size is remembered on this device (`we-statsize`).

@@ -356,3 +356,11 @@ body #statbar #sb-rows{max-height:90px}
   #side[data-mini="true"] #side-head{border-right:0}
 }
 @media(min-width:701px){#side[data-mini="true"]{grid-template-rows:auto}#side[data-mini="true"] #side-body{height:0;max-height:0;padding:0;overflow:hidden}}
+
+/* corner grip to resize the statistics panel */
+#sb-grip{position:sticky;float:right;bottom:0;right:0;width:18px;height:18px;margin:-14px -4px -4px 0;padding:0;border:0;background:none;cursor:nwse-resize;z-index:3;color:var(--muted)}
+#sb-grip::before{content:"";position:absolute;right:3px;bottom:3px;width:10px;height:10px;background:linear-gradient(135deg,transparent 50%,currentColor 50%,currentColor 58%,transparent 58%,transparent 72%,currentColor 72%,currentColor 80%,transparent 80%);opacity:.8}
+#sb-grip:hover,#sb-grip:focus-visible{color:var(--acc)}
+#sb-grip:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+#statbar.folded #sb-grip{display:none}
+#statbar[style*="height"] .sb-groups{max-height:none;overflow:visible}#statbar[style*="height"] .sb-note{-webkit-line-clamp:unset;display:block}
