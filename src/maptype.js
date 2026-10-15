@@ -9,19 +9,23 @@ const TYPES = [
   { k: 'terrain', name: 'Terrain', img: 'terrain', tip: 'Land height and shape' },
   { k: 'satellite', name: 'Satellite', img: 'satellite', tip: 'Satellite photo' },
   { k: 'osm', name: 'OpenStreetMap', img: 'osm', tip: 'Streets and places from OpenStreetMap' },
+  { k: 'virals', name: 'Virals', img: 'virals', tip: 'See-through map with only thin borders and country names' },
   { k: 'globe', name: '3D Earth', img: 'globe', tip: 'A globe you can spin and tilt' },
 ];
-const src = (t) => $(`#views button[data-view="${t.k === 'osm' ? 'political' : t.k}"]`);
+const src = (t) => $(`#views button[data-view="${t.k === 'osm' || t.k === 'virals' ? 'political' : t.k}"]`);
 const tileHtml = (t) => `<button type="button" class="mt-tile" data-k="${t.k}" title="${t.tip}" aria-pressed="false"><span class="mt-img" style="background-image:url(/img/maptype/${t.img}.jpg)"></span><b>${t.name}</b></button>`;
 
 function current() {
-  const on = TYPES.find((t) => t.k !== 'osm' && src(t)?.classList.contains('on'));
+  if (app.viralsOn && !window.__globe?.active) return TYPES.find((t) => t.k === 'virals');
+  const on = TYPES.find((t) => t.k !== 'osm' && t.k !== 'virals' && src(t)?.classList.contains('on'));
   if (on && on.k === 'political' && app.baseMap === 'osm') return TYPES.find((t) => t.k === 'osm');
   return on || null;
 }
 function set(k) {
   const t = TYPES.find((x) => x.k === k); if (!t) return false;
-  if (k === 'osm') { src(TYPES[0])?.click(); app.setBaseMap('osm'); }
+  if (k !== 'virals' && app.viralsOn) app.setVirals(false);
+  if (k === 'virals') { if (app.baseMap !== 'normal') app.setBaseMap('normal'); src(TYPES[0])?.click(); app.setVirals(true); }
+  else if (k === 'osm') { src(TYPES[0])?.click(); app.setBaseMap('osm'); }
   else { if (k === 'political' && app.baseMap !== 'normal') app.setBaseMap('normal'); src(t)?.click(); }
   sync();
   return true;
@@ -52,6 +56,7 @@ const mo = new MutationObserver(() => requestAnimationFrame(sync));
 TYPES.forEach((t) => src(t) && mo.observe(src(t), { attributes: true, attributeFilter: ['class'] }));
 window.addEventListener('basemap-change', () => requestAnimationFrame(sync));
 window.addEventListener('globe-change', () => requestAnimationFrame(sync));
+window.addEventListener('virals-layer', () => requestAnimationFrame(sync));
 
 function setOpen(on) { menu.hidden = !on; btn.setAttribute('aria-expanded', String(on)); }
 btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(menu.hidden); });

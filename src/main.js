@@ -186,7 +186,7 @@ function applyView() {
   if (viralsOn) { // see-through countries: just clear borders and the names
     map.setPaintProperty('fill', 'fill-opacity', ['case', sel, 0.22, 0.03]);
     map.setPaintProperty('line', 'line-color', view === 'political' && !dark ? '#3a566f' : '#7fe3ff');
-    map.setPaintProperty('line', 'line-width', 1.1);
+    map.setPaintProperty('line', 'line-width', 0.4);
     map.setPaintProperty('line', 'line-opacity', 1);
   } else { map.setPaintProperty('line', 'line-width', 0.6); map.setPaintProperty('line', 'line-opacity', 0.8); }
   document.body.classList.toggle('virals', viralsOn);

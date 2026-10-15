@@ -47,9 +47,6 @@ histRow.addEventListener('click', () => {
   if (!app.statsOn) app.setStats(true);
   let tries = 0; const go = () => { const b = $('#sb-groups [data-history]'); if (b) { if (!b.classList.contains('on')) b.click(); focusStats(); } else if (tries++ < 30) setTimeout(go, 100); }; go();
 });
-$('#viralsrow').addEventListener('click', () => window.__app?.setVirals(!window.__app.viralsOn));
-window.addEventListener('virals-layer', (e) => { $('#viralsrow').classList.toggle('on', !!e.detail); });
-$('#playrow').addEventListener('click', () => $('#playtop').click());
 
 const rows = [...lmenu.querySelectorAll('.lr:not(.act)')];
 function syncModes() {
