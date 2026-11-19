@@ -115,7 +115,7 @@ body.timemode:not([data-view="satellite"]) .cl .tm{color:#1d4ed8}
 body:is([data-map="dark"],.heat):not([data-view="satellite"]) .cl{color:#eaf6ff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 0 5px #000,0 0 8px #000}
 body:is([data-map="dark"],.heat):not([data-view="satellite"]) .cl.city::before{background:#eaf6ff;box-shadow:0 0 0 1.5px #000}
 body:is([data-map="dark"],.heat):not([data-view="satellite"]) .cl.city.cap::before{background:#000;border-color:#eaf6ff;box-shadow:0 0 0 1px #000,0 0 8px rgba(212,175,55,.8)}
-body:is([data-map="dark"],.heat).timemode:not([data-view="satellite"]) .cl .tm{color:#5fe0ff}
+body:is([data-map="dark"],.heat).timemode:not([data-view="satellite"]) .cl .tm{color:#f1d77a}
 #sizepanel,.tzs{--card:rgba(8,12,18,.88)}
 #sizepanel{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:16px;box-shadow:0 18px 50px #000b,0 0 30px rgba(212,175,55,.08)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}

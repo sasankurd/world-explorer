@@ -185,7 +185,7 @@ main{--rail:0px;--sheet:0px}
 #layers .lr:hover{background:var(--raised)}
 #layers .lr b,#layers .lr small{display:block}#layers .lr .tx b{font-weight:600;font-size:14.5px}#layers .lr small{color:var(--muted);font-size:12.5px}
 #layers .lr.act .go{color:var(--acc);font-size:22px}
-.sw{position:relative;flex:none;width:44px;height:26px;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid var(--line-strong);transition:background .2s,border-color .2s}
+.sw{position:relative;flex:none;width:44px;height:26px;border-radius:99px;background:rgba(212,175,55,.22);border:1px solid var(--line-strong);transition:background .2s,border-color .2s}
 .sw b{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#cfd8e3;transition:transform .2s,background .2s}
 .lr.on .sw{background:rgba(212,175,55,.35);border-color:var(--acc)}.lr.on .sw b{transform:translateX(18px);background:var(--acc)}
 #timepanel-open{display:none!important}
@@ -270,10 +270,10 @@ dialog.wd[open]{animation:pin .2s cubic-bezier(.2,.9,.25,1)}
 @media(min-width:701px){#topnav{display:none!important}}
 
 /* small transparent tool bar at the top of the map */
-#maptools{position:absolute;left:calc(50% + var(--rail,0px) / 2);transform:translateX(-50%);top:calc(12px + var(--sb,0px));z-index:30;display:flex;gap:2px;padding:3px;background:rgba(8,18,32,.38);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);border-radius:10px}
+#maptools{position:absolute;left:calc(50% + var(--rail,0px) / 2);transform:translateX(-50%);top:calc(12px + var(--sb,0px));z-index:30;display:flex;gap:2px;padding:3px;background:rgba(10,10,16,.38);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);border-radius:10px}
 #maptools .mtool{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 9px;background:none;border:1px solid transparent;border-radius:7px;color:var(--fg);font-size:12.5px;font-weight:600;cursor:pointer}
 #maptools .mtool .ic{width:16px;height:16px;flex:none}
-#maptools .mtool:hover{background:rgba(255,255,255,.12)}
+#maptools .mtool:hover{background:rgba(212,175,55,.22)}
 #maptools .mtool.on{background:rgba(212,175,55,.22);border-color:var(--acc);color:var(--acc)}
 #maptools .mtool:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 #mapctl .ctl-one .ic{width:20px;height:20px}
@@ -283,7 +283,7 @@ dialog.wd[open]{animation:pin .2s cubic-bezier(.2,.9,.25,1)}
 #maptools .mtool{white-space:nowrap}
 
 /* Statistics controls float under the top tool bar, not in the side panel */
-#statbar{left:calc(50% + var(--rail,0px) / 2);right:auto;top:calc(60px + var(--sb,0px));transform:translateX(-50%);width:min(780px,calc(100% - var(--rail,0px) - 24px));max-height:calc(100% - 150px);overflow:auto;padding:10px 12px;background:rgba(8,18,32,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:12px;box-shadow:var(--shadow);z-index:29;animation:none!important}
+#statbar{left:calc(50% + var(--rail,0px) / 2);right:auto;top:calc(60px + var(--sb,0px));transform:translateX(-50%);width:min(780px,calc(100% - var(--rail,0px) - 24px));max-height:calc(100% - 150px);overflow:auto;padding:10px 12px;background:rgba(10,10,16,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:12px;box-shadow:var(--shadow);z-index:29;animation:none!important}
 #statbar .sb-groups{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-height:150px}
 @media(max-width:700px){#statbar{left:50%;width:calc(100% - 20px);top:calc(54px + var(--sb,0px));max-height:calc(100% - var(--sheet,0px) - 70px)}}
 
@@ -320,9 +320,9 @@ body #statbar #sb-rows{max-height:90px}
 
 /* computers: a fixed, see-through panel on the left with the section icons stacked in a rail */
 @media(min-width:701px){
-  #side{display:grid;grid-template-columns:68px minmax(0,1fr);grid-template-rows:minmax(0,1fr);width:min(420px,calc(100% - 24px));background:rgba(8,18,32,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.14)}
+  #side{display:grid;grid-template-columns:68px minmax(0,1fr);grid-template-rows:minmax(0,1fr);width:min(420px,calc(100% - 24px));background:rgba(10,10,16,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.14)}
   #side-grab{display:none}
-  #side-head{grid-column:1;grid-row:1;flex-direction:column;align-items:stretch;padding:10px 6px;border-bottom:0;border-right:1px solid rgba(255,255,255,.12)}
+  #side-head{grid-column:1;grid-row:1;flex-direction:column;align-items:stretch;padding:10px 6px;border-bottom:0;border-right:1px solid rgba(212,175,55,.22)}
   #side-tabs{flex-direction:column;flex:none;gap:6px}
   #side-tabs button{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px;border:1px solid transparent;border-radius:10px;font-size:11.5px;line-height:1.15}
   #side-tabs button .ic{width:22px;height:22px}
@@ -330,7 +330,7 @@ body #statbar #sb-rows{max-height:90px}
   #side-collapse,#side-open{display:none!important}
   #side-body{grid-column:2;grid-row:1}
   #side[data-open="false"]{transform:none;opacity:1;visibility:visible;pointer-events:auto}
-  #side .ph{background:rgba(8,18,32,.7)}
+  #side .ph{background:rgba(10,10,16,.7)}
 }
 
 /* icon rail: icons only; a name slides in under an icon on hover or focus, and stays under the chosen one while the panel is open */
@@ -352,7 +352,7 @@ body #statbar #sb-rows{max-height:90px}
   #side-collapse{margin:6px 0 0;display:none!important}
   #side[data-mini="false"] #side-collapse{display:flex!important}
   #side-collapse .sc-ic{transform:none}
-  #side-head{border-right:1px solid rgba(255,255,255,.12)}
+  #side-head{border-right:1px solid rgba(212,175,55,.22)}
   #side[data-mini="true"] #side-head{border-right:0}
 }
 @media(min-width:701px){#side[data-mini="true"]{grid-template-rows:auto}#side[data-mini="true"] #side-body{height:0;max-height:0;padding:0;overflow:hidden}}
@@ -364,3 +364,18 @@ body #statbar #sb-rows{max-height:90px}
 #sb-grip:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 #statbar.folded #sb-grip{display:none}
 #statbar[style*="height"] .sb-groups{max-height:none;overflow:visible}#statbar[style*="height"] .sb-note{-webkit-line-clamp:unset;display:block}
+
+/* left panel in the OSIRIS HUD style: black glass, gold hairlines, tracked mono caps, gold bar on the active tab */
+@media(min-width:701px){
+  #side{border-radius:4px;border:1px solid rgba(212,175,55,.3);background:rgba(6,6,12,.78);box-shadow:0 0 0 1px #000,0 8px 32px #000a,inset 0 1px 0 rgba(212,175,55,.18)}
+  #side-tabs button,#side-collapse{border-radius:2px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em}
+  #side-tabs button .tl,#side-collapse .sc-tx{font-size:9px;letter-spacing:.14em}
+  #side-tabs button[aria-selected="true"]::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;background:var(--acc);box-shadow:0 0 8px var(--acc)}
+  #side[data-mini="true"] #side-tabs button[aria-selected="true"]::before{display:none}
+  #side-tabs button:hover{background:rgba(212,175,55,.1);color:var(--acc)}
+}
+#side-body .sv-h,#side-body h2,#side-body h3{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);display:flex;align-items:center;gap:8px}
+#side-body .sv-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(212,175,55,.45),transparent)}
+#side-body .lr b{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+#side-body .lr,#side-body .mt-tile{border-radius:2px;border-color:rgba(212,175,55,.2)}
+#side-body .lr.on,#side-body .mt-tile.on{border-color:var(--acc);box-shadow:inset 2px 0 0 var(--acc),0 0 10px rgba(212,175,55,.22)}
