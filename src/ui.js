@@ -129,3 +129,10 @@ initLang();
   window.addEventListener('resize', apply);
   apply();
 }
+
+// computers: the map tools live inside the left dock as small icons; on phones they go back to the top of the map
+{
+  const tools = $('#maptools'), home = tools.nextElementSibling, mq = matchMedia('(min-width:701px)');
+  const place = () => (mq.matches ? $('#side-head').insertBefore(tools, $('#side-collapse')) : home.before(tools));
+  mq.addEventListener('change', place); place();
+}

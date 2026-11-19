@@ -379,3 +379,22 @@ body #statbar #sb-rows{max-height:90px}
 #side-body .lr b{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 #side-body .lr,#side-body .mt-tile{border-radius:2px;border-color:rgba(212,175,55,.2)}
 #side-body .lr.on,#side-body .mt-tile.on{border-color:var(--acc);box-shadow:inset 2px 0 0 var(--acc),0 0 10px rgba(212,175,55,.22)}
+
+/* minimal glass dock: fixed at the middle of the left edge, section icons plus the map tools as small icons */
+@media(min-width:701px){
+  #side{top:50%;bottom:auto;left:14px;transform:translateY(-50%);height:min(560px,calc(100% - 130px));border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);box-shadow:0 12px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.14)}
+  #side[data-mini="true"]{height:auto;width:52px;grid-template-columns:52px 0}
+  #side-head{border-right-color:rgba(255,255,255,.1);overflow-y:auto;scrollbar-width:none}
+  #side-tabs button,#side-collapse{border-radius:12px}
+  #side-tabs button .ic{width:18px;height:18px}
+  #side-head #maptools{position:static;transform:none;display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0 0;padding:8px 0 0;background:none;border:0;border-top:1px solid rgba(255,255,255,.12);border-radius:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+  #side-head #maptools .mtool{width:34px;min-height:32px;padding:0;justify-content:center;border-radius:10px;color:var(--muted)}
+  #side-head #maptools .mtool span{display:none}
+  #side-head #maptools .mtool:hover{color:var(--fg);background:rgba(255,255,255,.12)}
+  #side-head #maptools .mtool.on{color:var(--acc);background:rgba(212,175,55,.16);border-color:transparent}
+  #side-head #maptools .mtool .ic{width:17px;height:17px}
+}
+@media(min-width:701px){
+  #side{z-index:35;background:rgba(14,14,20,.55);backdrop-filter:blur(24px) saturate(170%);-webkit-backdrop-filter:blur(24px) saturate(170%)}
+  #side-tabs button .tl{letter-spacing:.04em;font-size:8.5px}
+}
