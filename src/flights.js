@@ -93,13 +93,13 @@ const iconFor = () => (app.isDark() ? 'plane-dark' : 'plane-light');
 function ensureLayers() {
   if (map.getSource('planes')) return;
   const empty = { type: 'FeatureCollection', features: [] };
-  map.addImage('plane-dark', planeImage('#7fe3ff', '#02131c'));
+  map.addImage('plane-dark', planeImage('#e6c65a', '#02131c'));
   map.addImage('plane-light', planeImage('#0a4a8a', '#ffffff'));
   map.addSource('planes', { type: 'geojson', data: empty });
   map.addSource('flightroute', { type: 'geojson', data: empty });
   map.addSource('plane-sel', { type: 'geojson', data: empty });
   map.addLayer({ id: 'route-left', type: 'line', source: 'flightroute', filter: ['==', ['get', 'k'], 'rest'], layout: { 'line-cap': 'round' }, paint: { 'line-color': '#ffb347', 'line-width': 2, 'line-dasharray': [1.5, 2], 'line-opacity': 0.95 } });
-  map.addLayer({ id: 'route-done', type: 'line', source: 'flightroute', filter: ['==', ['get', 'k'], 'done'], layout: { 'line-cap': 'round' }, paint: { 'line-color': '#52d6ff', 'line-width': 2.6, 'line-opacity': 0.9 } });
+  map.addLayer({ id: 'route-done', type: 'line', source: 'flightroute', filter: ['==', ['get', 'k'], 'done'], layout: { 'line-cap': 'round' }, paint: { 'line-color': '#d4af37', 'line-width': 2.6, 'line-opacity': 0.9 } });
   map.addLayer({ id: 'plane-ring', type: 'circle', source: 'plane-sel', paint: { 'circle-radius': 16, 'circle-color': 'rgba(255,255,255,0)', 'circle-stroke-color': '#ffb347', 'circle-stroke-width': 2 } });
   map.addLayer({
     id: 'planes', type: 'symbol', source: 'planes',

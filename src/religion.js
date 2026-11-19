@@ -81,7 +81,7 @@ export function trendColumns(data, id /* null = world */, { year } = {}) {
     const s = id ? sharesOf(data, id, y) : worldShares(data, y); if (!s) return;
     const x = gap + k * (bw + gap); let yy = H - bot;
     s.forEach((v, i) => { const h = v * (H - bot - top); if (h < 0.3) return; yy -= h; root.append(svg('rect', { x, y: yy.toFixed(1), width: bw, height: h.toFixed(1), fill: GROUPS[i].color, opacity: year && year !== y ? '.55' : '1' })); });
-    const t = svg('text', { x: x + bw / 2, y: H - 7, 'text-anchor': 'middle', 'font-size': '11', fill: year === y ? '#52d6ff' : '#9fb0c4', 'font-weight': year === y ? '700' : '400' }); t.textContent = isProjection(y) ? y + '*' : y; root.append(t);
+    const t = svg('text', { x: x + bw / 2, y: H - 7, 'text-anchor': 'middle', 'font-size': '11', fill: year === y ? '#d4af37' : '#9fb0c4', 'font-weight': year === y ? '700' : '400' }); t.textContent = isProjection(y) ? y + '*' : y; root.append(t);
     const lead = biggest(s); desc.push(`${y}: ${GROUPS[lead].label} ${pct(s[lead])}`);
   });
   root.setAttribute('aria-label', 'Largest group by year. ' + desc.join('; '));

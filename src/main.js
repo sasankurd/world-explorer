@@ -173,8 +173,8 @@ function applyView() {
   map.setPaintProperty('terrain', 'raster-saturation', dark ? -0.35 : 0);
   map.setPaintProperty('terrain', 'raster-contrast', dark ? 0.2 : 0);
   map.setPaintProperty('sea', 'background-color', dark ? '#03060a' : statsOn && view === 'political' && baseMap !== 'osm' ? '#eef2f6' : '#cfe5f5');
-  map.setPaintProperty('line', 'line-color', view === 'satellite' ? '#ffffff' : view === 'terrain' ? (dark ? '#52d6ff' : '#7a3b3b') : dark ? 'rgba(130,200,255,0.45)' : '#ffffff');
-  map.setPaintProperty('selected', 'line-color', dark || view === 'satellite' ? '#52d6ff' : '#111');
+  map.setPaintProperty('line', 'line-color', view === 'satellite' ? '#ffffff' : view === 'terrain' ? (dark ? '#d4af37' : '#7a3b3b') : dark ? 'rgba(130,200,255,0.45)' : '#ffffff');
+  map.setPaintProperty('selected', 'line-color', dark || view === 'satellite' ? '#d4af37' : '#111');
   map.setPaintProperty('movers-line', 'line-color', dark ? '#e8f6ff' : '#111');
   // with the Statistics layer on, the colours are drawn clearly enough to read but still let the map type underneath show through
   const sel = ['boolean', ['feature-state', 'selected'], false];
@@ -185,7 +185,7 @@ function applyView() {
       : ['case', sel, 0.95, dark ? 0.9 : 0.82]);
   if (viralsOn) { // see-through countries: just clear borders and the names
     map.setPaintProperty('fill', 'fill-opacity', ['case', sel, 0.22, 0.03]);
-    map.setPaintProperty('line', 'line-color', view === 'political' && !dark ? '#3a566f' : '#7fe3ff');
+    map.setPaintProperty('line', 'line-color', view === 'political' && !dark ? '#3a566f' : '#e6c65a');
     map.setPaintProperty('line', 'line-width', 0.4);
     map.setPaintProperty('line', 'line-opacity', 1);
   } else { map.setPaintProperty('line', 'line-width', 0.6); map.setPaintProperty('line', 'line-opacity', 0.8); }

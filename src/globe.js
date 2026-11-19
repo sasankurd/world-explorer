@@ -102,7 +102,7 @@ async function build() {
   // border lines (one cheap batch) and, for picking a country, a plain "which border is this point inside?" check
   const lines = viewer.scene.primitives.add(new C.PolylineCollection()); ds = lines;
   const flat3 = (ring) => ring.flatMap(([x, y]) => [x, y, 1500]);
-  const lineMat = C.Material.fromType('Color', { color: C.Color.fromCssColorString('#52d6ff').withAlpha(0.85) });
+  const lineMat = C.Material.fromType('Color', { color: C.Color.fromCssColorString('#d4af37').withAlpha(0.85) });
   for (const f of borders.features) {
     const id = f.properties?.id; if (!countries[id]) continue;
     const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [];
@@ -150,7 +150,7 @@ async function addLabels() {
 }
 
 // ---------- choosing a country ----------
-const HI = () => C.Color.fromCssColorString('#52d6ff').withAlpha(0.3);
+const HI = () => C.Color.fromCssColorString('#d4af37').withAlpha(0.3);
 const inRing = (ring, x, y) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
 function countryAt(x, y) {
   for (const [id, s] of Object.entries(shapes)) for (const { poly, bb } of s.parts) {
@@ -187,7 +187,7 @@ function home(duration = 1.6) {
 function clearPin() { if (pinEntity) { viewer.entities.remove(pinEntity); pinEntity = null; } }
 function goTo(name, lng, lat, bb) {
   clearPin();
-  pinEntity = viewer.entities.add({ position: C.Cartesian3.fromDegrees(lng, lat, 0), point: { pixelSize: 13, color: C.Color.fromCssColorString('#52d6ff'), outlineColor: C.Color.WHITE, outlineWidth: 2, disableDepthTestDistance: 1e7 }, label: { text: name, font: '600 14px "Space Grotesk", sans-serif', fillColor: C.Color.WHITE, outlineColor: C.Color.BLACK, outlineWidth: 3, style: C.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new C.Cartesian2(0, -24), disableDepthTestDistance: 1e7 } });
+  pinEntity = viewer.entities.add({ position: C.Cartesian3.fromDegrees(lng, lat, 0), point: { pixelSize: 13, color: C.Color.fromCssColorString('#d4af37'), outlineColor: C.Color.WHITE, outlineWidth: 2, disableDepthTestDistance: 1e7 }, label: { text: name, font: '600 14px "Space Grotesk", sans-serif', fillColor: C.Color.WHITE, outlineColor: C.Color.BLACK, outlineWidth: 3, style: C.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new C.Cartesian2(0, -24), disableDepthTestDistance: 1e7 } });
   spinOn = false; syncSwitch('#gl-spin', false);
   if (bb && bb[1] - bb[0] > 0.0005) viewer.camera.flyTo({ destination: C.Rectangle.fromDegrees(bb[2], bb[0], bb[3], bb[1]), duration: 1.6 });
   else viewer.camera.flyTo({ destination: C.Cartesian3.fromDegrees(lng, lat, 220000), duration: 1.8, orientation: { heading: 0, pitch: -C.Math.PI_OVER_TWO, roll: 0 } });

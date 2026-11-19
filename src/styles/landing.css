@@ -1,5 +1,5 @@
 /* Front page: one headline, two actions and three small entry points. */
-#landing{position:absolute;inset:0;z-index:8;overflow:auto;background:radial-gradient(110% 80% at 78% 0%,#0f2036 0%,#0a1220 52%,#070b12 100%);padding-bottom:28px}
+#landing{position:absolute;inset:0;z-index:8;overflow:auto;background:radial-gradient(110% 80% at 78% 0%,#0f2036 0%,#0c0c14 52%,#06060c 100%);padding-bottom:28px}
 #landing[hidden]{display:none}
 .ld-hero{position:relative;min-height:min(46vh,420px);overflow:hidden}
 .ld-hero canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -13,7 +13,7 @@
 .ld-go{background:var(--acc);color:var(--acc-ink);border:1px solid var(--acc)}
 .ld-go:hover{background:#7adcf6;border-color:#7adcf6}
 .ld-alt{background:rgba(255,255,255,.05);color:var(--fg);border:1px solid var(--line-strong)}
-.ld-alt:hover{border-color:var(--acc);color:var(--acc);background:rgba(76,208,242,.08)}
+.ld-alt:hover{border-color:var(--acc);color:var(--acc);background:rgba(212,175,55,.08)}
 
 .ld-entry{position:relative;display:grid;grid-template-columns:1fr;gap:14px;padding:6px clamp(18px,5vw,64px) 0;align-items:start}
 .ld-box{padding:14px 16px 16px;background:rgba(11,18,28,.88);border:1px solid var(--line);border-radius:14px}
@@ -21,7 +21,7 @@
 .ld-box p{margin:0 0 10px;font-size:14px}
 .ld-list{list-style:none;margin:0;padding:0}
 .ld-item,.ld-list button{display:block;width:100%;text-align:left;padding:9px 10px;min-height:46px;background:none;border:1px solid transparent;border-radius:10px;color:var(--fg)}
-.ld-list button:hover{background:rgba(76,208,242,.08);border-color:var(--line-strong)}
+.ld-list button:hover{background:rgba(212,175,55,.08);border-color:var(--line-strong)}
 .ld-list b{display:block;font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ld-list small{display:block;color:var(--muted);font-size:12.5px}
 .ld-more{margin-top:6px;padding:6px 14px;min-height:36px;border-radius:10px;background:var(--raised);border:1px solid var(--line-strong);font-weight:600;font-size:14px;color:var(--acc)}
 .ld-more:hover{border-color:var(--acc)}

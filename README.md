@@ -143,3 +143,6 @@ Drag the small grip in the bottom-right corner of the statistics panel to make i
 
 ## Virals layer
 **Layers → Map type → Virals** (also in the bottom-left Map type picker) makes the map see-through: country colours almost vanish, leaving clear borders and the country names (clocks under the names are hidden). Borders are drawn extra thin. Picking any other map type turns it off and restores the previous names setting.
+
+## Look
+Dark HUD style (near-black `#06060c`, gold `#d4af37` accent, tracked mono caps on buttons), modelled on osirisai.live. The colours are the `--acc` / `--bg` tokens in `src/style.css` and `src/styles/workspace.css`.

@@ -8,7 +8,7 @@
 #statbar .sbl{display:block;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em}
 #statbar .sbc{flex-wrap:wrap}
 #statbar .sbc button{min-height:30px}
-#statbar .sbc button.on,#statbar .h-tools button.on,#statbar .sb-tools button.on{border-color:var(--acc);color:var(--acc);background:rgba(82,214,255,.1)}
+#statbar .sbc button.on,#statbar .h-tools button.on,#statbar .sb-tools button.on{border-color:var(--acc);color:var(--acc);background:rgba(212,175,55,.1)}
 #statbar .sb-time{margin-top:14px;gap:8px 12px}
 #statbar .sb-year{font-size:22px}
 #statbar .sb-rangewrap{min-width:140px;flex:1 1 140px}
@@ -28,7 +28,7 @@
 .rel-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px}
 .rel-head h3{margin:0;font-size:15px}
 .rel-x{padding:3px 11px;font-size:12.5px;border-radius:99px}
-.rel-bar .rb-track{display:flex;height:16px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#0a111a}
+.rel-bar .rb-track{display:flex;height:16px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#0a0a12}
 .rel-bar .rb-track span{display:block;min-width:2px}
 .rb-legend{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:3px 14px}
 .rb-legend li{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}

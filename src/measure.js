@@ -53,7 +53,7 @@ function ensureLayers() {
   if (map.getSource(SRC)) return;
   map.addSource(SRC, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addLayer({ id: 'measure-casing', type: 'line', source: SRC, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#000', 'line-width': 7, 'line-opacity': 0.5 } });
-  map.addLayer({ id: 'measure-line', type: 'line', source: SRC, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['case', ['get', 'est'], '#ffd166', '#52d6ff'], 'line-width': 3.5, 'line-dasharray': ['case', ['get', 'est'], ['literal', [2, 1.6]], ['literal', [1, 0]]] } });
+  map.addLayer({ id: 'measure-line', type: 'line', source: SRC, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['case', ['get', 'est'], '#ffd166', '#d4af37'], 'line-width': 3.5, 'line-dasharray': ['case', ['get', 'est'], ['literal', [2, 1.6]], ['literal', [1, 0]]] } });
 }
 const markers = [];
 function draw() {

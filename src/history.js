@@ -99,7 +99,7 @@ function paintAll() {
   map.setPaintProperty('hist-fill', 'fill-color', colorExpr());
   map.setPaintProperty('hist-fill', 'fill-opacity', ['case', ['boolean', ['feature-state', 'selected'], false], 0.98, 0.86]);
   for (const id of ['hist-line', 'hist-line-approx']) map.setPaintProperty(id, 'line-color', d ? '#e8f4ff' : '#2b3340');
-  map.setPaintProperty('hist-sel', 'line-color', d ? '#52d6ff' : '#0a68b4');
+  map.setPaintProperty('hist-sel', 'line-color', d ? '#d4af37' : '#0a68b4');
 }
 function ensureLayers() {
   if (ready) return;

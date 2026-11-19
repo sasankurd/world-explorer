@@ -9,7 +9,7 @@ const $ = (s) => document.querySelector(s);
 const btn = $('#tradebtn');
 let on = false, shownId = null, anim = 0, boxFor = null;
 const cacheT = new Map();
-const COLORS = { dark: { x: '#52d6ff', m: '#ffa45c' }, light: { x: '#0a68b4', m: '#d4460a' } };
+const COLORS = { dark: { x: '#d4af37', m: '#ffa45c' }, light: { x: '#0a68b4', m: '#d4460a' } };
 const colors = () => COLORS[app.isDark() ? 'dark' : 'light'];
 
 // Comtrade numbers a few countries differently from the standard ISO codes
