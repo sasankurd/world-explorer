@@ -398,3 +398,7 @@ body #statbar #sb-rows{max-height:90px}
   #side{z-index:35;background:rgba(14,14,20,.55);backdrop-filter:blur(24px) saturate(170%);-webkit-backdrop-filter:blur(24px) saturate(170%)}
   #side-tabs button .tl{letter-spacing:.04em;font-size:8.5px}
 }
+@media(min-width:701px){#side-tabs button .tl{display:none!important}}
+#dock-tip{position:fixed;z-index:60;transform:translate(-4px,-50%);padding:5px 10px;border-radius:8px;background:rgba(8,8,14,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);color:var(--fg);font:600 11px/1.2 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s}
+#dock-tip.on{opacity:1;transform:translate(0,-50%)}
+@media(max-width:700px){#dock-tip{display:none}}

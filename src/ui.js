@@ -136,3 +136,19 @@ initLang();
   const place = () => (mq.matches ? $('#side-head').insertBefore(tools, $('#side-collapse')) : home.before(tools));
   mq.addEventListener('change', place); place();
 }
+
+// dock icons: a small dark glass chip with the icon's name appears beside the icon on hover or focus
+{
+  const tip = document.createElement('div'); tip.id = 'dock-tip'; tip.setAttribute('aria-hidden', 'true'); document.body.append(tip);
+  const name = (b) => b.querySelector('.tl,.sc-tx,span:not(.ic)')?.textContent.trim() || b.getAttribute('aria-label') || '';
+  const show = (e) => {
+    const b = e.target.closest('#side-head button'); if (!b || !matchMedia('(min-width:701px)').matches) return;
+    if (b.title) { b.setAttribute('aria-label', name(b)); b.removeAttribute('title'); } // the chip replaces the browser tooltip
+    const r = b.getBoundingClientRect(); tip.textContent = name(b);
+    tip.style.left = r.right + 10 + 'px'; tip.style.top = r.top + r.height / 2 + 'px'; tip.classList.add('on');
+  };
+  const hide = () => tip.classList.remove('on');
+  const head = $('#side-head');
+  head.addEventListener('pointerover', show); head.addEventListener('focusin', show);
+  head.addEventListener('pointerout', hide); head.addEventListener('focusout', hide); head.addEventListener('click', hide);
+}
