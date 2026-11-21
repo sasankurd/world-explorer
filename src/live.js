@@ -11,9 +11,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const QUAKES = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
 const EVENTS = 'https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=300&category=wildfires,severeStorms,volcanoes';
 const SATS = ['stations', 'visual'].map((g) => `https://celestrak.org/NORAD/elements/gp.php?GROUP=${g}&FORMAT=json`); // the space stations and about 150 of the brightest satellites
-const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff', sat: '#1fb5ff' };
+const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff', sat: '#1fb5ff', cctv: '#b6ff5c' };
 const KIND = { wildfires: 'fire', severeStorms: 'storm', volcanoes: 'volcano' };
-const on = { quakes: false, events: false, sats: false }, items = { quakes: [], events: [], sats: [] };
+const on = { quakes: false, events: false, sats: false, cctv: false }, items = { quakes: [], events: [], sats: [], cctv: [] };
 let satRecs = [], satFetched = 0;
 
 const ago = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `${m} min ago` : m < 2880 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`; };
@@ -29,7 +29,21 @@ function placeSats() {
   }
   items.sats = out;
 }
+// public traffic cameras from three official open feeds; one that fails does not stop the others
+const CAMS = [
+  ['London', () => fetch('https://api.tfl.gov.uk/Place/Type/JamCam').then((r) => r.json()).then((a) => a.flatMap((c) => { const img = c.additionalProperties?.find((q) => q.key === 'imageUrl')?.value; return img && c.lat ? [{ lon: c.lon, lat: c.lat, t: c.commonName, s: 'London · TfL JamCam', img }] : []; }))],
+  ['Singapore', () => fetch('https://api.data.gov.sg/v1/transport/traffic-images').then((r) => r.json()).then((j) => (j.items?.[0]?.cameras || []).map((c) => ({ lon: c.location.longitude, lat: c.location.latitude, t: `Camera ${c.camera_id}`, s: 'Singapore · LTA', img: c.image })))],
+  ['New York', () => fetch('https://webcams.nyctmc.org/api/cameras').then((r) => r.json()).then((a) => a.filter((c) => c.isOnline !== false && c.latitude).map((c) => ({ lon: c.longitude, lat: c.latitude, t: c.name, s: 'New York · NYC DOT', img: c.imageUrl || `https://webcams.nyctmc.org/api/cameras/${c.id}/image` })))],
+];
+let camNames = [];
+async function loadCams() {
+  const res = await Promise.allSettled(CAMS.map(([, f]) => f()));
+  camNames = CAMS.filter((_, i) => res[i].status === 'fulfilled' && res[i].value.length).map(([n]) => n);
+  items.cctv = res.flatMap((r) => (r.status === 'fulfilled' ? r.value : [])).filter((c) => /^https:\/\//.test(c.img)).map((c) => ({ ...c, k: 'cctv', r: 4 }));
+  if (!items.cctv.length) throw new Error('no cameras');
+}
 async function load(which) {
+  if (which === 'cctv') { if (!items.cctv.length) await loadCams(); return; }
   if (which === 'sats') {
     if (!satRecs.length || Date.now() - satFetched > 7200000) { // CelesTrak asks for no more than one download every two hours
       const seen = new Set(); satRecs = [];
@@ -55,16 +69,16 @@ async function load(which) {
 function ensure2d() {
   if (map.getSource('live')) return;
   map.addSource('live', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-  const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, COLOR.volcano];
+  const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, 'cctv', COLOR.cctv, COLOR.volcano];
   map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
   map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
-  map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k); });
+  map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k, p.i); });
   map.on('mouseenter', 'live-pts', () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', 'live-pts', () => { map.getCanvas().style.cursor = ''; });
 }
-const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : [])];
+const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : [])];
 function draw2d() {
-  const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, t: i.t, s: i.s } })) }); };
+  const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, t: i.t, s: i.s, i: i.img || '' } })) }); };
   if (map.isStyleLoaded()) go(); else map.once('idle', go);
 }
 
@@ -77,7 +91,7 @@ async function draw3d() {
   if (!pts3) {
     pts3 = v.scene.primitives.add(new C.PointPrimitiveCollection());
     h3 = new C.ScreenSpaceEventHandler(v.canvas);
-    h3.setInputAction((m) => { const p = v.scene.pick(m.position); if (p?.id?.live) chip(p.id.t, p.id.s, p.id.k); }, C.ScreenSpaceEventType.LEFT_CLICK);
+    h3.setInputAction((m) => { const p = v.scene.pick(m.position); if (p?.id?.live) chip(p.id.t, p.id.s, p.id.k, p.id.img); }, C.ScreenSpaceEventType.LEFT_CLICK);
   }
   pts3.removeAll();
   for (const i of shown()) pts3.add({ id: { live: 1, ...i }, position: C.Cartesian3.fromDegrees(i.lon, i.lat, i.h ?? 2000), pixelSize: i.r * 1.5, color: C.Color.fromCssColorString(COLOR[i.k]).withAlpha(0.9), outlineColor: C.Color.BLACK.withAlpha(0.6), outlineWidth: 1 });
@@ -85,15 +99,15 @@ async function draw3d() {
 
 // ---------- the small info chip ----------
 const el = document.createElement('div'); el.id = 'live-chip'; el.hidden = true; document.body.append(el);
-function chip(t, s, k) { el.innerHTML = `<i style="background:${COLOR[k]}"></i><span><b>${esc(t)}</b><small>${esc(s)}</small></span><button type="button" aria-label="Close">✕</button>`; el.hidden = false; }
+function chip(t, s, k, img) { el.innerHTML = `<i style="background:${COLOR[k]}"></i><span>${img && /^https:\/\//.test(img) ? `<img src="${esc(img)}" alt="Camera picture" referrerpolicy="no-referrer">` : ''}<b>${esc(t)}</b><small>${esc(s)}</small></span><button type="button" aria-label="Close">✕</button>`; el.hidden = false; }
 el.addEventListener('click', (e) => { if (e.target.closest('button')) el.hidden = true; });
 
 // ---------- toggles ----------
-const rows = { quakes: $('#live-quakes'), events: $('#live-events'), sats: $('#live-sats') };
+const rows = { quakes: $('#live-quakes'), events: $('#live-events'), sats: $('#live-sats'), cctv: $('#live-cctv') };
 const note = { quakes: rows.quakes.querySelector('small').textContent, events: rows.events.querySelector('small').textContent };
 async function refresh(which) {
   const small = rows[which].querySelector('small');
-  try { await load(which); small.textContent = which === 'sats' ? `${items[which].length} satellites right now` : `${items[which].length} showing now`; } catch { small.textContent = 'Could not load right now. Try again in a moment.'; }
+  try { await load(which); small.textContent = which === 'sats' ? `${items[which].length} satellites right now` : which === 'cctv' ? `${items[which].length} cameras · ${camNames.join(', ')}` : `${items[which].length} showing now`; } catch { small.textContent = 'Could not load right now. Try again in a moment.'; }
   draw2d(); draw3d();
 }
 for (const which of Object.keys(rows)) {

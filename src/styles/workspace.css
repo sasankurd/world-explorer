@@ -428,3 +428,15 @@ body #statbar #sb-rows{max-height:90px}
 @keyframes warpfade{0%{opacity:0}35%{opacity:.94}100%{opacity:0}}
 @keyframes warpring{0%{transform:scale(.15);opacity:0}25%{opacity:1}100%{transform:scale(1.7);opacity:0}}
 @keyframes warpscan{0%{top:0;opacity:1}100%{top:100%;opacity:1}}
+
+/* Live tab: small, grouped and tidy */
+#live .lv-g{margin:14px 0 2px;padding:0;font:600 9.5px/1 var(--mono,monospace);letter-spacing:.16em;text-transform:uppercase;color:var(--acc);display:flex;align-items:center;gap:8px}
+#live .lv-g:first-child{margin-top:4px}
+#live .lv-g::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(212,175,55,.35),transparent)}
+#live .lr{min-height:40px;padding:7px 2px;gap:10px;border-top:0}
+#live .lr .tx b{font-size:12px;letter-spacing:.06em}
+#live .lr small{margin-top:2px;font-weight:400;font-size:10.5px;line-height:1.3;font-family:Inter,system-ui,sans-serif;text-transform:none;letter-spacing:0;color:var(--muted)}
+#live .sw{width:34px;height:20px}#live .sw b{width:14px;height:14px}#live .lr.on .sw b{transform:translateX(14px)}
+.live-note{margin:12px 2px 0;font-size:10.5px}
+#live-chip img{display:block;width:min(240px,100%);aspect-ratio:4/3;object-fit:cover;border-radius:8px;margin-bottom:6px;background:#000}
+#live-chip{align-items:flex-start}

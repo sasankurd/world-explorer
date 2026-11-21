@@ -118,9 +118,13 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
       <section id="sv-live" role="tabpanel" aria-labelledby="tab-live" tabindex="-1" hidden>
         <h2 class="sv-h">Live</h2>
         <div id="live" role="group" aria-label="Live layers">
-          <button id="live-quakes" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Earthquakes</b><small>Last 24 hours, magnitude 2.5 and up (USGS)</small></span><i class="sw"><b></b></i></button>
-          <button id="live-events" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Fires and storms</b><small>Wildfires, storms and volcanoes right now (NASA)</small></span><i class="sw"><b></b></i></button>
-          <button id="live-sats" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Satellites</b><small>Space stations and bright satellites, moving live (CelesTrak)</small></span><i class="sw"><b></b></i></button>
+          <h3 class="lv-g">Earth</h3>
+          <button id="live-quakes" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Earthquakes</b><small>Last 24 h, magnitude 2.5+ · USGS</small></span><i class="sw"><b></b></i></button>
+          <button id="live-events" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Fires and storms</b><small>Wildfires, storms, volcanoes · NASA</small></span><i class="sw"><b></b></i></button>
+          <h3 class="lv-g">Space</h3>
+          <button id="live-sats" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Satellites</b><small>Stations and bright satellites · CelesTrak</small></span><i class="sw"><b></b></i></button>
+          <h3 class="lv-g">CCTV surveillance</h3>
+          <button id="live-cctv" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Public cameras</b><small>Traffic cameras · London, Singapore, New York</small></span><i class="sw"><b></b></i></button>
         </div>
         <p class="muted live-note">Works on the flat map and on 3D Earth. Click a dot to see what it is.</p>
       </section>
