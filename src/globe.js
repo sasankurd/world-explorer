@@ -25,7 +25,9 @@ const shapes = {}; // country id -> { entity, sphere }
 
 // ---------- loading the library ----------
 const addScript = (src) => new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => { s.remove(); bad(new Error('blocked')); }; document.head.append(s); });
-async function loadCesium() {
+let loading = null;
+const loadCesium = () => (loading ||= loadCesiumNow().catch((e) => { loading = null; throw e; }));
+async function loadCesiumNow() {
   if (window.Cesium) return window.Cesium;
   for (const base of BASES) {
     try {
@@ -72,11 +74,18 @@ async function setStyle(name) {
   viewer.scene.globe.baseColor = C.Color.fromCssColorString(name === 'night' ? '#02040a' : '#0a1b2a');
 }
 
+// start the downloads early (when the pointer reaches a 3D button) so the globe opens faster
+let bordersP0 = null;
+const warmBorders = () => (bordersP0 ||= fetch('/data/borders.geojson').then((r) => r.json()));
+const warm = () => { loadCesium().catch(() => {}); warmBorders().catch(() => { bordersP0 = null; }); };
+document.addEventListener('pointerover', (e) => { if (e.target.closest?.('#globebtn,#ctl-dim,.mt-tile[data-k="globe"]')) warm(); }, { passive: true });
+
 // ---------- building the globe ----------
 async function build() {
   say('Loading 3D Earth…');
-  try { cfg = { ...cfg, ...(await (await fetch('/globe-config.json')).json()) }; } catch {}
-  C = await loadCesium();
+  const bordersP = warmBorders();
+  const cfgP = fetch('/globe-config.json').then((r) => r.json()).catch(() => ({}));
+  C = await loadCesium(); cfg = { ...cfg, ...(await cfgP) };
   if (cfg.ionToken) C.Ion.defaultAccessToken = cfg.ionToken;
   viewer = new C.Viewer(view, {
     baseLayer: false, baseLayerPicker: false, geocoder: false, homeButton: false, sceneModePicker: false, navigationHelpButton: false,
@@ -97,7 +106,7 @@ async function build() {
   home(0);
 
   // country borders; a click picks a country
-  borders = await (await fetch('/data/borders.geojson')).json();
+  borders = await bordersP;
   say('Drawing borders…');
   // border lines (one cheap batch) and, for picking a country, a plain "which border is this point inside?" check
   const lines = viewer.scene.primitives.add(new C.PolylineCollection()); ds = lines;
