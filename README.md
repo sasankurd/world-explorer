@@ -149,3 +149,6 @@ Dark HUD style (near-black `#06060c`, gold `#d4af37` accent, tracked mono caps o
 
 ## Live tab
 The Live tab in the left dock has two toggles: Earthquakes (USGS, last 24 hours, magnitude 2.5 and up) and Fires and storms (NASA EONET: wildfires, severe storms, volcanoes). Both are free and need no key. They draw on the flat map and on 3D Earth, refresh every 5 minutes, and a click on a dot shows what it is. Code: `src/live.js`.
+
+## 3D terrain
+Layers tab, "3D terrain": tilts the flat map and shows real mountains using free AWS terrain tiles (no key). Right-drag or two-finger drag turns the map. Code: `src/terrain3d.js`.
