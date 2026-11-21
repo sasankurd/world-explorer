@@ -1,19 +1,43 @@
-// Live layers: earthquakes (USGS) and fires and storms (NASA EONET), drawn on the flat map and on the 3D globe.
-// Both feeds are free, need no key and update every few minutes. A toggle fetches only when it is switched on.
+// Live layers: earthquakes (USGS), fires and storms (NASA EONET) and satellites (CelesTrak orbits), drawn on the flat map and on the 3D globe.
+// All feeds are free and need no key. A toggle fetches only when it is switched on.
+// satellite.js: its main entry also pulls in a WebAssembly build we do not need, so the plain JavaScript files are imported directly
+import { json2satrec } from '../node_modules/satellite.js/dist/io.js';
+import { propagate, gstime } from '../node_modules/satellite.js/dist/propagation.js';
+import { eciToGeodetic, degreesLong, degreesLat } from '../node_modules/satellite.js/dist/transforms.js';
 while (!window.__app) await new Promise((r) => setTimeout(r, 25));
 const { map } = window.__app;
 const $ = (s) => document.querySelector(s);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const QUAKES = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
 const EVENTS = 'https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=300&category=wildfires,severeStorms,volcanoes';
-const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff' };
+const SATS = ['stations', 'visual'].map((g) => `https://celestrak.org/NORAD/elements/gp.php?GROUP=${g}&FORMAT=json`); // the space stations and about 150 of the brightest satellites
+const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff', sat: '#e8f4ff' };
 const KIND = { wildfires: 'fire', severeStorms: 'storm', volcanoes: 'volcano' };
-const on = { quakes: false, events: false }, items = { quakes: [], events: [] };
+const on = { quakes: false, events: false, sats: false }, items = { quakes: [], events: [], sats: [] };
+let satRecs = [], satFetched = 0;
 
 const ago = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `${m} min ago` : m < 2880 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`; };
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+// where each satellite is right now, worked out from its orbit (SGP4, a standard orbit formula)
+function placeSats() {
+  const now = new Date(), g = gstime(now), out = [];
+  for (const { name, rec } of satRecs) {
+    const p = propagate(rec, now); if (!p || !p.position) continue; // a decayed orbit gives no position
+    const d = eciToGeodetic(p.position, g), v = Math.hypot(p.velocity.x, p.velocity.y, p.velocity.z);
+    out.push({ k: 'sat', lon: degreesLong(d.longitude), lat: degreesLat(d.latitude), h: d.height * 1000, r: 3.5, t: name, s: `Altitude ${Math.round(d.height)} km · ${v.toFixed(1)} km/s` });
+  }
+  items.sats = out;
+}
 async function load(which) {
+  if (which === 'sats') {
+    if (!satRecs.length || Date.now() - satFetched > 7200000) { // CelesTrak asks for no more than one download every two hours
+      const seen = new Set(); satRecs = [];
+      for (const u of SATS) for (const o of await (await fetch(u)).json()) { if (seen.has(o.NORAD_CAT_ID)) continue; seen.add(o.NORAD_CAT_ID); try { satRecs.push({ name: o.OBJECT_NAME, rec: json2satrec(o) }); } catch { /* skip a bad record */ } }
+      satFetched = Date.now();
+    }
+    return placeSats();
+  }
   if (which === 'quakes') {
     const j = await (await fetch(QUAKES)).json();
     items.quakes = j.features.map((f) => { const m = f.properties.mag ?? 0; return { k: 'quake', lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], r: 3 + Math.max(0, m - 2) * 2.2, t: `Magnitude ${m.toFixed(1)}`, s: `${f.properties.place || 'Unknown place'} · ${ago(f.properties.time)}` }; });
@@ -31,14 +55,14 @@ async function load(which) {
 function ensure2d() {
   if (map.getSource('live')) return;
   map.addSource('live', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-  const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, COLOR.volcano];
+  const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, COLOR.volcano];
   map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
   map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
   map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k); });
   map.on('mouseenter', 'live-pts', () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', 'live-pts', () => { map.getCanvas().style.cursor = ''; });
 }
-const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : [])];
+const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : [])];
 function draw2d() {
   const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, t: i.t, s: i.s } })) }); };
   if (map.isStyleLoaded()) go(); else map.once('idle', go);
@@ -56,7 +80,7 @@ async function draw3d() {
     h3.setInputAction((m) => { const p = v.scene.pick(m.position); if (p?.id?.live) chip(p.id.t, p.id.s, p.id.k); }, C.ScreenSpaceEventType.LEFT_CLICK);
   }
   pts3.removeAll();
-  for (const i of shown()) pts3.add({ id: { live: 1, ...i }, position: C.Cartesian3.fromDegrees(i.lon, i.lat, 2000), pixelSize: i.r * 1.5, color: C.Color.fromCssColorString(COLOR[i.k]).withAlpha(0.9), outlineColor: C.Color.BLACK.withAlpha(0.6), outlineWidth: 1 });
+  for (const i of shown()) pts3.add({ id: { live: 1, ...i }, position: C.Cartesian3.fromDegrees(i.lon, i.lat, i.h ?? 2000), pixelSize: i.r * 1.5, color: C.Color.fromCssColorString(COLOR[i.k]).withAlpha(0.9), outlineColor: C.Color.BLACK.withAlpha(0.6), outlineWidth: 1 });
 }
 
 // ---------- the small info chip ----------
@@ -65,11 +89,11 @@ function chip(t, s, k) { el.innerHTML = `<i style="background:${COLOR[k]}"></i><
 el.addEventListener('click', (e) => { if (e.target.closest('button')) el.hidden = true; });
 
 // ---------- toggles ----------
-const rows = { quakes: $('#live-quakes'), events: $('#live-events') };
+const rows = { quakes: $('#live-quakes'), events: $('#live-events'), sats: $('#live-sats') };
 const note = { quakes: rows.quakes.querySelector('small').textContent, events: rows.events.querySelector('small').textContent };
 async function refresh(which) {
   const small = rows[which].querySelector('small');
-  try { await load(which); small.textContent = `${items[which].length} showing now`; } catch { small.textContent = 'Could not load right now. Try again in a moment.'; }
+  try { await load(which); small.textContent = which === 'sats' ? `${items[which].length} satellites right now` : `${items[which].length} showing now`; } catch { small.textContent = 'Could not load right now. Try again in a moment.'; }
   draw2d(); draw3d();
 }
 for (const which of Object.keys(rows)) {
@@ -78,7 +102,8 @@ for (const which of Object.keys(rows)) {
     if (!on[which]) { rows[which].querySelector('small').textContent = note[which]; if (!shown().length) el.hidden = true; draw2d(); draw3d(); } else refresh(which);
   });
 }
-setInterval(() => { for (const w of Object.keys(on)) if (on[w]) refresh(w); }, 300000);
+setInterval(() => { for (const w of ['quakes', 'events']) if (on[w]) refresh(w); }, 300000);
+setInterval(() => { if (on.sats && satRecs.length) { placeSats(); draw2d(); draw3d(); } }, 4000); // satellites move fast, so their dots are moved every few seconds
 window.addEventListener('globe-change', () => { if (shown().length) draw3d(); });
 window.__live = { on, items };
 
