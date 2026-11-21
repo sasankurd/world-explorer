@@ -485,3 +485,5 @@ header button,#maptools button,#mapbar button,#views button,.mt-tile b,#workspac
 h1{font-family:var(--mono);letter-spacing:.28em;text-transform:uppercase;-webkit-text-fill-color:transparent;background:linear-gradient(90deg,#fff,var(--acc));-webkit-background-clip:text;background-clip:text}
 .mt-tile,.mt-img,#maptypemenu,#side,#statbar,#maptools,#results,.tradepop .maplibregl-popup-content{border-radius:var(--r)}
 button.on{box-shadow:0 0 0 1px var(--acc),0 0 12px rgba(212,175,55,.35)}
+/* 3D Track: soft grey names, solid (names on the far side of the ball are hidden, not faded) */
+body.track .cl{color:#8d949e!important;text-shadow:0 0 3px #000,0 0 6px #000!important}

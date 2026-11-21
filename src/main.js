@@ -321,7 +321,7 @@ for (const f of borders.features) {
   for (const pt of ring) { x0 = Math.min(x0, pt[0]); x1 = Math.max(x1, pt[0]); }
   const el = document.createElement('div');
   el.className = 'cl off'; el.textContent = c.name;
-  new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map);
+  new maplibregl.Marker({ element: el, anchor: 'center', opacityWhenCovered: '0' }).setLngLat([lng, lat]).addTo(map);
   labels.push({ id: c.id, tz: tzData[c.id] ? tzData[c.id][0] : null, tm: null, el, name: c.name, lng, lat, wDeg: x1 - x0, vis: false, fs: 0, sv: null });
 }
 labels.sort((a, b) => b.wDeg - a.wDeg); // biggest first = highest priority
