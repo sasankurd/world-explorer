@@ -157,3 +157,5 @@ The 3D library is served from our own copy in `public/cesium` (Cesium 1.146, Apa
 
 ## 3D Track
 A map type (Layers tab or the bottom-left picker): the map becomes a black globe, drawn by MapLibre's own globe mode, with thin white borders and country names. It loads nothing extra, so it opens at once. Code: `setTrack` in `src/main.js`.
+
+Opening the Live tab switches the map to 3D Track with a short gold scan-and-ring wipe (skipped if the device asks for reduced motion). Closing the tab leaves the map as it is.

@@ -81,3 +81,20 @@ for (const which of Object.keys(rows)) {
 setInterval(() => { for (const w of Object.keys(on)) if (on[w]) refresh(w); }, 300000);
 window.addEventListener('globe-change', () => { if (shown().length) draw3d(); });
 window.__live = { on, items };
+
+// opening the Live tab switches the map to 3D Track, with a short gold "scan" wipe hiding the change
+{
+  const warp = document.createElement('div'); warp.id = 'warp'; document.body.append(warp);
+  const calm = matchMedia('(prefers-reduced-motion: reduce)');
+  const toTrack = () => {
+    const app = window.__app, mt = window.__maptype; if (!mt || app.trackOn) return;
+    const swap = () => { mt.set('track'); map.easeTo({ zoom: Math.min(map.getZoom(), 2), duration: calm.matches ? 0 : 1600 }); };
+    if (calm.matches) return swap();
+    warp.classList.remove('go'); void warp.offsetWidth; warp.classList.add('go');
+    setTimeout(swap, 420); setTimeout(() => warp.classList.remove('go'), 1300);
+  };
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#tab-live,#topnav [data-tab="live"]')) return;
+    setTimeout(() => { if (window.__workspace.isOpen && window.__workspace.tab === 'live') toTrack(); }, 0); // only when the click opened Live, not when it closed it
+  });
+}
