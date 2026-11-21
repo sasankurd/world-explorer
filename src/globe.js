@@ -1,6 +1,6 @@
 // 3D Earth: a real spinning globe you can tilt, zoom and click, built with CesiumJS (the open-source 3D globe library).
 // The library is big (about 4 MB), so it is only downloaded the first time someone opens 3D Earth.
-// It loads from the official Cesium download site, with two backup copies on public code hosts.
+// It loads from our own copy in public/cesium, with the official Cesium site and two public code hosts as backups.
 // Optional: a free Cesium ion token in public/globe-config.json turns on real 3D mountains (see "3D Earth" in the README).
 while (!window.__app) await new Promise((r) => setTimeout(r, 25));
 const app = window.__app;
@@ -10,6 +10,7 @@ const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 
 const VER = '1.146';
 const BASES = [
+  '/cesium/', // our own copy (public/cesium), the fastest and always there
   `https://cesium.com/downloads/cesiumjs/releases/${VER}/Build/Cesium/`,
   `https://unpkg.com/cesium@${VER}.0/Build/Cesium/`,
   `https://cdn.jsdelivr.net/npm/cesium@${VER}.0/Build/Cesium/`,
