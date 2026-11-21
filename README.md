@@ -146,3 +146,6 @@ Drag the small grip in the bottom-right corner of the statistics panel to make i
 
 ## Look
 Dark HUD style (near-black `#06060c`, gold `#d4af37` accent, tracked mono caps on buttons), modelled on osirisai.live. The colours are the `--acc` / `--bg` tokens in `src/style.css` and `src/styles/workspace.css`.
+
+## Live tab
+The Live tab in the left dock has two toggles: Earthquakes (USGS, last 24 hours, magnitude 2.5 and up) and Fires and storms (NASA EONET: wildfires, severe storms, volcanoes). Both are free and need no key. They draw on the flat map and on 3D Earth, refresh every 5 minutes, and a click on a dot shows what it is. Code: `src/live.js`.

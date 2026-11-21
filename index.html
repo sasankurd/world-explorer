@@ -30,6 +30,7 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
   <nav id="topnav" aria-label="Main">
     <button type="button" data-tab="projects"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="nl">Projects</span><span id="projcount" class="count" hidden></span></button>
     <button type="button" data-tab="layers"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg><span class="nl">Layers</span><span id="layercount" class="count" hidden></span></button>
+    <button type="button" data-tab="live"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l3-8 4 16 3-8h6"/></svg><span class="nl">Live</span></button>
   </nav>
   <div id="search-wrap"><label for="search" class="sr-only">Search countries, cities and places</label><input id="search" type="search" placeholder="Search places  ( / )" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="results" aria-autocomplete="list"></div>
   <div id="views" role="group" aria-label="Map view" hidden>
@@ -93,6 +94,7 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
       <div id="side-tabs" role="tablist" aria-label="Workspace sections">
         <button type="button" role="tab" id="tab-projects" data-tab="projects" aria-controls="sv-projects" aria-selected="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="tl">Projects</span></button>
         <button type="button" role="tab" id="tab-layers" data-tab="layers" aria-controls="sv-layers" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg><span class="tl">Layers</span></button>
+        <button type="button" role="tab" id="tab-live" data-tab="live" aria-controls="sv-live" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l3-8 4 16 3-8h6"/></svg><span class="tl">Live</span></button>
       </div>
       <button id="side-collapse" type="button" aria-expanded="true" aria-controls="side-body"><span class="sc-ic" aria-hidden="true">‹</span><span class="sc-tx">Hide</span></button>
     </div>
@@ -111,6 +113,14 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
           <button id="playrow" class="lr act" type="button"><span class="tx"><b>Play trivia games</b><small>Flags, capitals and more, solo or with friends</small></span><span class="go" aria-hidden="true">›</span></button>
         </div>
         <p class="sv-note">Live flights use OpenSky's free feed and update about every 25 seconds. Satellite and terrain pictures come from Esri; street maps from OpenStreetMap.</p>
+      </section>
+      <section id="sv-live" role="tabpanel" aria-labelledby="tab-live" tabindex="-1" hidden>
+        <h2 class="sv-h">Live</h2>
+        <div id="live" role="group" aria-label="Live layers">
+          <button id="live-quakes" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Earthquakes</b><small>Last 24 hours, magnitude 2.5 and up (USGS)</small></span><i class="sw"><b></b></i></button>
+          <button id="live-events" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Fires and storms</b><small>Wildfires, storms and volcanoes right now (NASA)</small></span><i class="sw"><b></b></i></button>
+        </div>
+        <p class="muted live-note">Works on the flat map and on 3D Earth. Click a dot to see what it is.</p>
       </section>
       <aside id="panel" hidden aria-label="Country details"></aside>
       <aside id="pdetail" hidden aria-label="Place details"></aside>
@@ -222,6 +232,7 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
 <script type="module" src="/src/religionpanel.js"></script>
 <script type="module" src="/src/stats.js"></script>
 <script type="module" src="/src/trade.js"></script>
+<script type="module" src="/src/live.js"></script>
 <script type="module" src="/src/flights.js"></script>
 <script type="module" src="/src/auth.js"></script>
 <script type="module" src="/src/trends.js"></script>

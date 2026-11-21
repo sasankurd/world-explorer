@@ -9,7 +9,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const side = $('#side'), main = $('main'), body = document.body;
 const panel = $('#panel'), pdetail = $('#pdetail'), results = $('#results'), input = $('#search');
 const mobile = matchMedia('(max-width: 700px)');
-const TABS = ['projects', 'layers'];
+const TABS = ['projects', 'layers', 'live'];
 const pref = (v) => { try { return v === undefined ? localStorage.getItem('we-side') : localStorage.setItem('we-side', v); } catch { return null; } };
 
 let tab = 'projects';
