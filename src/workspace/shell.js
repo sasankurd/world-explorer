@@ -53,7 +53,7 @@ function openPanel() { if (mobile.matches) { if (snap === 'closed') snap = 'half
 function closePanel() { if (mobile.matches) snap = 'closed'; else desktopOpen = false; render(); }
 
 // ---------- tabs ----------
-$('#side-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
+$('#side-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; if (!mobile.matches && desktopOpen && tab === b.dataset.tab && !landing()) closePanel(); else setTab(b.dataset.tab); }); // clicking the open section again hides the panel
 $('#side-tabs').addEventListener('keydown', (e) => {
   const i = TABS.indexOf(tab); let n = -1;
   if (e.key === 'ArrowRight') n = (i + 1) % TABS.length; else if (e.key === 'ArrowLeft') n = (i + TABS.length - 1) % TABS.length;
