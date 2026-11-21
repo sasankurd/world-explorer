@@ -475,7 +475,8 @@ header h1{user-select:none}
 .cpin.far .pt{width:8px;height:8px;border-radius:50%;border:1.5px solid #fff;background:var(--acc)}
 .cpin .pn{font-size:11.5px;padding:1px 6px}
 /* Virals: names only, no clocks under them */
-body.virals .cl .tm{display:none!important}
+body:is(.virals,.track) .cl .tm{display:none!important}
+#map.track-bg,.track-bg .maplibregl-canvas-container{background:#10131c}
 
 /* OSIRIS-style HUD look: near-black, gold accent, sharp corners, tracked mono caps */
 :root{--mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;--r:4px}

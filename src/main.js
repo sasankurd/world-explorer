@@ -120,6 +120,7 @@ map.touchZoomRotate.disableRotation();
 let sizeMode = false;
 let timeMode = false;
 let view = 'political';
+let trackOn = false, trackPrevNames = null; // 3D Track: the flat map turned into a black globe with thin white borders and names
 let viralsOn = false, viralsPrevNames = null; // the Virals layer: a see-through map with only country borders and names
 let statsOn = false; // the Statistics layer: colours countries by a number, on top of whichever map type is showing
 let mapTheme = 'dark';
@@ -172,7 +173,7 @@ function applyView() {
   map.setPaintProperty('terrain', 'raster-brightness-max', dark ? 0.42 : 1);
   map.setPaintProperty('terrain', 'raster-saturation', dark ? -0.35 : 0);
   map.setPaintProperty('terrain', 'raster-contrast', dark ? 0.2 : 0);
-  map.setPaintProperty('sea', 'background-color', dark ? '#03060a' : statsOn && view === 'political' && baseMap !== 'osm' ? '#eef2f6' : '#cfe5f5');
+  map.setPaintProperty('sea', 'background-color', trackOn ? '#000000' : dark ? '#03060a' : statsOn && view === 'political' && baseMap !== 'osm' ? '#eef2f6' : '#cfe5f5');
   map.setPaintProperty('line', 'line-color', view === 'satellite' ? '#ffffff' : view === 'terrain' ? (dark ? '#d4af37' : '#7a3b3b') : dark ? 'rgba(130,200,255,0.45)' : '#ffffff');
   map.setPaintProperty('selected', 'line-color', dark || view === 'satellite' ? '#d4af37' : '#111');
   map.setPaintProperty('movers-line', 'line-color', dark ? '#e8f6ff' : '#111');
@@ -189,8 +190,21 @@ function applyView() {
     map.setPaintProperty('line', 'line-width', 0.4);
     map.setPaintProperty('line', 'line-opacity', 1);
   } else { map.setPaintProperty('line', 'line-width', 0.6); map.setPaintProperty('line', 'line-opacity', 0.8); }
-  document.body.classList.toggle('virals', viralsOn);
+  map.setPaintProperty('fill', 'fill-color', trackOn ? '#000000' : ['coalesce', ['feature-state', 'fill'], '#cccccc']);
+  if (trackOn) { // every country black, thin white borders between them
+    map.setPaintProperty('fill', 'fill-opacity', 1);
+    map.setPaintProperty('line', 'line-color', '#ffffff'); map.setPaintProperty('line', 'line-width', 0.5); map.setPaintProperty('line', 'line-opacity', 0.9);
+  }
+  document.body.classList.toggle('virals', viralsOn); document.body.classList.toggle('track', trackOn);
   recolor();
+}
+function setTrack(on) {
+  on = !!on; if (on === trackOn) return; trackOn = on;
+  if (on) { trackPrevNames = labelsOn; if (!labelsOn) setNames(true); } else if (trackPrevNames === false && labelsOn) { setNames(false); }
+  map.setProjection({ type: on ? 'globe' : 'mercator' }); // MapLibre's own globe: a real ball you can turn
+  map.getContainer().classList.toggle('track-bg', on);
+  applyView();
+  window.dispatchEvent(new CustomEvent('track-layer', { detail: on }));
 }
 function setVirals(on) {
   on = !!on; if (on === viralsOn) return; viralsOn = on;
@@ -808,5 +822,5 @@ map.on('load', () => {
   const id = location.hash.slice(1).toUpperCase();
   if (countries[id]) openCountry(id);
 });
-window.__app = { setVirals, get viralsOn() { return viralsOn; }, setStats, get statsOn() { return statsOn; }, map, borders, goTo, clearPin, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
+window.__app = { setTrack, get trackOn() { return trackOn; }, setVirals, get viralsOn() { return viralsOn; }, setStats, get statsOn() { return statsOn; }, map, borders, goTo, clearPin, countries, list, closePanel, recolor, applyView, setView, isDark, openCountry, labels, addMover, movers, setTimeMode, get timeMode() { return timeMode; }, tzData, tzText, get cities() { return cities; }, get view() { return view; }, get mapTheme() { return mapTheme; }, statsHook: null, setBaseMap, get baseMap() { return baseMap; } }; // handy for testing
 map.on('load', () => { setTimeMode(true); if (baseMap === 'osm') setNames(false); }); // live country times are on by default; with OpenStreetMap saved, our names start switched off
