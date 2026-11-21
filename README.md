@@ -154,3 +154,6 @@ The Live tab in the left dock has two toggles: Earthquakes (USGS, last 24 hours,
 Layers tab, "3D terrain": tilts the flat map and shows real mountains using free AWS terrain tiles (no key). Right-drag or two-finger drag turns the map. Code: `src/terrain3d.js`.
 
 The 3D library is served from our own copy in `public/cesium` (Cesium 1.146, Apache-2.0, kept with its licence inside the files). To update it, copy `Build/Cesium` from the `cesium` npm package into that folder. If it is missing the site falls back to the official Cesium site and two public code hosts.
+
+## 3D Track
+A map type (Layers tab, bottom-left picker, or the 3D Earth Picture list): 3D Earth with black countries, thin white borders and country names. Code: the `track` style in `src/globe.js`.

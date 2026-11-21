@@ -11,22 +11,25 @@ const TYPES = [
   { k: 'osm', name: 'OpenStreetMap', img: 'osm', tip: 'Streets and places from OpenStreetMap' },
   { k: 'virals', name: 'Virals', img: 'virals', tip: 'See-through map with only thin borders and country names' },
   { k: 'globe', name: '3D Earth', img: 'globe', tip: 'A globe you can spin and tilt' },
+  { k: 'track', name: '3D Track', img: 'track', tip: '3D Earth in black with thin white borders and country names' },
 ];
-const src = (t) => $(`#views button[data-view="${t.k === 'osm' || t.k === 'virals' ? 'political' : t.k}"]`);
+const src = (t) => $(`#views button[data-view="${t.k === 'osm' || t.k === 'virals' ? 'political' : t.k === 'track' ? 'globe' : t.k}"]`);
 const tileHtml = (t) => `<button type="button" class="mt-tile" data-k="${t.k}" title="${t.tip}" aria-pressed="false"><span class="mt-img" style="background-image:url(/img/maptype/${t.img}.jpg)"></span><b>${t.name}</b></button>`;
 
 function current() {
   if (app.viralsOn && !window.__globe?.active) return TYPES.find((t) => t.k === 'virals');
-  const on = TYPES.find((t) => t.k !== 'osm' && t.k !== 'virals' && src(t)?.classList.contains('on'));
+  const on = TYPES.find((t) => t.k !== 'osm' && t.k !== 'virals' && t.k !== 'track' && src(t)?.classList.contains('on'));
   if (on && on.k === 'political' && app.baseMap === 'osm') return TYPES.find((t) => t.k === 'osm');
+  if (on?.k === 'globe' && window.__globe?.style === 'track') return TYPES.find((t) => t.k === 'track');
   return on || null;
 }
 function set(k) {
   const t = TYPES.find((x) => x.k === k); if (!t) return false;
   if (k !== 'virals' && app.viralsOn) app.setVirals(false);
   if (k === 'virals') { if (app.baseMap !== 'normal') app.setBaseMap('normal'); src(TYPES[0])?.click(); app.setVirals(true); }
+  else if (k === 'track') { window.__globe?.pic('track'); src(t)?.click(); }
   else if (k === 'osm') { src(TYPES[0])?.click(); app.setBaseMap('osm'); }
-  else { if (k === 'political' && app.baseMap !== 'normal') app.setBaseMap('normal'); src(t)?.click(); }
+  else { if (k === 'globe' && window.__globe?.style === 'track') window.__globe.pic('satellite'); if (k === 'political' && app.baseMap !== 'normal') app.setBaseMap('normal'); src(t)?.click(); }
   sync();
   return true;
 }

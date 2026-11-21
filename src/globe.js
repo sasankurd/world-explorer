@@ -17,6 +17,7 @@ const BASES = [
 ];
 const btn = $('#globebtn'), wrap = $('#globe'), view = $('#gl-view'), stat = $('#gl-stat');
 
+let lineMat = null;
 let C = null, viewer = null, active = false, starting = null;
 let cfg = { ionToken: '' };
 let borders = null, ds = null, cityLabels = null, cityDots = null, countryLabels = null;
@@ -69,11 +70,21 @@ function applyNames() {
 async function setStyle(name) {
   style = name;
   const layers = viewer.imageryLayers; layers.removeAll();
-  try { layers.addImageryProvider(await imageryFor(name)); } catch { say('That picture layer is not reachable right now.', true); }
+  try { if (name !== 'track') layers.addImageryProvider(await imageryFor(name)); } catch { say('That picture layer is not reachable right now.', true); }
   applyNames();
   if (!namesHook) { namesHook = true; viewer.camera.changed.addEventListener(fitNames); viewer.camera.percentageChanged = 0.05; }
-  viewer.scene.globe.baseColor = C.Color.fromCssColorString(name === 'night' ? '#02040a' : '#0a1b2a');
+  viewer.scene.globe.baseColor = C.Color.fromCssColorString(name === 'track' ? '#000000' : name === 'night' ? '#02040a' : '#0a1b2a');
+  applyLook();
 }
+// "3D Track": no picture at all, so every country is black, with thin white borders between them
+function applyLook() {
+  if (!viewer || !lineMat) return;
+  const track = style === 'track';
+  viewer.scene.globe.showGroundAtmosphere = !track;
+  lineMat.uniforms.color = C.Color.fromCssColorString(track ? '#ffffff' : '#d4af37').withAlpha(track ? 0.9 : 0.85);
+  for (let i = 0; i < ds.length; i++) ds.get(i).width = track ? 0.8 : 1.6;
+}
+function pic(name) { style = name; $('#gl-style').value = name; if (viewer) setStyle(name).then(() => window.dispatchEvent(new CustomEvent('globe-change'))); else window.dispatchEvent(new CustomEvent('globe-change')); }
 
 // start the downloads early (when the pointer reaches a 3D button) so the globe opens faster
 let bordersP0 = null;
@@ -112,7 +123,7 @@ async function build() {
   // border lines (one cheap batch) and, for picking a country, a plain "which border is this point inside?" check
   const lines = viewer.scene.primitives.add(new C.PolylineCollection()); ds = lines;
   const flat3 = (ring) => ring.flatMap(([x, y]) => [x, y, 1500]);
-  const lineMat = C.Material.fromType('Color', { color: C.Color.fromCssColorString('#d4af37').withAlpha(0.85) });
+  lineMat = C.Material.fromType('Color', { color: C.Color.fromCssColorString('#d4af37').withAlpha(0.85) });
   for (const f of borders.features) {
     const id = f.properties?.id; if (!countries[id]) continue;
     const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [];
@@ -127,6 +138,7 @@ async function build() {
     }
     if (pts.length) shapes[id] = { parts, sphere: C.BoundingSphere.fromPoints(pts) };
   }
+  applyLook();
   const h = new C.ScreenSpaceEventHandler(viewer.canvas);
   h.setInputAction((m) => {
     const hit = viewer.camera.pickEllipsoid(m.position, viewer.scene.globe.ellipsoid);
@@ -213,7 +225,7 @@ function applyToggles() {
   if (countryLabels) countryLabels.show = isOn('#gl-names');
   spinOn = isOn('#gl-spin');
   viewer.scene.globe.enableLighting = isOn('#gl-sun');
-  viewer.scene.globe.showGroundAtmosphere = true;
+  viewer.scene.globe.showGroundAtmosphere = style !== 'track';
   viewer.scene.requestRender?.();
 }
 wrap.addEventListener('click', (e) => {
@@ -221,7 +233,7 @@ wrap.addEventListener('click', (e) => {
   if (e.target.closest('#gl-home')) { spinHold = 0; home(); }
   if (e.target.closest('#gl-x')) toggle(false);
 });
-$('#gl-style').addEventListener('change', (e) => viewer && setStyle(e.target.value));
+$('#gl-style').addEventListener('change', (e) => pic(e.target.value));
 $('#gl-names').addEventListener('click', (e) => { const b = e.currentTarget; setTimeout(() => { namesOn = b.classList.contains('on'); if (viewer) applyNames(); }); }); // after the shared switch handler flips it
 $('#gl-terrain').addEventListener('click', (e) => {
   const on = e.currentTarget.classList.toggle('on'); e.currentTarget.setAttribute('aria-checked', String(on));
@@ -243,4 +255,4 @@ async function toggle(on) {
 btn.addEventListener('click', () => toggle(true));
 $('#views').addEventListener('click', (e) => { const b = e.target.closest('button[data-view]'); if (b && b !== btn && active) toggle(false); }); // picking Map, Terrain, Satellite or Stats leaves the globe
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && active && !e.target.closest('input,select')) { if (pinEntity) clearPin(); } });
-window.__globe = { get active() { return active; }, get ready() { return !!viewer; }, get viewer() { return viewer; }, toggle, goTo, flyCountry, choose, get shapes() { return shapes; } };
+window.__globe = { pic, get style() { return style; }, get active() { return active; }, get ready() { return !!viewer; }, get viewer() { return viewer; }, toggle, goTo, flyCountry, choose, get shapes() { return shapes; } };
