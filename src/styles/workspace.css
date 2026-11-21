@@ -402,3 +402,11 @@ body #statbar #sb-rows{max-height:90px}
 #dock-tip{position:fixed;z-index:60;transform:translate(-4px,-50%);padding:5px 10px;border-radius:8px;background:rgba(8,8,14,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);color:var(--fg);font:600 11px/1.2 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s}
 #dock-tip.on{opacity:1;transform:translate(0,-50%)}
 @media(max-width:700px){#dock-tip{display:none}}
+
+/* stats: a small, minimal glass card at the bottom of the map, above the map-type buttons */
+@media(min-width:701px){
+  body #statbar{z-index:34;top:auto;bottom:70px;width:min(360px,calc(100% - var(--rail,0px) - 24px));max-height:min(210px,calc(100% - 150px));padding:6px 8px;border-radius:12px;background:rgba(14,14,20,.6);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(255,255,255,.14);box-shadow:0 8px 28px rgba(0,0,0,.4);animation:sbup .3s ease-out}
+  body #statbar .sb-groups{max-height:78px}
+  body #statbar #sb-rows{max-height:70px}
+}
+@keyframes sbup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
