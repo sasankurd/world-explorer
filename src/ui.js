@@ -143,6 +143,7 @@ initLang();
   const name = (b) => b.querySelector('.tl,.sc-tx,span:not(.ic)')?.textContent.trim() || b.getAttribute('aria-label') || '';
   const show = (e) => {
     const b = e.target.closest('#side-head button'); if (!b || !matchMedia('(min-width:701px)').matches) return;
+    if (b.dataset.tab && $('#side').dataset.mini === 'false') return; // the window itself is open beside it, no name chip needed
     if (b.title) { b.setAttribute('aria-label', name(b)); b.removeAttribute('title'); } // the chip replaces the browser tooltip
     const r = b.getBoundingClientRect(); tip.textContent = name(b);
     tip.style.left = r.right + 10 + 'px'; tip.style.top = r.top + r.height / 2 + 'px'; tip.classList.add('on');

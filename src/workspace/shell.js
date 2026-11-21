@@ -53,7 +53,21 @@ function openPanel() { if (mobile.matches) { if (snap === 'closed') snap = 'half
 function closePanel() { if (mobile.matches) snap = 'closed'; else desktopOpen = false; render(); }
 
 // ---------- tabs ----------
-$('#side-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; if (!mobile.matches && desktopOpen && tab === b.dataset.tab && !landing()) closePanel(); else setTab(b.dataset.tab); }); // clicking the open section again hides the panel
+// hovering a dock icon peeks at its window; moving away closes it again, clicking keeps it open
+let peek = false, peekTimer = 0;
+$('#side-tabs').addEventListener('pointerover', (e) => {
+  const b = e.target.closest('[data-tab]'); if (!b || e.pointerType !== 'mouse' || mobile.matches || landing()) return;
+  clearTimeout(peekTimer);
+  if (desktopOpen && !peek) return; // already open for real: hovering changes nothing
+  peek = true; setTab(b.dataset.tab); $('#dock-tip')?.classList.remove('on');
+});
+side.addEventListener('pointerleave', (e) => { if (!peek || e.pointerType !== 'mouse') return; peekTimer = setTimeout(() => { if (peek) { peek = false; closePanel(); } }, 300); });
+side.addEventListener('pointerenter', () => clearTimeout(peekTimer));
+$('#side-tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tab]'); if (!b) return;
+  if (peek) { peek = false; clearTimeout(peekTimer); setTab(b.dataset.tab); return; } // a click on a peeked window keeps it open
+  if (!mobile.matches && desktopOpen && tab === b.dataset.tab && !landing()) closePanel(); else setTab(b.dataset.tab); // clicking the open section again hides the panel
+});
 $('#side-tabs').addEventListener('keydown', (e) => {
   const i = TABS.indexOf(tab); let n = -1;
   if (e.key === 'ArrowRight') n = (i + 1) % TABS.length; else if (e.key === 'ArrowLeft') n = (i + TABS.length - 1) % TABS.length;
