@@ -125,6 +125,9 @@ window.__layout = {
   get left() { return !mobile.matches && isOpen() && !landing() ? side.offsetWidth + 12 : 0; },
   get bottom() { return mobile.matches && isOpen() && !landing() ? side.offsetHeight : 0; },
 };
+// coming in from the start screen (opening the site's map or a project) leaves the panel folded; the icons open it again
+let wasLanding = landing();
+new MutationObserver(() => { const now = landing(); if (wasLanding && !now) setTimeout(closePanel, 0); wasLanding = now; }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 window.__workspace = { setTab, open: openPanel, close: closePanel, get tab() { return tab; }, get isOpen() { return isOpen(); } };
 render();
 

@@ -100,7 +100,7 @@ async function showOnMap(project, { transient = false, view = true } = {}) {
   activeId = transient ? '' : project.id; workingShared = transient;
   hideLanding(); closeDetails();
   renderChip(); renderPins(); renderProjects();
-  if (mobile.matches) ws.close(); // phones: give the whole screen back to the map
+  if (mobile.matches || view) ws.close(); // opening a project gives the whole map back (the panel folds to its icon rail)
   if (!view) return; // only the pins were wanted, the caller moves the map itself
   if (project.view) {
     const r = await restore(project);
