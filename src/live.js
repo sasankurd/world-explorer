@@ -212,6 +212,13 @@ for (const which of Object.keys(rows)) {
 setInterval(() => { for (const w of ['quakes', 'events', 'conflict']) if (on[w]) refresh(w); }, 300000);
 setInterval(() => { if (on.sats && satRecs.length) { placeSats(); draw2d(); draw3d(); } }, 4000); // satellites move fast, so their dots are moved every few seconds
 window.addEventListener('globe-change', () => { if (shown().length) draw3d(); });
+// clicking empty map hides the Live panel and the info card (a click on a marker does not)
+map.on('click', (e) => {
+  const lv = ['live-pts', 'live-sat', 'live-conf'].filter((id) => map.getLayer(id));
+  if (lv.length && map.queryRenderedFeatures(e.point, { layers: lv }).length) return;
+  el.hidden = true;
+  const w = window.__workspace; if (w?.isOpen && w.tab === 'live') w.close();
+});
 window.__live = { on, items };
 
 // opening the Live tab switches the map to 3D Track, with a short gold "scan" wipe hiding the change
