@@ -121,7 +121,10 @@ async function draw3d() {
 
 // ---------- the small info chip ----------
 const el = document.createElement('div'); el.id = 'live-chip'; el.hidden = true; document.body.append(el);
-function chip(t, s, k, img) { el.innerHTML = `<i style="background:${COLOR[k]}"></i><span>${img && /^https:\/\//.test(img) ? `<img src="${esc(img)}" alt="Camera picture" referrerpolicy="no-referrer">` : ''}<b>${esc(t)}</b><small>${esc(s)}</small></span><button type="button" aria-label="Close">✕</button>`; el.hidden = false; }
+function chip(t, s, k, img) {
+  if (img && /^https:\/\//.test(img)) return openCam(t, s, img); // cameras open in their own window
+  el.innerHTML = `<i style="background:${COLOR[k]}"></i><span><b>${esc(t)}</b><small>${esc(s)}</small></span><button type="button" aria-label="Close">✕</button>`; el.hidden = false;
+}
 el.addEventListener('click', (e) => { if (e.target.closest('button')) el.hidden = true; });
 
 // ---------- toggles ----------
@@ -158,4 +161,28 @@ window.__live = { on, items };
     if (!e.target.closest('#tab-live,#topnav [data-tab="live"]')) return;
     setTimeout(() => { if (window.__workspace.isOpen && window.__workspace.tab === 'live') toTrack(); }, 0); // only when the click opened Live, not when it closed it
   });
+}
+
+// ---------- camera windows: drag by the title bar, resize from the corner, up to 5 at once ----------
+const wins = new Map(); let topZ = 45;
+const front = (w) => { w.style.zIndex = ++topZ; };
+function openCam(t, s, img) {
+  if (wins.has(img)) return front(wins.get(img));
+  if (wins.size >= 5) wins.get(wins.keys().next().value).querySelector('button').click(); // the oldest makes room
+  const w = document.createElement('div'), n = wins.size; w.className = 'cam-win';
+  w.innerHTML = `<div class="cw-bar"><span><b>${esc(t)}</b><small>${esc(s)}</small></span><button type="button" aria-label="Close camera">✕</button></div><div class="cw-body"><img alt="${esc(t)}" referrerpolicy="no-referrer"></div><i class="cw-grip" aria-hidden="true"></i>`;
+  const im = w.querySelector('img'); im.src = img; im.onerror = () => { w.querySelector('.cw-body').textContent = 'Picture not available right now'; };
+  w.style.left = Math.max(8, Math.min(innerWidth - 340, 440 + n * 28)) + 'px'; w.style.top = 90 + n * 28 + 'px';
+  document.body.append(w); wins.set(img, w); front(w);
+  const timer = img.includes('?') ? 0 : setInterval(() => { im.src = `${img}?t=${Date.now()}`; }, 15000); // refresh the picture (only where the link carries no signature)
+  w.addEventListener('pointerdown', () => front(w));
+  w.querySelector('button').addEventListener('click', () => { clearInterval(timer); w.remove(); wins.delete(img); });
+  const track = (el, move) => el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return; e.preventDefault(); el.setPointerCapture(e.pointerId);
+    const r = w.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+    const mv = (m) => move(r, m.clientX - x0, m.clientY - y0), up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); };
+    el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up);
+  });
+  track(w.querySelector('.cw-bar'), (r, dx, dy) => { w.style.left = Math.max(0, Math.min(innerWidth - 60, r.left + dx)) + 'px'; w.style.top = Math.max(0, Math.min(innerHeight - 40, r.top + dy)) + 'px'; });
+  track(w.querySelector('.cw-grip'), (r, dx, dy) => { w.style.width = Math.max(220, Math.min(innerWidth - r.left, r.width + dx)) + 'px'; w.style.height = Math.max(170, Math.min(innerHeight - r.top, r.height + dy)) + 'px'; });
 }
