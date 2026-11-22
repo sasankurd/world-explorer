@@ -32,13 +32,26 @@ async function intent(q, env) {
 }
 const clean = (cl) => (Array.isArray(cl) ? cl : []).slice(0, 4).map((g) => (Array.isArray(g) ? g : []).slice(0, 3).filter((p) => Array.isArray(p) && KEYS.has(p[0]) && OK.test(String(p[1]))).map((p) => [p[0], String(p[1])])).filter((g) => g.length);
 
-async function overpass(clauses) {
-  const body = (area) => `[out:json][timeout:25];(${clauses.map((g) => `nwr${g.map(([k, v]) => `["${k}"="${v}"]`).join('')}${area};`).join('')});out center 1500;`;
+// one Overpass question for a map box (south,west,north,east); tries both public servers
+async function ask(clauses, bb, limit) {
+  const area = bb ? `(${bb.join(',')})` : '';
+  const q = `[out:json][timeout:20];(${clauses.map((g) => `nwr${g.map(([k, v]) => `["${k}"="${v}"]`).join('')}${area};`).join('')});out center ${limit};`;
   let err;
   for (const u of OVERPASS) {
-    try { const r = await fetch(u, { method: 'POST', body: `data=${encodeURIComponent(body(''))}`, headers: { 'content-type': 'application/x-www-form-urlencoded' } }); if (r.ok) return (await r.json()).elements || []; err = new Error(`HTTP ${r.status}`); } catch (e) { err = e; }
+    try { const r = await fetch(u, { method: 'POST', body: `data=${encodeURIComponent(q)}`, headers: { 'content-type': 'application/x-www-form-urlencoded', 'user-agent': 'world-explorer/1.0 (live search)' } }); if (r.ok) return (await r.json()).elements || []; err = new Error(`HTTP ${r.status}`); } catch (e) { err = e; }
   }
   throw err;
+}
+// the whole world in four boxes, two at a time (the public servers only allow a couple of questions at once, and one world-sized question times out)
+const TILES = [[-90, -180, 90, -90], [-90, -90, 90, 0], [-90, 0, 90, 90], [-90, 90, 90, 180]];
+async function world(clauses) {
+  const out = [], errs = [];
+  for (let i = 0; i < TILES.length; i += 2) {
+    const r = await Promise.allSettled(TILES.slice(i, i + 2).map((t) => ask(clauses, t, 400)));
+    for (const x of r) if (x.status === 'fulfilled') out.push(...x.value); else errs.push(String(x.reason?.message || x.reason));
+  }
+  if (!out.length && errs.length) throw new Error(errs[0]);
+  return { els: out, partial: errs.length > 0 };
 }
 
 export default {
@@ -48,10 +61,11 @@ export default {
       const q = (u.searchParams.get('q') || '').trim().slice(0, 80); if (!q) return json({ error: 'empty' }, 400);
       const it = await intent(q, env); if (!it) return json({ error: 'I could not tell what places to look for. Try a place type or a sport, like "cinemas" or "chess".' }, 422);
       try {
-        const els = await overpass(it.clauses);
+        const bb = (u.searchParams.get('bbox') || '').split(',').map(Number), box = bb.length === 4 && bb.every(Number.isFinite) && bb[0] < bb[2] && bb[1] < bb[3] ? bb.map((x) => +x.toFixed(4)) : null;
+        const { els, partial } = box ? { els: await ask(it.clauses, box, 1500), partial: false } : await world(it.clauses);
         const places = els.map((e) => ({ lat: e.lat ?? e.center?.lat, lon: e.lon ?? e.center?.lon, name: e.tags?.name || '', type: e.tags?.amenity || e.tags?.leisure || e.tags?.tourism || e.tags?.sport || e.tags?.shop || '' })).filter((p) => p.lat != null && p.lon != null);
-        return json({ label: it.label, ai: it.ai, places });
-      } catch { return json({ error: 'The map data service is busy. Try again in a minute.' }, 502); }
+        return json({ label: it.label, ai: it.ai, partial, places });
+      } catch (e) { return json({ error: 'The map data service is busy.', busy: true, detail: String(e.message || e).slice(0, 120) }, 502); }
     }
     const m = u.pathname.match(/^\/api\/gdelt\/(lastupdate\.txt|\d{14}\.export\.CSV\.zip)$/);
     if (!m) return env.ASSETS.fetch(req);

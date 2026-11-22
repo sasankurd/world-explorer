@@ -249,13 +249,21 @@ window.__live = { on, items };
     e.preventDefault(); const q = box.value.trim(); if (!q) return;
     say('Searching the whole world…'); form.classList.add('busy');
     try {
-      const r = await get(`/api/search?q=${encodeURIComponent(q)}`), j = await r.json().catch(() => null);
+      const call = async (extra = '') => { const r = await get(`/api/search?q=${encodeURIComponent(q)}${extra}`); return r.json().catch(() => null); };
+      let j = await call();
       if (!j) throw new Error('This needs the live site (its server step).');
+      if (j.busy) { // the worldwide search was refused: search only the area on screen instead
+        say('Worldwide search is busy. Searching the area you are looking at…');
+        const b = map.getBounds(); j = await call(`&bbox=${[Math.max(-90, b.getSouth()), Math.max(-180, b.getWest()), Math.min(90, b.getNorth()), Math.min(180, b.getEast())].join(',')}`);
+        if (j?.busy) throw new Error(`The map data service is busy (${j.detail || 'no answer'}). Try again in a minute.`);
+        if (j) j.label += ' (this area)';
+      }
+      if (!j) throw new Error('Search failed. Try again.');
       if (j.error) throw new Error(j.error);
       if (!j.places.length) return say(`No ${j.label.toLowerCase()} found on the map.`);
       items.find = j.places.slice(0, 1500).map((p) => ({ k: 'find', lon: p.lon, lat: p.lat, r: 4.5, t: p.name || j.label, s: `${j.label}${p.type ? ` · ${p.type.replace(/_/g, ' ')}` : ''}` }));
       on.find = true; window.__live.toTrack?.(); draw2d(); draw3d();
-      say(`${j.label}: ${items.find.length} places${items.find.length >= 1500 ? ' (first 1500)' : ''}.`, true);
+      say(`${j.label}: ${items.find.length} places${items.find.length >= 1500 ? ' (first 1500)' : ''}${j.partial ? ' · some regions did not answer' : ''}.`, true);
     } catch (err) { say(err.message || 'Search failed. Try again.'); } finally { form.classList.remove('busy'); }
   });
 }
