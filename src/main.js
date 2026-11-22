@@ -260,7 +260,8 @@ map.on('mouseleave', 'fill', () => {
 map.on('click', 'fill', (e) => {
   if (!e.features[0] || window.__measuring) return; // while measuring, a click adds a point instead
   if (map.getLayer('planes') && map.queryRenderedFeatures(e.point, { layers: ['planes'] }).length) return; // a plane was clicked, not the country below
-  if (map.getLayer('live-pts') && map.queryRenderedFeatures(e.point, { layers: ['live-pts'] }).length) return; // a quake or fire dot was clicked
+  const lv = ['live-pts', 'live-sat', 'live-conf'].filter((id) => map.getLayer(id)); // a Live marker (quake, fire, satellite, conflict) was clicked, not a country
+  if (lv.length && map.queryRenderedFeatures(e.point, { layers: lv }).length) return;
   if (sizeMode) { if (!map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length) addMover(e.features[0].id); return; }
   openCountry(e.features[0].id, 'overview', false);
 });
