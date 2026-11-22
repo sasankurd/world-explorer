@@ -162,4 +162,4 @@ Opening the Live tab switches the map to 3D Track with a short gold scan-and-rin
 
 Satellites (third toggle): the space stations and about 150 bright satellites from CelesTrak, moved every 4 seconds from their orbits with satellite.js (SGP4). The orbit list is downloaded once every 2 hours. On 3D Earth they float at their real height. Clicking Live while on 3D Earth also switches to 3D Track.
 
-CCTV surveillance (Live tab, fourth toggle): public traffic cameras from three official open feeds: TfL JamCams (London), LTA via data.gov.sg (Singapore) and NYC DOT. Click a dot to see its latest picture. A feed that is down is skipped. More feeds can be added to the `CAMS` list in `src/live.js`.
+CCTV surveillance (Live tab, fourth toggle): public traffic cameras from four official open feeds: TfL JamCams (London), Fintraffic Digitraffic (Finland), LTA via data.gov.sg (Singapore) and NYC DOT. Click a dot to see its latest picture. A feed that is down is skipped. More feeds can be added to the `CAMS` list in `src/live.js`.

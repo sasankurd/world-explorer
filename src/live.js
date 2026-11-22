@@ -33,6 +33,7 @@ function placeSats() {
 const CAMS = [
   ['London', () => fetch('https://api.tfl.gov.uk/Place/Type/JamCam').then((r) => r.json()).then((a) => a.flatMap((c) => { const img = c.additionalProperties?.find((q) => q.key === 'imageUrl')?.value; return img && c.lat ? [{ lon: c.lon, lat: c.lat, t: c.commonName, s: 'London · TfL JamCam', img }] : []; }))],
   ['Singapore', () => fetch('https://api.data.gov.sg/v1/transport/traffic-images').then((r) => r.json()).then((j) => (j.items?.[0]?.cameras || []).map((c) => ({ lon: c.location.longitude, lat: c.location.latitude, t: `Camera ${c.camera_id}`, s: 'Singapore · LTA', img: c.image })))],
+  ['Finland', () => fetch('https://tie.digitraffic.fi/api/weathercam/v1/stations').then((r) => r.json()).then((j) => j.features.flatMap((f) => { const id = f.properties.presets?.find((q) => q.inCollection !== false)?.id; return id ? [{ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], t: String(f.properties.name || f.id).replace(/_/g, ' '), s: 'Finland · Fintraffic road cameras', img: `https://weathercam.digitraffic.fi/${id}.jpg` }] : []; }))],
   ['New York', () => fetch('https://webcams.nyctmc.org/api/cameras').then((r) => r.json()).then((a) => a.filter((c) => c.isOnline !== false && c.latitude).map((c) => ({ lon: c.longitude, lat: c.latitude, t: c.name, s: 'New York · NYC DOT', img: c.imageUrl || `https://webcams.nyctmc.org/api/cameras/${c.id}/image` })))],
 ];
 let camNames = [];
