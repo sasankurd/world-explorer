@@ -90,6 +90,7 @@ async function load(which) {
 // on the 3D Track globe the icons hover above the surface with a soft shadow left on the ground
 function float(on) {
   if (!map.getLayer('live-pts')) return;
+  map.setLayoutProperty('live-sat', 'symbol-height-offset', on ? ['get', 'h'] : 0); // real altitude only on the globe
   const t = on ? [0, -16] : [0, 0];
   for (const id of ['live-glow', 'live-pts']) { map.setPaintProperty(id, 'circle-translate', t); map.setPaintProperty(id, 'circle-translate-anchor', 'viewport'); }
   map.setPaintProperty('live-ground', 'circle-opacity', on ? 0.55 : 0);
@@ -102,8 +103,17 @@ function ensure2d() {
   map.addSource('live', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, 'cctv', COLOR.cctv, COLOR.volcano];
   map.addLayer({ id: 'live-ground', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 0.9], 'circle-color': '#000', 'circle-opacity': 0, 'circle-blur': 0.8 } }); // shadow on the ground, shown only while icons float
-  map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
-  map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
+  map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', filter: ['!=', ['get', 'k'], 'sat'], paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
+  map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', filter: ['!=', ['get', 'k'], 'sat'], paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
+  // satellites are symbols so they can sit at their real height above the globe (symbol-height-offset, in metres)
+  const c = Object.assign(document.createElement('canvas'), { width: 48, height: 48 }), x = c.getContext('2d'), g = x.createRadialGradient(24, 24, 0, 24, 24, 24);
+  g.addColorStop(0, '#fff'); g.addColorStop(0.18, COLOR.sat); g.addColorStop(0.4, 'rgba(31,181,255,.35)'); g.addColorStop(1, 'rgba(31,181,255,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 48, 48);
+  if (!map.hasImage('sat-dot')) map.addImage('sat-dot', x.getImageData(0, 0, 48, 48));
+  map.addLayer({ id: 'live-sat', type: 'symbol', source: 'live', filter: ['==', ['get', 'k'], 'sat'], layout: { 'icon-image': 'sat-dot', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'symbol-height-offset': 0 } });
+  map.on('click', 'live-sat', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k); });
+  map.on('mouseenter', 'live-sat', () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'live-sat', () => { map.getCanvas().style.cursor = ''; });
   float(window.__app?.trackOn);
   map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k, p.i, p.v); });
   map.on('mouseenter', 'live-pts', () => { map.getCanvas().style.cursor = 'pointer'; });
@@ -111,7 +121,7 @@ function ensure2d() {
 }
 const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : [])];
 function draw2d() {
-  const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, t: i.t, s: i.s, i: i.img || '', v: i.vid || '' } })) }); };
+  const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, h: i.h || 0, t: i.t, s: i.s, i: i.img || '', v: i.vid || '' } })) }); };
   if (map.isStyleLoaded()) go(); else map.once('idle', go);
 }
 
