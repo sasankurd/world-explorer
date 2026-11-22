@@ -11,9 +11,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const QUAKES = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
 const EVENTS = 'https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=300&category=wildfires,severeStorms,volcanoes';
 const SATS = ['stations', 'visual'].map((g) => `https://celestrak.org/NORAD/elements/gp.php?GROUP=${g}&FORMAT=json`); // the space stations and about 150 of the brightest satellites
-const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff', sat: '#1fb5ff', cctv: '#b6ff5c' };
+const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff', sat: '#1fb5ff', cctv: '#b6ff5c', clash: '#ff3b3b', drone: '#ffc233', missile: '#ff4fd8' };
 const KIND = { wildfires: 'fire', severeStorms: 'storm', volcanoes: 'volcano' };
-const on = { quakes: false, events: false, sats: false, cctv: false }, items = { quakes: [], events: [], sats: [], cctv: [] };
+const on = { quakes: false, events: false, sats: false, cctv: false, conflict: false }, items = { quakes: [], events: [], sats: [], cctv: [], conflict: [] };
+// news-based conflict reports (GDELT, no key): one search per kind, each result is a place with the articles that mention it
+const GDELT = (q) => `https://api.gdeltproject.org/api/v2/geo/geo?query=${encodeURIComponent(q + ' sourcelang:eng')}&format=geojson&timespan=1d&maxpoints=150`;
+const CONFLICT = [['clash', '(airstrike OR shelling OR bombing OR explosion OR clashes OR "armed attack")', 'Fighting'], ['drone', '(drone OR drones OR UAV) (strike OR attack OR shot)', 'Drone'], ['missile', '(missile OR rocket) (launch OR launched OR strike OR fired)', 'Missile']];
+const ICON = { clash: 'Fighting reported', drone: 'Drone activity reported', missile: 'Missile or rocket reported' };
 let satRecs = [], satFetched = 0;
 
 const ago = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `${m} min ago` : m < 2880 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`; };
@@ -65,6 +69,15 @@ async function loadCams() {
   if (!items.cctv.length) throw new Error('no cameras');
 }
 async function load(which) {
+  if (which === 'conflict') {
+    const res = await Promise.allSettled(CONFLICT.map(async ([k, q]) => (await (await get(GDELT(q))).json()).features.map((f) => {
+      const d = new DOMParser().parseFromString(f.properties.html || '', 'text/html'), head = d.querySelector('a')?.textContent?.trim();
+      return { k, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], r: 9, t: (f.properties.name || 'Unknown place').slice(0, 70), s: `${ICON[k]} · ${head ? head.slice(0, 110) : 'see news'} · last 24 h` };
+    })));
+    if (res.every((r) => r.status === 'rejected')) throw new Error('no reports');
+    items.conflict = res.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+    return;
+  }
   if (which === 'cctv') { if (!items.cctv.length) await loadCams(); return; }
   if (which === 'sats') {
     if (!satRecs.length || Date.now() - satFetched > 7200000) { // CelesTrak asks for no more than one download every two hours
@@ -103,8 +116,8 @@ function ensure2d() {
   map.addSource('live', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, 'cctv', COLOR.cctv, COLOR.volcano];
   map.addLayer({ id: 'live-ground', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 0.9], 'circle-color': '#000', 'circle-opacity': 0, 'circle-blur': 0.8 } }); // shadow on the ground, shown only while icons float
-  map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', filter: ['!=', ['get', 'k'], 'sat'], paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
-  map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', filter: ['!=', ['get', 'k'], 'sat'], paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
+  map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', filter: ['!', ['in', ['get', 'k'], ['literal', ['sat', 'clash', 'drone', 'missile']]]], paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
+  map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', filter: ['!', ['in', ['get', 'k'], ['literal', ['sat', 'clash', 'drone', 'missile']]]], paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
   // satellites are symbols so they can sit at their real height above the globe (symbol-height-offset, in metres)
   const c = Object.assign(document.createElement('canvas'), { width: 48, height: 48 }), x = c.getContext('2d'), g = x.createRadialGradient(24, 24, 0, 24, 24, 24);
   g.addColorStop(0, '#fff'); g.addColorStop(0.18, COLOR.sat); g.addColorStop(0.4, 'rgba(31,181,255,.35)'); g.addColorStop(1, 'rgba(31,181,255,0)');
@@ -114,12 +127,26 @@ function ensure2d() {
   map.on('click', 'live-sat', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k); });
   map.on('mouseenter', 'live-sat', () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', 'live-sat', () => { map.getCanvas().style.cursor = ''; });
+  // conflict markers: a dark badge with a coloured rim and a simple pictogram (explosion, drone, rocket)
+  for (const k of ['clash', 'drone', 'missile']) {
+    const cv = Object.assign(document.createElement('canvas'), { width: 64, height: 64 }), c2 = cv.getContext('2d'); c2.translate(32, 32);
+    c2.fillStyle = 'rgba(10,10,16,.92)'; c2.strokeStyle = COLOR[k]; c2.lineWidth = 4; c2.beginPath(); c2.arc(0, 0, 27, 0, 7); c2.fill(); c2.stroke();
+    c2.fillStyle = c2.strokeStyle = COLOR[k]; c2.lineWidth = 3.5; c2.lineCap = 'round'; c2.lineJoin = 'round';
+    if (k === 'clash') { c2.beginPath(); for (let a = 0; a < 16; a++) { const r = a % 2 ? 7 : 17, t = a * Math.PI / 8; c2.lineTo(Math.cos(t) * r, Math.sin(t) * r); } c2.closePath(); c2.fill(); }
+    else if (k === 'drone') { c2.beginPath(); c2.moveTo(-11, -11); c2.lineTo(11, 11); c2.moveTo(11, -11); c2.lineTo(-11, 11); c2.stroke(); for (const [x, y] of [[-12, -12], [12, -12], [-12, 12], [12, 12]]) { c2.beginPath(); c2.arc(x, y, 5, 0, 7); c2.fill(); } c2.beginPath(); c2.arc(0, 0, 5, 0, 7); c2.fill(); }
+    else { c2.rotate(Math.PI / 4); c2.beginPath(); c2.moveTo(0, -18); c2.quadraticCurveTo(7, -8, 6, 8); c2.lineTo(-6, 8); c2.quadraticCurveTo(-7, -8, 0, -18); c2.fill(); c2.beginPath(); c2.moveTo(-6, 4); c2.lineTo(-12, 14); c2.lineTo(-6, 11); c2.moveTo(6, 4); c2.lineTo(12, 14); c2.lineTo(6, 11); c2.fill(); c2.beginPath(); c2.moveTo(0, 12); c2.lineTo(0, 19); c2.stroke(); }
+    if (!map.hasImage('cf-' + k)) map.addImage('cf-' + k, c2.getImageData(0, 0, 64, 64));
+  }
+  map.addLayer({ id: 'live-conf', type: 'symbol', source: 'live', filter: ['in', ['get', 'k'], ['literal', ['clash', 'drone', 'missile']]], layout: { 'icon-image': ['concat', 'cf-', ['get', 'k']], 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+  map.on('click', 'live-conf', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k); });
+  map.on('mouseenter', 'live-conf', () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'live-conf', () => { map.getCanvas().style.cursor = ''; });
   float(window.__app?.trackOn);
   map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k, p.i, p.v); });
   map.on('mouseenter', 'live-pts', () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', 'live-pts', () => { map.getCanvas().style.cursor = ''; });
 }
-const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : [])];
+const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : []), ...(on.conflict ? items.conflict : [])];
 function draw2d() {
   const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, h: i.h || 0, t: i.t, s: i.s, i: i.img || '', v: i.vid || '' } })) }); };
   if (map.isStyleLoaded()) go(); else map.once('idle', go);
@@ -149,11 +176,11 @@ function chip(t, s, k, img, vid) {
 el.addEventListener('click', (e) => { if (e.target.closest('button')) el.hidden = true; });
 
 // ---------- toggles ----------
-const rows = { quakes: $('#live-quakes'), events: $('#live-events'), sats: $('#live-sats'), cctv: $('#live-cctv') };
-const note = { quakes: rows.quakes.querySelector('small').textContent, events: rows.events.querySelector('small').textContent };
+const rows = { quakes: $('#live-quakes'), events: $('#live-events'), sats: $('#live-sats'), cctv: $('#live-cctv'), conflict: $('#live-conflict') };
+const note = Object.fromEntries(Object.entries(rows).map(([k, r]) => [k, r.querySelector('small').textContent]));
 async function refresh(which) {
   const small = rows[which].querySelector('small');
-  try { await load(which); small.textContent = which === 'sats' ? `${items[which].length} satellites right now` : which === 'cctv' ? `${items[which].length} cameras · ${camNames.join(', ')}` : `${items[which].length} showing now`; } catch { small.textContent = 'Could not load right now. Try again in a moment.'; }
+  try { await load(which); small.textContent = which === 'sats' ? `${items[which].length} satellites right now` : which === 'conflict' ? `${items[which].length} reports in the last 24 h` : which === 'cctv' ? `${items[which].length} cameras · ${camNames.join(', ')}` : `${items[which].length} showing now`; } catch { small.textContent = 'Could not load right now. Try again in a moment.'; }
   draw2d(); draw3d();
 }
 for (const which of Object.keys(rows)) {
@@ -162,7 +189,7 @@ for (const which of Object.keys(rows)) {
     if (!on[which]) { rows[which].querySelector('small').textContent = note[which]; if (!shown().length) el.hidden = true; draw2d(); draw3d(); } else refresh(which);
   });
 }
-setInterval(() => { for (const w of ['quakes', 'events']) if (on[w]) refresh(w); }, 300000);
+setInterval(() => { for (const w of ['quakes', 'events', 'conflict']) if (on[w]) refresh(w); }, 300000);
 setInterval(() => { if (on.sats && satRecs.length) { placeSats(); draw2d(); draw3d(); } }, 4000); // satellites move fast, so their dots are moved every few seconds
 window.addEventListener('globe-change', () => { if (shown().length) draw3d(); });
 window.__live = { on, items };
@@ -180,7 +207,7 @@ window.__live = { on, items };
   };
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#tab-live,#topnav [data-tab="live"]')) return;
-    setTimeout(() => { if (window.__workspace.isOpen && window.__workspace.tab === 'live') toTrack(); }, 0); // only when the click opened Live, not when it closed it
+    setTimeout(() => { if (window.__workspace.isOpen && window.__workspace.tab === 'live') { toTrack(); for (const r of Object.values(rows)) if (r.getAttribute('aria-pressed') !== 'true') r.click(); } }, 0); // opening Live also switches every layer on // only when the click opened Live, not when it closed it
   });
 }
 

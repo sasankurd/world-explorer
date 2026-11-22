@@ -165,3 +165,6 @@ Satellites (third toggle): the space stations and about 150 bright satellites fr
 CCTV surveillance (Live tab, fourth toggle): public traffic cameras from six official open feeds: TfL JamCams (London), Autobahn GmbH (Germany), DGT DATEX II (Spain), Fintraffic Digitraffic (Finland), LTA via data.gov.sg (Singapore) and NYC DOT. The Germany and Spain feeds were written from their published docs and tested with sample data only; if a country is missing from the row text on the live site, its server probably blocks browser requests and needs a small proxy Worker. Click a dot to see its latest picture. A feed that is down is skipped. More feeds can be added to the `CAMS` list in `src/live.js`.
 
 Clicking a camera dot opens its picture in a glass window: drag it by the title bar, resize it from the bottom-right corner, open up to 5 at once. Pictures refresh every 15 seconds where the link allows it.
+
+## Conflict layer (Live tab)
+Fighting, drone and missile reports from the last 24 hours, taken from news coverage via the free GDELT GEO API (no key). Each kind has its own marker (explosion, drone, rocket). Positions are where the news places the story, so they are approximate. Opening the Live tab now switches every Live layer on.
