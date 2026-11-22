@@ -15,8 +15,8 @@ const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#
 const KIND = { wildfires: 'fire', severeStorms: 'storm', volcanoes: 'volcano' };
 const on = { quakes: false, events: false, sats: false, cctv: false, conflict: false }, items = { quakes: [], events: [], sats: [], cctv: [], conflict: [] };
 // news-based conflict reports (GDELT, no key): one search per kind, each result is a place with the articles that mention it
-const GDELT = (q) => `https://api.gdeltproject.org/api/v2/geo/geo?query=${encodeURIComponent(q + ' sourcelang:eng')}&format=geojson&timespan=1d&maxpoints=150`;
-const CONFLICT = [['clash', '(airstrike OR shelling OR bombing OR explosion OR clashes OR "armed attack")', 'Fighting'], ['drone', '(drone OR drones OR UAV) (strike OR attack OR shot)', 'Drone'], ['missile', '(missile OR rocket) (launch OR launched OR strike OR fired)', 'Missile']];
+const GDELT = (q) => `https://api.gdeltproject.org/api/v2/geo/geo?query=${encodeURIComponent(q + ' sourcelang:eng')}&format=geojson&timespan=1d&maxpoints=250`;
+const CONFLICT_Q = '(airstrike OR shelling OR bombing OR explosion OR clashes OR drone OR drones OR missile OR rocket OR "armed attack")';
 const ICON = { clash: 'Fighting reported', drone: 'Drone activity reported', missile: 'Missile or rocket reported' };
 let satRecs = [], satFetched = 0;
 
@@ -69,13 +69,15 @@ async function loadCams() {
   if (!items.cctv.length) throw new Error('no cameras');
 }
 async function load(which) {
-  if (which === 'conflict') {
-    const res = await Promise.allSettled(CONFLICT.map(async ([k, q]) => (await (await get(GDELT(q))).json()).features.map((f) => {
-      const d = new DOMParser().parseFromString(f.properties.html || '', 'text/html'), head = d.querySelector('a')?.textContent?.trim();
-      return { k, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], r: 9, t: (f.properties.name || 'Unknown place').slice(0, 70), s: `${ICON[k]} · ${head ? head.slice(0, 110) : 'see news'} · last 24 h` };
-    })));
-    if (res.every((r) => r.status === 'rejected')) throw new Error('no reports');
-    items.conflict = res.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  if (which === 'conflict') { // one request (GDELT asks for few), sorted into kinds by the words in each place's headlines
+    let j; try { j = await (await get(GDELT(CONFLICT_Q))).json(); } catch { await sleep(6000); j = await (await get(GDELT(CONFLICT_Q))).json(); }
+    items.conflict = (j.features || []).map((f) => {
+      const d = new DOMParser().parseFromString(f.properties.html || '', 'text/html'), heads = [...d.querySelectorAll('a')].map((a) => a.textContent.trim()).filter(Boolean);
+      const n = { missile: 0, drone: 0, clash: 0 }; for (const h of heads) n[/missile|rocket|ballistic/i.test(h) ? 'missile' : /drone|uav/i.test(h) ? 'drone' : 'clash']++;
+      const k = n.missile >= n.drone && n.missile >= n.clash && n.missile ? 'missile' : n.drone >= n.clash && n.drone ? 'drone' : 'clash';
+      return { k, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], r: 9, t: (f.properties.name || 'Unknown place').slice(0, 70), s: `${ICON[k]} · ${(heads[0] || 'see news').slice(0, 110)} · last 24 h` };
+    });
+    if (!items.conflict.length) throw new Error('no reports');
     return;
   }
   if (which === 'cctv') { if (!items.cctv.length) await loadCams(); return; }

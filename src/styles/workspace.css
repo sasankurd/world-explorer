@@ -453,3 +453,11 @@ body #statbar #sb-rows{max-height:90px}
 .cam-win img{width:100%;height:100%;object-fit:contain;display:block}
 .cam-win .cw-grip{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.55) 50% 58%,transparent 58% 70%,rgba(255,255,255,.55) 70% 78%,transparent 78%)}
 .cam-win video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+/* Live tab: tighter and tidier */
+#live .lv-g{margin:10px 0 3px;font-size:8.5px;letter-spacing:.18em}
+#live .lr{min-height:32px;padding:4px 2px;gap:8px}
+#live .lr .tx{min-width:0;flex:1}
+#live .lr .tx b{font-size:10.5px;letter-spacing:.07em}
+#live .lr small{margin-top:1px;font-size:9px;line-height:1.25;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#live .sw{width:28px;height:16px}#live .sw b{width:11px;height:11px}#live .lr.on .sw b{transform:translateX(12px)}
+.live-note{font-size:9px;margin:8px 2px 0}
