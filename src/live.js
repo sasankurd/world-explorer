@@ -30,11 +30,32 @@ function placeSats() {
   items.sats = out;
 }
 // public traffic cameras from three official open feeds; one that fails does not stop the others
+const get = (u) => fetch(u, { signal: AbortSignal.timeout(20000) }); // a slow feed gives up after 20 s and the others still show
+// DATEX II (the European traffic data standard) camera lists: find each latitude, then the smallest block around it that holds a picture link
+function parseDatex(xml, label, credit) {
+  const doc = new DOMParser().parseFromString(xml, 'text/xml'), out = [];
+  for (const la of doc.getElementsByTagNameNS('*', 'latitude')) {
+    let n = la.parentElement, link = null;
+    while (n && !(link = [...n.getElementsByTagName('*')].find((e) => !e.children.length && /^https?:\/\/\S+$/i.test(e.textContent.trim())))) n = n.parentElement;
+    if (!n || n.getElementsByTagNameNS('*', 'latitude').length !== 1) continue; // a block with several cameras means we went too far
+    const lon = n.getElementsByTagNameNS('*', 'longitude')[0], name = [...n.getElementsByTagName('*')].find((e) => !e.children.length && /name|descri|identif|^id$/i.test(e.localName) && e.textContent.trim() && !/^https?:/i.test(e.textContent.trim()));
+    if (lon) out.push({ lon: +lon.textContent, lat: +la.textContent, t: name?.textContent.trim() || 'Camera', s: `${label} · ${credit}`, img: link.textContent.trim() });
+  }
+  return out;
+}
 const CAMS = [
-  ['London', () => fetch('https://api.tfl.gov.uk/Place/Type/JamCam').then((r) => r.json()).then((a) => a.flatMap((c) => { const img = c.additionalProperties?.find((q) => q.key === 'imageUrl')?.value; return img && c.lat ? [{ lon: c.lon, lat: c.lat, t: c.commonName, s: 'London · TfL JamCam', img }] : []; }))],
-  ['Singapore', () => fetch('https://api.data.gov.sg/v1/transport/traffic-images').then((r) => r.json()).then((j) => (j.items?.[0]?.cameras || []).map((c) => ({ lon: c.location.longitude, lat: c.location.latitude, t: `Camera ${c.camera_id}`, s: 'Singapore · LTA', img: c.image })))],
-  ['Finland', () => fetch('https://tie.digitraffic.fi/api/weathercam/v1/stations').then((r) => r.json()).then((j) => j.features.flatMap((f) => { const id = f.properties.presets?.find((q) => q.inCollection !== false)?.id; return id ? [{ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], t: String(f.properties.name || f.id).replace(/_/g, ' '), s: 'Finland · Fintraffic road cameras', img: `https://weathercam.digitraffic.fi/${id}.jpg` }] : []; }))],
-  ['New York', () => fetch('https://webcams.nyctmc.org/api/cameras').then((r) => r.json()).then((a) => a.filter((c) => c.isOnline !== false && c.latitude).map((c) => ({ lon: c.longitude, lat: c.latitude, t: c.name, s: 'New York · NYC DOT', img: c.imageUrl || `https://webcams.nyctmc.org/api/cameras/${c.id}/image` })))],
+  ['Germany', async () => { // Autobahn GmbH open API: one request per motorway, a few at a time
+    const roads = (await (await get('https://verkehr.autobahn.de/o/autobahn')).json()).roads || [], out = new Map();
+    for (let i = 0; i < roads.length; i += 10) await Promise.all(roads.slice(i, i + 10).map(async (r) => {
+      try { for (const c of (await (await get(`https://verkehr.autobahn.de/o/autobahn/${r.replace(/\//g, '')}/services/webcam`)).json()).webcam || []) if (c.imageurl && c.coordinate) out.set(c.identifier, { lon: +c.coordinate.long, lat: +c.coordinate.lat, t: c.title, s: `Germany · Autobahn ${r}`, img: c.imageurl }); } catch { /* one road failing is fine */ }
+    }));
+    return [...out.values()];
+  }],
+  ['Spain', () => get('https://nap.dgt.es/datex2/v3/dgt/DevicePublication/camaras_datex2_v37.xml').then((r) => r.text()).then((x) => parseDatex(x, 'Spain', 'DGT'))],
+  ['London', () => get('https://api.tfl.gov.uk/Place/Type/JamCam').then((r) => r.json()).then((a) => a.flatMap((c) => { const img = c.additionalProperties?.find((q) => q.key === 'imageUrl')?.value; return img && c.lat ? [{ lon: c.lon, lat: c.lat, t: c.commonName, s: 'London · TfL JamCam', img }] : []; }))],
+  ['Singapore', () => get('https://api.data.gov.sg/v1/transport/traffic-images').then((r) => r.json()).then((j) => (j.items?.[0]?.cameras || []).map((c) => ({ lon: c.location.longitude, lat: c.location.latitude, t: `Camera ${c.camera_id}`, s: 'Singapore · LTA', img: c.image })))],
+  ['Finland', () => get('https://tie.digitraffic.fi/api/weathercam/v1/stations').then((r) => r.json()).then((j) => j.features.flatMap((f) => { const id = f.properties.presets?.find((q) => q.inCollection !== false)?.id; return id ? [{ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], t: String(f.properties.name || f.id).replace(/_/g, ' '), s: 'Finland · Fintraffic road cameras', img: `https://weathercam.digitraffic.fi/${id}.jpg` }] : []; }))],
+  ['New York', () => get('https://webcams.nyctmc.org/api/cameras').then((r) => r.json()).then((a) => a.filter((c) => c.isOnline !== false && c.latitude).map((c) => ({ lon: c.longitude, lat: c.latitude, t: c.name, s: 'New York · NYC DOT', img: c.imageUrl || `https://webcams.nyctmc.org/api/cameras/${c.id}/image` })))],
 ];
 let camNames = [];
 async function loadCams() {
