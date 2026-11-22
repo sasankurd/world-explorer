@@ -219,7 +219,7 @@ map.on('click', (e) => {
   const f = hit(e.point);
   if (f) { const p = f.properties; return chip(p.t, p.s, p.k, p.i, p.v); }
   el.hidden = true; // clicking empty map hides the Live panel and the info card
-  const w = window.__workspace; if (w?.isOpen && w.tab === 'live') w.close();
+  setTimeout(() => { const w = window.__workspace; if (w?.isOpen && w.tab === 'live' && !document.querySelector('#side')?.dataset.detail) w.close(); }, 0); // not when the click just opened a country's window
 });
 window.__live = { on, items };
 
