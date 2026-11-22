@@ -87,13 +87,24 @@ async function load(which) {
   }
 }
 
+// on the 3D Track globe the icons hover above the surface with a soft shadow left on the ground
+function float(on) {
+  if (!map.getLayer('live-pts')) return;
+  const t = on ? [0, -16] : [0, 0];
+  for (const id of ['live-glow', 'live-pts']) { map.setPaintProperty(id, 'circle-translate', t); map.setPaintProperty(id, 'circle-translate-anchor', 'viewport'); }
+  map.setPaintProperty('live-ground', 'circle-opacity', on ? 0.55 : 0);
+}
+window.addEventListener('track-layer', (e) => float(e.detail));
+
 // ---------- flat map ----------
 function ensure2d() {
   if (map.getSource('live')) return;
   map.addSource('live', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, 'cctv', COLOR.cctv, COLOR.volcano];
+  map.addLayer({ id: 'live-ground', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 0.9], 'circle-color': '#000', 'circle-opacity': 0, 'circle-blur': 0.8 } }); // shadow on the ground, shown only while icons float
   map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
   map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
+  float(window.__app?.trackOn);
   map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k, p.i, p.v); });
   map.on('mouseenter', 'live-pts', () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', 'live-pts', () => { map.getCanvas().style.cursor = ''; });
