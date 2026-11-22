@@ -52,10 +52,10 @@ const CAMS = [
     return [...out.values()];
   }],
   ['Spain', () => get('https://nap.dgt.es/datex2/v3/dgt/DevicePublication/camaras_datex2_v37.xml').then((r) => r.text()).then((x) => parseDatex(x, 'Spain', 'DGT'))],
-  ['London', () => get('https://api.tfl.gov.uk/Place/Type/JamCam').then((r) => r.json()).then((a) => a.flatMap((c) => { const img = c.additionalProperties?.find((q) => q.key === 'imageUrl')?.value; return img && c.lat ? [{ lon: c.lon, lat: c.lat, t: c.commonName, s: 'London · TfL JamCam', img }] : []; }))],
+  ['London', () => get('https://api.tfl.gov.uk/Place/Type/JamCam').then((r) => r.json()).then((a) => a.flatMap((c) => { const prop = (k) => c.additionalProperties?.find((q) => q.key === k)?.value, img = prop('imageUrl'); return img && c.lat ? [{ lon: c.lon, lat: c.lat, t: c.commonName, s: 'London · TfL JamCam', img, vid: prop('videoUrl') }] : []; }))],
   ['Singapore', () => get('https://api.data.gov.sg/v1/transport/traffic-images').then((r) => r.json()).then((j) => (j.items?.[0]?.cameras || []).map((c) => ({ lon: c.location.longitude, lat: c.location.latitude, t: `Camera ${c.camera_id}`, s: 'Singapore · LTA', img: c.image })))],
   ['Finland', () => get('https://tie.digitraffic.fi/api/weathercam/v1/stations').then((r) => r.json()).then((j) => j.features.flatMap((f) => { const id = f.properties.presets?.find((q) => q.inCollection !== false)?.id; return id ? [{ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], t: String(f.properties.name || f.id).replace(/_/g, ' '), s: 'Finland · Fintraffic road cameras', img: `https://weathercam.digitraffic.fi/${id}.jpg` }] : []; }))],
-  ['New York', () => get('https://webcams.nyctmc.org/api/cameras').then((r) => r.json()).then((a) => a.filter((c) => c.isOnline !== false && c.latitude).map((c) => ({ lon: c.longitude, lat: c.latitude, t: c.name, s: 'New York · NYC DOT', img: c.imageUrl || `https://webcams.nyctmc.org/api/cameras/${c.id}/image` })))],
+  ['New York', () => get('https://webcams.nyctmc.org/api/cameras').then((r) => r.json()).then((a) => a.filter((c) => c.isOnline !== false && c.latitude).map((c) => ({ lon: c.longitude, lat: c.latitude, t: c.name, s: 'New York · NYC DOT', img: c.imageUrl || `https://webcams.nyctmc.org/api/cameras/${c.id}/image`, vid: c.videoUrl })))],
 ];
 let camNames = [];
 async function loadCams() {
@@ -94,13 +94,13 @@ function ensure2d() {
   const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, 'cctv', COLOR.cctv, COLOR.volcano];
   map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
   map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
-  map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k, p.i); });
+  map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k, p.i, p.v); });
   map.on('mouseenter', 'live-pts', () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', 'live-pts', () => { map.getCanvas().style.cursor = ''; });
 }
 const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : [])];
 function draw2d() {
-  const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, t: i.t, s: i.s, i: i.img || '' } })) }); };
+  const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, t: i.t, s: i.s, i: i.img || '', v: i.vid || '' } })) }); };
   if (map.isStyleLoaded()) go(); else map.once('idle', go);
 }
 
@@ -113,7 +113,7 @@ async function draw3d() {
   if (!pts3) {
     pts3 = v.scene.primitives.add(new C.PointPrimitiveCollection());
     h3 = new C.ScreenSpaceEventHandler(v.canvas);
-    h3.setInputAction((m) => { const p = v.scene.pick(m.position); if (p?.id?.live) chip(p.id.t, p.id.s, p.id.k, p.id.img); }, C.ScreenSpaceEventType.LEFT_CLICK);
+    h3.setInputAction((m) => { const p = v.scene.pick(m.position); if (p?.id?.live) chip(p.id.t, p.id.s, p.id.k, p.id.img, p.id.vid); }, C.ScreenSpaceEventType.LEFT_CLICK);
   }
   pts3.removeAll();
   for (const i of shown()) pts3.add({ id: { live: 1, ...i }, position: C.Cartesian3.fromDegrees(i.lon, i.lat, i.h ?? 2000), pixelSize: i.r * 1.5, color: C.Color.fromCssColorString(COLOR[i.k]).withAlpha(0.9), outlineColor: C.Color.BLACK.withAlpha(0.6), outlineWidth: 1 });
@@ -121,8 +121,8 @@ async function draw3d() {
 
 // ---------- the small info chip ----------
 const el = document.createElement('div'); el.id = 'live-chip'; el.hidden = true; document.body.append(el);
-function chip(t, s, k, img) {
-  if (img && /^https:\/\//.test(img)) return openCam(t, s, img); // cameras open in their own window
+function chip(t, s, k, img, vid) {
+  if (img && /^https:\/\//.test(img)) return openCam(t, s, img, vid); // cameras open in their own window
   el.innerHTML = `<i style="background:${COLOR[k]}"></i><span><b>${esc(t)}</b><small>${esc(s)}</small></span><button type="button" aria-label="Close">✕</button>`; el.hidden = false;
 }
 el.addEventListener('click', (e) => { if (e.target.closest('button')) el.hidden = true; });
@@ -166,17 +166,32 @@ window.__live = { on, items };
 // ---------- camera windows: drag by the title bar, resize from the corner, up to 5 at once ----------
 const wins = new Map(); let topZ = 45;
 const front = (w) => { w.style.zIndex = ++topZ; };
-function openCam(t, s, img) {
+// plays a camera's video in the window: MP4 directly, HLS streams (.m3u8) natively in Safari or through hls.js elsewhere
+async function playVideo(body, im, vid, poster, keep) {
+  const v = document.createElement('video'); Object.assign(v, { muted: true, autoplay: true, loop: true, controls: true, playsInline: true, poster });
+  v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+  const fail = () => { v.remove(); body.append(im); }; // no video: fall back to the still picture
+  v.addEventListener('error', fail, { once: true });
+  im.replaceWith(v);
+  try {
+    if (!/\.m3u8(\?|$)/i.test(vid) || v.canPlayType('application/vnd.apple.mpegurl')) v.src = vid;
+    else { const Hls = (await import('hls.js')).default; if (!Hls.isSupported()) return fail(); const h = new Hls(); keep(h); h.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) fail(); }); h.loadSource(vid); h.attachMedia(v); }
+    v.play().catch(() => {}); // autoplay can be refused; the controls still let the user press play
+  } catch { fail(); }
+}
+function openCam(t, s, img, vid) {
   if (wins.has(img)) return front(wins.get(img));
   if (wins.size >= 5) wins.get(wins.keys().next().value).querySelector('button').click(); // the oldest makes room
   const w = document.createElement('div'), n = wins.size; w.className = 'cam-win';
   w.innerHTML = `<div class="cw-bar"><span><b>${esc(t)}</b><small>${esc(s)}</small></span><button type="button" aria-label="Close camera">✕</button></div><div class="cw-body"><img alt="${esc(t)}" referrerpolicy="no-referrer"></div><i class="cw-grip" aria-hidden="true"></i>`;
-  const im = w.querySelector('img'); im.src = img; im.onerror = () => { w.querySelector('.cw-body').textContent = 'Picture not available right now'; };
+  const im = w.querySelector('img'), body = w.querySelector('.cw-body'); im.src = img; im.onerror = () => { body.textContent = 'Picture not available right now'; };
+  let hls = null, timer = 0;
+  if (vid && /^https:\/\//.test(vid)) playVideo(body, im, vid, img, (h) => { hls = h; }); // live video where the camera has it, otherwise the picture stays
+  else timer = img.includes('?') ? 0 : setInterval(() => { im.src = `${img}?t=${Date.now()}`; }, 15000); // refresh the picture (only where the link carries no signature)
   w.style.left = Math.max(8, Math.min(innerWidth - 340, 440 + n * 28)) + 'px'; w.style.top = 90 + n * 28 + 'px';
   document.body.append(w); wins.set(img, w); front(w);
-  const timer = img.includes('?') ? 0 : setInterval(() => { im.src = `${img}?t=${Date.now()}`; }, 15000); // refresh the picture (only where the link carries no signature)
   w.addEventListener('pointerdown', () => front(w));
-  w.querySelector('button').addEventListener('click', () => { clearInterval(timer); w.remove(); wins.delete(img); });
+  w.querySelector('button').addEventListener('click', () => { clearInterval(timer); hls?.destroy(); w.remove(); wins.delete(img); });
   const track = (el, move) => el.addEventListener('pointerdown', (e) => {
     if (e.target.closest('button')) return; e.preventDefault(); el.setPointerCapture(e.pointerId);
     const r = w.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "country-json": "^2.3.0",
+    "hls.js": "^1.7.4",
     "maplibre-gl": "^6.11.2",
     "satellite.js": "^7.2.0",
     "topojson-client": "^3.1.0",
