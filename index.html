@@ -118,6 +118,8 @@ if(window.__noProjects){document.body.classList.add("landing","gated")}else if(!
       <section id="sv-live" role="tabpanel" aria-labelledby="tab-live" tabindex="-1" hidden>
         <h2 class="sv-h">Live</h2>
         <div id="live" role="group" aria-label="Live layers">
+          <form id="live-find" role="search"><input type="search" maxlength="80" placeholder="Ask AI: cinemas, chess, UFC gyms…" aria-label="Search places worldwide" autocomplete="off"><button type="submit">Find</button></form>
+          <p id="live-find-note" class="muted" hidden></p>
           <h3 class="lv-g">Earth</h3>
           <button id="live-quakes" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Earthquakes</b><small>24 h, M2.5+ · USGS</small></span><i class="sw"><b></b></i></button>
           <button id="live-events" class="lr" type="button" aria-pressed="false"><span class="tx"><b>Fires and storms</b><small>Wildfires, storms, volcanoes · NASA</small></span><i class="sw"><b></b></i></button>

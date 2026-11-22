@@ -11,9 +11,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const QUAKES = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
 const EVENTS = 'https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=300&category=wildfires,severeStorms,volcanoes';
 const SATS = ['stations', 'visual'].map((g) => `https://celestrak.org/NORAD/elements/gp.php?GROUP=${g}&FORMAT=json`); // the space stations and about 150 of the brightest satellites
-const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff', sat: '#1fb5ff', cctv: '#b6ff5c', clash: '#ff3b3b', drone: '#ffc233', missile: '#ff4fd8' };
+const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff', sat: '#1fb5ff', cctv: '#b6ff5c', clash: '#ff3b3b', drone: '#ffc233', missile: '#ff4fd8', find: '#3dffd0' };
 const KIND = { wildfires: 'fire', severeStorms: 'storm', volcanoes: 'volcano' };
-const on = { quakes: false, events: false, sats: false, cctv: false, conflict: false }, items = { quakes: [], events: [], sats: [], cctv: [], conflict: [] };
+const on = { quakes: false, events: false, sats: false, cctv: false, conflict: false, find: false }, items = { quakes: [], events: [], sats: [], cctv: [], conflict: [], find: [] };
 // conflict reports: GDELT's public 15-minute event files (no key). Violent events (codes 18-20) from the last two hours, grouped by place
 const GFILES = ['/api/gdelt/', 'https://data.gdeltproject.org/gdeltv2/']; // the site's own relay first, GDELT directly as a backup
 const ICON = { clash: 'Fighting reported', drone: 'Drone activity reported', missile: 'Missile or rocket reported' };
@@ -134,7 +134,7 @@ async function loadConflict() {
 function ensure2d() {
   if (map.getSource('live')) return;
   map.addSource('live', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-  const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, 'cctv', COLOR.cctv, COLOR.volcano];
+  const col = ['match', ['get', 'k'], 'quake', COLOR.quake, 'fire', COLOR.fire, 'storm', COLOR.storm, 'sat', COLOR.sat, 'cctv', COLOR.cctv, 'find', COLOR.find, COLOR.volcano];
   map.addLayer({ id: 'live-ground', type: 'circle', source: 'live', paint: { 'circle-radius': ['*', ['get', 'r'], 0.9], 'circle-color': '#000', 'circle-opacity': 0, 'circle-blur': 0.8 } }); // shadow on the ground, shown only while icons float
   map.addLayer({ id: 'live-glow', type: 'circle', source: 'live', filter: ['!', ['in', ['get', 'k'], ['literal', ['sat', 'clash', 'drone', 'missile']]]], paint: { 'circle-radius': ['*', ['get', 'r'], 2], 'circle-color': col, 'circle-opacity': 0.22, 'circle-blur': 0.6 } });
   map.addLayer({ id: 'live-pts', type: 'circle', source: 'live', filter: ['!', ['in', ['get', 'k'], ['literal', ['sat', 'clash', 'drone', 'missile']]]], paint: { 'circle-radius': ['get', 'r'], 'circle-color': col, 'circle-opacity': 0.9, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 } });
@@ -159,7 +159,7 @@ function ensure2d() {
   map.addLayer({ id: 'live-conf', type: 'symbol', source: 'live', filter: ['in', ['get', 'k'], ['literal', ['clash', 'drone', 'missile']]], layout: { 'icon-image': ['concat', 'cf-', ['get', 'k']], 'icon-size': 0.44, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
   float(window.__app?.trackOn);
 }
-const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : []), ...(on.conflict ? items.conflict : [])];
+const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : []), ...(on.conflict ? items.conflict : []), ...(on.find ? items.find : [])];
 function draw2d() {
   const go = () => { ensure2d(); map.getSource('live').setData({ type: 'FeatureCollection', features: shown().map((i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [i.lon, i.lat] }, properties: { k: i.k, r: i.r, h: i.h || 0, t: i.t, s: i.s, i: i.img || '', v: i.vid || '' } })) }); };
   if (map.isStyleLoaded()) go(); else map.once('idle', go);
@@ -234,9 +234,29 @@ window.__live = { on, items };
     warp.classList.remove('go'); void warp.offsetWidth; warp.classList.add('go');
     setTimeout(swap, 420); setTimeout(() => warp.classList.remove('go'), 1300);
   };
+  window.__live.toTrack = toTrack;
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#tab-live,#topnav [data-tab="live"]')) return;
     setTimeout(() => { if (window.__workspace.isOpen && window.__workspace.tab === 'live') { toTrack(); for (const r of Object.values(rows)) if (r.getAttribute('aria-pressed') !== 'true') r.click(); } }, 0); // opening Live also switches every layer on // only when the click opened Live, not when it closed it
+  });
+}
+
+// ---------- AI search: the site's server step turns the topic into map tags and lists matching places worldwide ----------
+{
+  const form = $('#live-find'), box = form.querySelector('input'), msg = $('#live-find-note');
+  const say = (t, clear) => { msg.hidden = !t; msg.textContent = t || ''; if (clear) { const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Clear'; b.className = 'lv-clear'; b.onclick = () => { on.find = false; items.find = []; msg.hidden = true; box.value = ''; draw2d(); draw3d(); if (!shown().length) el.hidden = true; }; msg.append(' ', b); } };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault(); const q = box.value.trim(); if (!q) return;
+    say('Searching the whole world…'); form.classList.add('busy');
+    try {
+      const r = await get(`/api/search?q=${encodeURIComponent(q)}`), j = await r.json().catch(() => null);
+      if (!j) throw new Error('This needs the live site (its server step).');
+      if (j.error) throw new Error(j.error);
+      if (!j.places.length) return say(`No ${j.label.toLowerCase()} found on the map.`);
+      items.find = j.places.slice(0, 1500).map((p) => ({ k: 'find', lon: p.lon, lat: p.lat, r: 4.5, t: p.name || j.label, s: `${j.label}${p.type ? ` · ${p.type.replace(/_/g, ' ')}` : ''}` }));
+      on.find = true; window.__live.toTrack?.(); draw2d(); draw3d();
+      say(`${j.label}: ${items.find.length} places${items.find.length >= 1500 ? ' (first 1500)' : ''}.`, true);
+    } catch (err) { say(err.message || 'Search failed. Try again.'); } finally { form.classList.remove('busy'); }
   });
 }
 

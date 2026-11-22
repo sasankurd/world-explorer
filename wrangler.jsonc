@@ -3,6 +3,7 @@
   "name": "world-explorer",
   "compatibility_date": "2026-10-04",
   "main": "./worker/index.js",
+  "ai": { "binding": "AI" },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

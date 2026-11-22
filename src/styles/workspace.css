@@ -461,3 +461,11 @@ body #statbar #sb-rows{max-height:90px}
 #live .lr small{margin-top:1px;font-size:9px;line-height:1.25;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #live .sw{width:28px;height:16px}#live .sw b{width:11px;height:11px}#live .lr.on .sw b{transform:translateX(12px)}
 .live-note{font-size:9px;margin:8px 2px 0}
+/* Live search box */
+#live-find{display:flex;gap:6px;margin:2px 0 4px}
+#live-find input{flex:1;min-width:0;height:28px;padding:0 9px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);font:400 11px Inter,system-ui,sans-serif}
+#live-find input:focus{outline:0;border-color:var(--acc)}
+#live-find button{height:28px;padding:0 11px;border-radius:8px;border:1px solid var(--acc);background:rgba(212,175,55,.12);color:var(--acc);font:600 9.5px var(--mono,monospace);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+#live-find.busy button{opacity:.5;pointer-events:none}
+#live-find-note{margin:0 2px 6px;font-size:9.5px;line-height:1.35}
+#live-find-note .lv-clear{margin-left:4px;padding:0;background:none;border:0;color:var(--acc);font:inherit;text-decoration:underline;cursor:pointer}

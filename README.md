@@ -168,3 +168,6 @@ Clicking a camera dot opens its picture in a glass window: drag it by the title 
 
 ## Conflict layer (Live tab)
 Violent events (fighting, airstrikes, mass violence) from the last two hours, read from GDELT's public 15-minute event files (no key). They are grouped by place and marked as fighting, drone or missile/rocket: GDELT has no drone label, so that is decided from the words in the news link and place name. Positions are where the news places the story, so they are approximate, and country-level-only reports are skipped. The page asks the site's own relay first (`worker/index.js`, route `/api/gdelt/`) and GDELT directly as a backup. Opening the Live tab switches every Live layer on.
+
+## Live search (AI)
+The box at the top of the Live tab takes a topic ("cinemas", "chess", "UFC gyms") and lists matching places worldwide on the 3D Track globe. The site's Worker (`/api/search`) asks a Workers AI model (binding `AI` in `wrangler.jsonc`) to turn the topic into OpenStreetMap tags, checks them against an allowed list, then asks OpenStreetMap's Overpass service for the places (first 1500 shown). If the AI is unavailable it falls back to a small word list (cinema, restaurant, chess, football, UFC...). Needs the deployed site; it does not work in `npm run dev`.
