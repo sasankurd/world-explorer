@@ -144,17 +144,19 @@ function ensure2d() {
   x.fillStyle = g; x.fillRect(0, 0, 48, 48);
   if (!map.hasImage('sat-dot')) map.addImage('sat-dot', x.getImageData(0, 0, 48, 48));
   map.addLayer({ id: 'live-sat', type: 'symbol', source: 'live', filter: ['==', ['get', 'k'], 'sat'], layout: { 'icon-image': 'sat-dot', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'symbol-height-offset': 0 } });
-  // conflict markers: a dark badge with a coloured rim and a simple pictogram (explosion, drone, rocket)
+  // conflict markers: a small glowing hexagon with a thin neon rim and a line-art pictogram (burst, drone, rocket)
   for (const k of ['clash', 'drone', 'missile']) {
     const cv = Object.assign(document.createElement('canvas'), { width: 64, height: 64 }), c2 = cv.getContext('2d'); c2.translate(32, 32);
-    c2.fillStyle = 'rgba(10,10,16,.92)'; c2.strokeStyle = COLOR[k]; c2.lineWidth = 4; c2.beginPath(); c2.arc(0, 0, 27, 0, 7); c2.fill(); c2.stroke();
-    c2.fillStyle = c2.strokeStyle = COLOR[k]; c2.lineWidth = 3.5; c2.lineCap = 'round'; c2.lineJoin = 'round';
-    if (k === 'clash') { c2.beginPath(); for (let a = 0; a < 16; a++) { const r = a % 2 ? 7 : 17, t = a * Math.PI / 8; c2.lineTo(Math.cos(t) * r, Math.sin(t) * r); } c2.closePath(); c2.fill(); }
-    else if (k === 'drone') { c2.beginPath(); c2.moveTo(-11, -11); c2.lineTo(11, 11); c2.moveTo(11, -11); c2.lineTo(-11, 11); c2.stroke(); for (const [x, y] of [[-12, -12], [12, -12], [-12, 12], [12, 12]]) { c2.beginPath(); c2.arc(x, y, 5, 0, 7); c2.fill(); } c2.beginPath(); c2.arc(0, 0, 5, 0, 7); c2.fill(); }
-    else { c2.rotate(Math.PI / 4); c2.beginPath(); c2.moveTo(0, -18); c2.quadraticCurveTo(7, -8, 6, 8); c2.lineTo(-6, 8); c2.quadraticCurveTo(-7, -8, 0, -18); c2.fill(); c2.beginPath(); c2.moveTo(-6, 4); c2.lineTo(-12, 14); c2.lineTo(-6, 11); c2.moveTo(6, 4); c2.lineTo(12, 14); c2.lineTo(6, 11); c2.fill(); c2.beginPath(); c2.moveTo(0, 12); c2.lineTo(0, 19); c2.stroke(); }
+    const hex = (r) => { c2.beginPath(); for (let i = 0; i < 6; i++) { const t = Math.PI / 6 + i * Math.PI / 3; c2[i ? 'lineTo' : 'moveTo'](Math.cos(t) * r, Math.sin(t) * r); } c2.closePath(); };
+    c2.shadowColor = COLOR[k]; c2.shadowBlur = 9; c2.fillStyle = 'rgba(6,8,14,.88)'; c2.strokeStyle = COLOR[k]; c2.lineWidth = 2; hex(24); c2.fill(); c2.stroke();
+    c2.shadowBlur = 0; c2.lineWidth = 1; c2.globalAlpha = 0.45; hex(18); c2.stroke(); c2.globalAlpha = 1;
+    c2.strokeStyle = COLOR[k]; c2.fillStyle = COLOR[k]; c2.lineWidth = 2.2; c2.lineCap = 'round'; c2.lineJoin = 'round'; c2.shadowColor = COLOR[k]; c2.shadowBlur = 4;
+    if (k === 'clash') { for (let a = 0; a < 8; a++) { const t = a * Math.PI / 4; c2.beginPath(); c2.moveTo(Math.cos(t) * 4, Math.sin(t) * 4); c2.lineTo(Math.cos(t) * (a % 2 ? 9 : 13), Math.sin(t) * (a % 2 ? 9 : 13)); c2.stroke(); } c2.beginPath(); c2.arc(0, 0, 2.5, 0, 7); c2.fill(); }
+    else if (k === 'drone') { c2.beginPath(); c2.moveTo(-8, -8); c2.lineTo(8, 8); c2.moveTo(8, -8); c2.lineTo(-8, 8); c2.stroke(); for (const [x, y] of [[-9, -9], [9, -9], [-9, 9], [9, 9]]) { c2.beginPath(); c2.arc(x, y, 3.6, 0, 7); c2.stroke(); } c2.beginPath(); c2.arc(0, 0, 2.6, 0, 7); c2.fill(); }
+    else { c2.rotate(Math.PI / 4); c2.beginPath(); c2.moveTo(0, -13); c2.lineTo(4.5, -4); c2.lineTo(4.5, 7); c2.lineTo(-4.5, 7); c2.lineTo(-4.5, -4); c2.closePath(); c2.stroke(); c2.beginPath(); c2.moveTo(-4.5, 3); c2.lineTo(-9, 11); c2.lineTo(-4.5, 8); c2.moveTo(4.5, 3); c2.lineTo(9, 11); c2.lineTo(4.5, 8); c2.moveTo(0, 10); c2.lineTo(0, 15); c2.stroke(); }
     if (!map.hasImage('cf-' + k)) map.addImage('cf-' + k, c2.getImageData(0, 0, 64, 64));
   }
-  map.addLayer({ id: 'live-conf', type: 'symbol', source: 'live', filter: ['in', ['get', 'k'], ['literal', ['clash', 'drone', 'missile']]], layout: { 'icon-image': ['concat', 'cf-', ['get', 'k']], 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+  map.addLayer({ id: 'live-conf', type: 'symbol', source: 'live', filter: ['in', ['get', 'k'], ['literal', ['clash', 'drone', 'missile']]], layout: { 'icon-image': ['concat', 'cf-', ['get', 'k']], 'icon-size': 0.44, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
   float(window.__app?.trackOn);
 }
 const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : []), ...(on.conflict ? items.conflict : [])];
