@@ -14,9 +14,8 @@ const SATS = ['stations', 'visual'].map((g) => `https://celestrak.org/NORAD/elem
 const COLOR = { quake: '#ff6b57', fire: '#ff9f1a', storm: '#5fd0ff', volcano: '#c77dff', sat: '#1fb5ff', cctv: '#b6ff5c', clash: '#ff3b3b', drone: '#ffc233', missile: '#ff4fd8' };
 const KIND = { wildfires: 'fire', severeStorms: 'storm', volcanoes: 'volcano' };
 const on = { quakes: false, events: false, sats: false, cctv: false, conflict: false }, items = { quakes: [], events: [], sats: [], cctv: [], conflict: [] };
-// news-based conflict reports (GDELT, no key): one search per kind, each result is a place with the articles that mention it
-const GDELT = (q) => `https://api.gdeltproject.org/api/v2/geo/geo?query=${encodeURIComponent(q + ' sourcelang:eng')}&format=geojson&timespan=1d&maxpoints=250`;
-const CONFLICT_Q = '(airstrike OR shelling OR bombing OR explosion OR clashes OR drone OR drones OR missile OR rocket OR "armed attack")';
+// conflict reports: GDELT's public 15-minute event files (no key). Violent events (codes 18-20) from the last two hours, grouped by place
+const GFILES = ['/api/gdelt/', 'https://data.gdeltproject.org/gdeltv2/']; // the site's own relay first, GDELT directly as a backup
 const ICON = { clash: 'Fighting reported', drone: 'Drone activity reported', missile: 'Missile or rocket reported' };
 let satRecs = [], satFetched = 0;
 
@@ -69,19 +68,7 @@ async function loadCams() {
   if (!items.cctv.length) throw new Error('no cameras');
 }
 async function load(which) {
-  if (which === 'conflict') { // one request (GDELT asks for few), sorted into kinds by the words in each place's headlines
-    const ask = async (u) => { const r = await get(u); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); };
-    const viaSite = () => ask(`/api/conflict?q=${encodeURIComponent(CONFLICT_Q)}`), direct = () => ask(GDELT(CONFLICT_Q)); // the site's own step first, GDELT directly as a backup
-    let j; try { j = await viaSite(); } catch { try { j = await direct(); } catch { await sleep(6000); j = await direct(); } }
-    items.conflict = (j.features || []).map((f) => {
-      const d = new DOMParser().parseFromString(f.properties.html || '', 'text/html'), heads = [...d.querySelectorAll('a')].map((a) => a.textContent.trim()).filter(Boolean);
-      const n = { missile: 0, drone: 0, clash: 0 }; for (const h of heads) n[/missile|rocket|ballistic/i.test(h) ? 'missile' : /drone|uav/i.test(h) ? 'drone' : 'clash']++;
-      const k = n.missile >= n.drone && n.missile >= n.clash && n.missile ? 'missile' : n.drone >= n.clash && n.drone ? 'drone' : 'clash';
-      return { k, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], r: 9, t: (f.properties.name || 'Unknown place').slice(0, 70), s: `${ICON[k]} · ${(heads[0] || 'see news').slice(0, 110)} · last 24 h` };
-    });
-    if (!items.conflict.length) throw new Error('no reports');
-    return;
-  }
+  if (which === 'conflict') { items.conflict = await loadConflict(); return; }
   if (which === 'cctv') { if (!items.cctv.length) await loadCams(); return; }
   if (which === 'sats') {
     if (!satRecs.length || Date.now() - satFetched > 7200000) { // CelesTrak asks for no more than one download every two hours
@@ -113,6 +100,35 @@ function float(on) {
   map.setPaintProperty('live-ground', 'circle-opacity', on ? 0.55 : 0);
 }
 window.addEventListener('track-layer', (e) => float(e.detail));
+
+// ---------- conflict (GDELT event files) ----------
+async function unzip(buf) { // each file is a zip holding one CSV: find it through the zip's end record, then inflate it
+  const v = new DataView(buf); let e = buf.byteLength - 22; while (e >= 0 && v.getUint32(e, true) !== 0x06054b50) e--;
+  const cd = v.getUint32(e + 16, true), size = v.getUint32(cd + 20, true), lh = v.getUint32(cd + 42, true), at = lh + 30 + v.getUint16(lh + 26, true) + v.getUint16(lh + 28, true);
+  return new Response(new Blob([buf.slice(at, at + size)]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+}
+const fromGdelt = async (name, then) => { let err; for (const b of GFILES) { try { const r = await get(b + name); if (!r.ok) throw new Error(`HTTP ${r.status}`); return await then(r); } catch (e) { err = e; } } throw err; };
+const slug = (u) => { try { const x = new URL(u), seg = decodeURIComponent(x.pathname.split('/').filter(Boolean).pop() || '').replace(/\.\w{2,5}$/, '').replace(/[-_+]+/g, ' ').trim(); return seg.length > 18 && !/^[\d\s]+$/.test(seg) ? seg : x.hostname.replace(/^www\./, ''); } catch { return 'news report'; } };
+async function loadConflict() {
+  const last = await fromGdelt('lastupdate.txt', async (r) => { const m = (await r.text()).match(/(\d{14})\.export\.CSV\.zip/); if (!m) throw new Error('not the file list'); return m[1]; }); // a wrong answer (like the home page) counts as a failure, so the next route is tried
+  const t0 = Date.UTC(+last.slice(0, 4), +last.slice(4, 6) - 1, +last.slice(6, 8), +last.slice(8, 10), +last.slice(10, 12));
+  const names = Array.from({ length: 8 }, (_, i) => new Date(t0 - i * 900000).toISOString().replace(/\D/g, '').slice(0, 14) + '.export.CSV.zip');
+  const texts = (await Promise.allSettled(names.map((n) => fromGdelt(n, async (r) => unzip(await r.arrayBuffer()))))).flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+  if (!texts.length) throw new Error('no data');
+  const at = new Map();
+  for (const line of texts.join('\n').split('\n')) {
+    const c = line.split('\t'); if (c.length < 58 || !['18', '19', '20'].includes(c[28]) || +c[51] < 2 || !c[56] || !c[57]) continue;
+    const lat = +c[56], lon = +c[57], key = `${lat.toFixed(1)},${lon.toFixed(1)}`, m = +c[31] || 1, url = c[60] || '', txt = `${url} ${c[52]}`;
+    const k = /missile|rocket|ballistic/i.test(txt) ? 'missile' : /drone|uav/i.test(txt) ? 'drone' : 'clash';
+    const o = at.get(key) || { n: 0, best: -1, cnt: { missile: 0, drone: 0, clash: 0 } }; o.n++; o.cnt[k] += m;
+    if (m > o.best) Object.assign(o, { best: m, lat, lon, name: c[52], url });
+    at.set(key, o);
+  }
+  return [...at.values()].sort((a, b) => b.n - a.n).slice(0, 300).map((o) => {
+    const k = o.cnt.missile ? 'missile' : o.cnt.drone ? 'drone' : 'clash'; // any missile or drone report wins over general fighting
+    return { k, lon: o.lon, lat: o.lat, r: 9, t: (o.name || 'Unknown place').slice(0, 70), s: `${ICON[k]} · ${o.n} report${o.n > 1 ? 's' : ''} · ${slug(o.url).slice(0, 100)}` };
+  });
+}
 
 // ---------- flat map ----------
 function ensure2d() {
@@ -184,7 +200,7 @@ const rows = { quakes: $('#live-quakes'), events: $('#live-events'), sats: $('#l
 const note = Object.fromEntries(Object.entries(rows).map(([k, r]) => [k, r.querySelector('small').textContent]));
 async function refresh(which) {
   const small = rows[which].querySelector('small');
-  try { await load(which); small.textContent = which === 'sats' ? `${items[which].length} satellites right now` : which === 'conflict' ? `${items[which].length} reports in the last 24 h` : which === 'cctv' ? `${items[which].length} cameras · ${camNames.join(', ')}` : `${items[which].length} showing now`; } catch { small.textContent = 'Could not load right now. Try again in a moment.'; }
+  try { await load(which); small.textContent = which === 'sats' ? `${items[which].length} satellites right now` : which === 'conflict' ? `${items[which].length} places with reports, last 2 h` : which === 'cctv' ? `${items[which].length} cameras · ${camNames.join(', ')}` : `${items[which].length} showing now`; } catch { small.textContent = 'Could not load right now. Try again in a moment.'; }
   draw2d(); draw3d();
 }
 for (const which of Object.keys(rows)) {
