@@ -237,7 +237,7 @@ window.__live = { on, items };
   window.__live.toTrack = toTrack;
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#tab-live,#topnav [data-tab="live"]')) return;
-    setTimeout(() => { if (window.__workspace.isOpen && window.__workspace.tab === 'live') { toTrack(); for (const r of Object.values(rows)) if (r.getAttribute('aria-pressed') !== 'true') r.click(); } }, 0); // opening Live also switches every layer on // only when the click opened Live, not when it closed it
+    setTimeout(() => { if (window.__workspace.isOpen && window.__workspace.tab === 'live') { const was = window.__app.trackOn; toTrack(); if (!was) for (const r of Object.values(rows)) if (r.getAttribute('aria-pressed') !== 'true') r.click(); } }, 0); // only when the click opened Live (not closed it) and it switched the map into 3D Track: then every layer goes on. Already in 3D Track: the person's own choices stay
   });
 }
 
