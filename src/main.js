@@ -245,7 +245,7 @@ function setStats(on) { on = !!on; if (on === statsOn) return; statsOn = on; app
 // ---------- hover + click ----------
 const tip = $('#tip');
 map.on('mousemove', 'fill', (e) => {
-  if (drag || trackOn) { tip.hidden = true; return; } // 3D Track: countries are not selectable
+  if (drag || trackOn || window.__liveHit?.(e.point)) { tip.hidden = true; return; } // 3D Track: countries are not selectable
   const f = e.features[0]; if (!f) return;
   map.getCanvas().style.cursor = sizeMode && map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length ? 'grab' : 'pointer';
   const c = countries[f.id];
@@ -260,8 +260,7 @@ map.on('mouseleave', 'fill', () => {
 map.on('click', 'fill', (e) => {
   if (trackOn || !e.features[0] || window.__measuring) return; // 3D Track: countries are not selectable. While measuring, a click adds a point instead
   if (map.getLayer('planes') && map.queryRenderedFeatures(e.point, { layers: ['planes'] }).length) return; // a plane was clicked, not the country below
-  const lv = ['live-pts', 'live-sat', 'live-conf'].filter((id) => map.getLayer(id)); // a Live marker (quake, fire, satellite, conflict) was clicked, not a country
-  if (lv.length && map.queryRenderedFeatures(e.point, { layers: lv }).length) return;
+  if (window.__liveHit?.(e.point)) return; // a Live marker (quake, fire, satellite, conflict, camera) was clicked, not the country below
   if (sizeMode) { if (!map.queryRenderedFeatures(e.point, { layers: ['movers-fill'] }).length) addMover(e.features[0].id); return; }
   openCountry(e.features[0].id, 'overview', false);
 });

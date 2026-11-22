@@ -144,9 +144,6 @@ function ensure2d() {
   x.fillStyle = g; x.fillRect(0, 0, 48, 48);
   if (!map.hasImage('sat-dot')) map.addImage('sat-dot', x.getImageData(0, 0, 48, 48));
   map.addLayer({ id: 'live-sat', type: 'symbol', source: 'live', filter: ['==', ['get', 'k'], 'sat'], layout: { 'icon-image': 'sat-dot', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'symbol-height-offset': 0 } });
-  map.on('click', 'live-sat', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k); });
-  map.on('mouseenter', 'live-sat', () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'live-sat', () => { map.getCanvas().style.cursor = ''; });
   // conflict markers: a dark badge with a coloured rim and a simple pictogram (explosion, drone, rocket)
   for (const k of ['clash', 'drone', 'missile']) {
     const cv = Object.assign(document.createElement('canvas'), { width: 64, height: 64 }), c2 = cv.getContext('2d'); c2.translate(32, 32);
@@ -158,13 +155,7 @@ function ensure2d() {
     if (!map.hasImage('cf-' + k)) map.addImage('cf-' + k, c2.getImageData(0, 0, 64, 64));
   }
   map.addLayer({ id: 'live-conf', type: 'symbol', source: 'live', filter: ['in', ['get', 'k'], ['literal', ['clash', 'drone', 'missile']]], layout: { 'icon-image': ['concat', 'cf-', ['get', 'k']], 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
-  map.on('click', 'live-conf', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k); });
-  map.on('mouseenter', 'live-conf', () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'live-conf', () => { map.getCanvas().style.cursor = ''; });
   float(window.__app?.trackOn);
-  map.on('click', 'live-pts', (e) => { const p = e.features[0]?.properties; if (p) chip(p.t, p.s, p.k, p.i, p.v); });
-  map.on('mouseenter', 'live-pts', () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'live-pts', () => { map.getCanvas().style.cursor = ''; });
 }
 const shown = () => [...(on.quakes ? items.quakes : []), ...(on.events ? items.events : []), ...(on.sats ? items.sats : []), ...(on.cctv ? items.cctv : []), ...(on.conflict ? items.conflict : [])];
 function draw2d() {
@@ -212,11 +203,20 @@ for (const which of Object.keys(rows)) {
 setInterval(() => { for (const w of ['quakes', 'events', 'conflict']) if (on[w]) refresh(w); }, 300000);
 setInterval(() => { if (on.sats && satRecs.length) { placeSats(); draw2d(); draw3d(); } }, 4000); // satellites move fast, so their dots are moved every few seconds
 window.addEventListener('globe-change', () => { if (shown().length) draw3d(); });
-// clicking empty map hides the Live panel and the info card (a click on a marker does not)
+// Live markers get a generous click area (12 px around the pointer), shared with the country click so the two never both fire
+const LIVE_LAYERS = ['live-pts', 'live-sat', 'live-conf'];
+const hit = (pt) => { const L = LIVE_LAYERS.filter((id) => map.getLayer(id)); if (!L.length) return null; return map.queryRenderedFeatures([[pt.x - 12, pt.y - 12], [pt.x + 12, pt.y + 12]], { layers: L })[0] || null; };
+window.__liveHit = hit;
+let overMarker = false;
+map.on('mousemove', (e) => {
+  const h = !!hit(e.point);
+  if (h) { map.getCanvas().style.cursor = 'pointer'; document.getElementById('tip').hidden = true; } else if (overMarker) map.getCanvas().style.cursor = '';
+  overMarker = h;
+});
 map.on('click', (e) => {
-  const lv = ['live-pts', 'live-sat', 'live-conf'].filter((id) => map.getLayer(id));
-  if (lv.length && map.queryRenderedFeatures(e.point, { layers: lv }).length) return;
-  el.hidden = true;
+  const f = hit(e.point);
+  if (f) { const p = f.properties; return chip(p.t, p.s, p.k, p.i, p.v); }
+  el.hidden = true; // clicking empty map hides the Live panel and the info card
   const w = window.__workspace; if (w?.isOpen && w.tab === 'live') w.close();
 });
 window.__live = { on, items };
