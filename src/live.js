@@ -70,7 +70,9 @@ async function loadCams() {
 }
 async function load(which) {
   if (which === 'conflict') { // one request (GDELT asks for few), sorted into kinds by the words in each place's headlines
-    let j; try { j = await (await get(GDELT(CONFLICT_Q))).json(); } catch { await sleep(6000); j = await (await get(GDELT(CONFLICT_Q))).json(); }
+    const ask = async (u) => { const r = await get(u); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); };
+    const viaSite = () => ask(`/api/conflict?q=${encodeURIComponent(CONFLICT_Q)}`), direct = () => ask(GDELT(CONFLICT_Q)); // the site's own step first, GDELT directly as a backup
+    let j; try { j = await viaSite(); } catch { try { j = await direct(); } catch { await sleep(6000); j = await direct(); } }
     items.conflict = (j.features || []).map((f) => {
       const d = new DOMParser().parseFromString(f.properties.html || '', 'text/html'), heads = [...d.querySelectorAll('a')].map((a) => a.textContent.trim()).filter(Boolean);
       const n = { missile: 0, drone: 0, clash: 0 }; for (const h of heads) n[/missile|rocket|ballistic/i.test(h) ? 'missile' : /drone|uav/i.test(h) ? 'drone' : 'clash']++;
